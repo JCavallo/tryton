@@ -558,7 +558,8 @@ class ViewTree(View):
                 column._type = 'optional'
                 self.treeview.insert_column(column, 0)
             image = Gtk.Image()
-            image.set_from_pixbuf(common.IconFactory.get_pixbuf('tryton-menu'))
+            image.set_from_pixbuf(common.IconFactory.get_pixbuf(
+                    'tryton-menu', color='#ffffff'))
             image.show()
             column.set_widget(image)
             column.set_fixed_width(25)

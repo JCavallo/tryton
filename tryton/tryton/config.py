@@ -84,7 +84,7 @@ class ConfigManager(object):
             'tip.autostart': False,
             'tip.position': 0,
             'form.toolbar': True,
-            'client.title': 'Coopengo',
+            'client.title': 'Coog',
             'rpc.cache_size': 1024,
             'client.modepda': False,
             'client.toolbar': 'default',
@@ -115,7 +115,7 @@ class ConfigManager(object):
         self.arguments = []
 
     def parse(self):
-        parser = optparse.OptionParser(version=("Tryton %s" % __version__),
+        parser = optparse.OptionParser(version=("Coog %s" % __version__),
                 usage="Usage: %prog [options] [url]")
         parser.add_option("-c", "--config", dest="config",
                 help=_("specify alternate config file"))
@@ -253,4 +253,4 @@ if not os.path.isdir(SOUNDS_DIR):
         SOUNDS_DIR = pkg_resources.resource_filename('tryton', 'data/sounds')
 
 TRYTON_ICON = GdkPixbuf.Pixbuf.new_from_file(
-    os.path.join(PIXMAPS_DIR, 'tryton-icon.png'))
+    os.path.join(PIXMAPS_DIR, 'coog_no_text.svg'))

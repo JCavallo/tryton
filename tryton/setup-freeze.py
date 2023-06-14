@@ -37,6 +37,8 @@ include_files = [
         os.path.join('share', 'gtk-3.0', 'gtk.immodules')),
     (os.path.join(sys.platform, 'gtk-3.0', 'gdk-pixbuf.loaders'),
         os.path.join('share', 'gtk-3.0', 'gdk-pixbuf.loaders')),
+    (os.path.join(sys.platform, 'gtk-3.0', 'settings.ini'),
+        os.path.join('etc', 'gtk-3.0', 'settings.ini')),
     ]
 
 required_gi_namespaces = [
@@ -51,6 +53,7 @@ required_gi_namespaces = [
     'Gio-2.0',
     'GooCanvas-[2-3].0',
     'Gtk-3.0',
+    'GtkSource-3.0',
     'HarfBuzz-0.0',
     'Pango-1.0',
     'PangoCairo-1.0',
