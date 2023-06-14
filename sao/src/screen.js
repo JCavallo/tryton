@@ -984,7 +984,10 @@
                 this, view_id, view.type, xml_view, view.field_childs,
                 view.children_definitions);
             this.views.push(view_widget);
-
+            // JMO: report https://github.com/coopengo/tryton/pull/13
+            var fkeys = {};
+            for  (var k in fields) {fkeys[k] = '';}
+            view_widget._field_keys = fkeys;
             return view_widget;
         },
         get number_of_views() {
@@ -1485,13 +1488,16 @@
                         ~['tree', 'graph', 'calendar'].indexOf(
                             this.current_view.view_type));
                 deferreds.push(search_prm);
-                for (const view of this.views) {
-                    if (view &&
-                        ((view == this.current_view) ||
-                            view.el.parent().length)) {
-                        deferreds.push(view.display());
-                    }
-                }
+                // [Coog specific]
+                // JMO: report https://github.com/coopengo/tryton/pull/13
+                // for (const view of this.views) {
+                //     if (view &&
+                //         ((view == this.current_view) ||
+                //             view.el.parent().length)) {
+                //         deferreds.push(view.display());
+                //     }
+                // }
+                deferreds.push(this.current_view.display());
                 if (this.current_view.view_type == 'tree') {
                     let view_tree = this.fields_view_tree[
                         this.current_view.view_id] || {};
