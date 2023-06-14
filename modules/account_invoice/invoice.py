@@ -1841,27 +1841,29 @@ class Invoice(Workflow, ModelSQL, ModelView, TaxableMixin, InvoiceReportMixin):
     @Workflow.transition('posted')
     @set_employee('posted_by', when='before')
     def post(cls, invoices):
-        pool = Pool()
-        Date = pool.get('ir.date')
-        Warning = pool.get('res.user.warning')
-        for company, grouped_invoices in groupby(
-                invoices, key=lambda i: i.company):
-            with Transaction().set_context(company=company.id):
-                today = Date.today()
-            future_invoices = [
-                i for i in grouped_invoices
-                if i.type == 'out'
-                and i.invoice_date and i.invoice_date > today]
-            if future_invoices:
-                names = ', '.join(m.rec_name for m in future_invoices[:5])
-                if len(future_invoices) > 5:
-                    names += '...'
-                warning_key = Warning.format(
-                    'invoice_date_future', future_invoices)
-                if Warning.check(warning_key):
-                    raise InvoiceFutureWarning(warning_key,
-                        gettext('account_invoice.msg_invoice_date_future',
-                            invoices=names))
+        # JMO: coog specific:
+        # No warning for future invoices
+        # pool = Pool()
+        # Date = pool.get('ir.date')
+        # Warning = pool.get('res.user.warning')
+        # for company, grouped_invoices in groupby(
+        #         invoices, key=lambda i: i.company):
+        #     with Transaction().set_context(company=company.id):
+        #         today = Date.today()
+        #     future_invoices = [
+        #         i for i in grouped_invoices
+        #         if i.type == 'out'
+        #         and i.invoice_date and i.invoice_date > today]
+        #     if future_invoices:
+        #         names = ', '.join(m.rec_name for m in future_invoices[:5])
+        #         if len(future_invoices) > 5:
+        #             names += '...'
+        #         warning_key = Warning.format(
+        #             'invoice_date_future', future_invoices)
+        #         if Warning.check(warning_key):
+        #             raise InvoiceFutureWarning(warning_key,
+        #                 gettext('account_invoice.msg_invoice_date_future',
+        #                     invoices=names))
         to_check = [i for i in invoices if i.state != 'validated']
         cls._check_taxes(to_check)
         cls._check_similar(to_check)
