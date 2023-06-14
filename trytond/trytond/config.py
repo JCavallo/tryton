@@ -77,6 +77,10 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('cache', 'ir.translation', '10240')
         self.set('cache', 'clean_timeout', '300')
         self.set('cache', 'select_timeout', '60')
+
+        self.add_section('report')
+        self.set('report', 'unoconv_retry', '2')
+
         self.add_section('queue')
         self.set('queue', 'worker', 'False')
         self.add_section('ssl')
@@ -99,7 +103,6 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('bus', 'long_polling_timeout', str(5 * 60))
         self.set('bus', 'cache_timeout', '5')
         self.set('bus', 'select_timeout', '5')
-        self.add_section('report')
         self.add_section('html')
         if overrides:
             self.update_etc(configfile=overrides)

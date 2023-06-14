@@ -9,6 +9,7 @@ import operator
 import os
 import pathlib
 import shutil
+import requests
 import subprocess
 import tempfile
 import time
@@ -36,6 +37,7 @@ from genshi.filters import Translator
 from genshi.template.text import TextTemplate
 
 from trytond.config import config
+from trytond.exceptions import UserError
 from trytond.i18n import gettext, ngettext
 from trytond.model.exceptions import AccessError
 from trytond.pool import Pool, PoolBase
@@ -62,7 +64,9 @@ try:
 except ImportError:
     Manifest, MANIFEST = None, None
 
+
 logger = logging.getLogger(__name__)
+
 
 MIMETYPES = {
     'odt': 'application/vnd.oasis.opendocument.text',
@@ -121,6 +125,20 @@ CONVERT_COMMAND = config.get(
     '--convert-to "%(output_extension)s" '
     '--outdir "%(directory)s" '
     '"%(input_path)s"')
+
+
+class UnoConversionError(UserError):
+    pass
+
+
+class ReportFactory:
+
+    def __call__(self, records, **kwargs):
+        data = {}
+        data['objects'] = records  # XXX To remove
+        data['records'] = records
+        data.update(kwargs)
+        return data
 
 
 class TranslateFactory:
@@ -374,6 +392,7 @@ class Report(URLMixin, PoolBase):
         report_context['msg_gettext'] = gettext
         report_context['msg_ngettext'] = ngettext
 
+        report_context['_relatorio_zip64'] = True
         return report_context
 
     @classmethod
@@ -391,6 +410,11 @@ class Report(URLMixin, PoolBase):
             return translate
 
     @classmethod
+    def content_io_from_report(cls, report):
+        # ABD: Hooked in report_engine to handle report style content
+        return BytesIO(report.report_content)
+
+    @classmethod
     def render(cls, report, report_context):
         "calls the underlying templating engine to renders the report"
         template = report.get_template_cached()
@@ -398,13 +422,14 @@ class Report(URLMixin, PoolBase):
             mimetype = MIMETYPES[report.template_extension]
             loader = relatorio.reporting.MIMETemplateLoader()
             klass = loader.factories[loader.get_type(mimetype)]
-            template = klass(BytesIO(report.report_content))
+            content_io = cls.content_io_from_report(report)
+            template = klass(content_io)
+            translate = cls._callback_loader(report, template)
+            if translate:
+                report_context = report_context.copy()
+                report_context['gettext'] = translate.gettext
+                report_context['ngettext'] = translate.ngettext
             report.set_template_cached(template)
-        translate = cls._callback_loader(report, template)
-        if translate:
-            report_context = report_context.copy()
-            report_context['gettext'] = translate.gettext
-            report_context['ngettext'] = translate.ngettext
         data = template.generate(**report_context).render()
         if hasattr(data, 'getvalue'):
             data = data.getvalue()
@@ -412,6 +437,17 @@ class Report(URLMixin, PoolBase):
 
     @classmethod
     def convert(cls, report, data, timeout=5 * 60, retry=5):
+        "converts the report data to another mimetype if necessary"
+        # AKE: support printing via external api
+        if config.get('report', 'api', default=None):
+            return cls.convert_api(report, data, timeout)
+        elif config.get('report', 'unoconv', default=True):
+            return cls.convert_unoconv(report, data, timeout)
+        else:
+            raise NotImplementedError
+
+    @classmethod
+    def convert_unoconv(cls, report, data, timeout, retry=5):
         "converts the report data to another mimetype if necessary"
         input_format = report.template_extension
         output_format = report.extension or report.template_extension
@@ -448,6 +484,12 @@ class Report(URLMixin, PoolBase):
                     time.sleep(0.02 * (retry - count))
                 try:
                     subprocess.check_call(cmd, timeout=timeout, shell=True)
+                    nb_retry = 0
+                    while nb_retry < 10:
+                        nb_retry += 1
+                        if os.path.exists(output_path):
+                            break
+                        time.sleep(0.2)
                 except subprocess.CalledProcessError:
                     if count:
                         continue
@@ -468,6 +510,43 @@ class Report(URLMixin, PoolBase):
                 shutil.rmtree(directory, ignore_errors=True)
             except OSError:
                 pass
+
+    @classmethod
+    def get_conversion_options(cls, report):
+        return {}
+
+    @classmethod
+    def convert_api(cls, report, data, timeout):
+        # AKE: support printing via external api
+        User = Pool().get('res.user')
+        input_format = report.template_extension
+        output_format = report.extension or report.template_extension
+
+        if output_format in MIMETYPES:
+            return output_format, data
+
+        oext = FORMAT2EXT.get(output_format, output_format)
+        url_tpl = config.get('report', 'api')
+        url = url_tpl.format(oext=oext)
+        files = {'file': ('doc.' + input_format, data)}
+        conversion_options = cls.get_conversion_options(report)
+        for count in range(config.getint('report', 'unoconv_retry'), -1, -1):
+            try:
+                r = requests.post(url, files=files, timeout=timeout,
+                      data=conversion_options)
+                if r.status_code < 300:
+                    return oext, r.content
+                else:
+                    raise UnoConversionError('Conversion of "%s" failed. '
+                        'Unoconv responsed with "%s".' % (
+                            report.report_name, r.reason))
+            except UnoConversionError as e:
+                if count:
+                    time.sleep(0.1)
+                    continue
+                user = User(Transaction().user)
+                logger.error(e.message + ' User: %s' % user.name or '')
+                raise
 
     @classmethod
     def format_date(cls, value, lang=None, format=None):
