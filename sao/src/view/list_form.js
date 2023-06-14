@@ -91,6 +91,7 @@
             var view_form = new Sao.View.ListGroupViewForm(
                 this.view_id, this.screen, this.form_xml);
             view_form.record = record;
+            view_form.listform = this;
             this._view_forms.push(view_form);
             var frame = jQuery('<li/>', {
                 'class': 'list-group-item list-form-item'
