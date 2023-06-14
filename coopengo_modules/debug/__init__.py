@@ -42,13 +42,12 @@ def register():
         module='debug', type_='wizard')
 
     try:
-        Pool.register_post_init_hooks(
-            tryton_syntax_analysis,
-            set_method_names_for_profiling,
-            name_one2many_gets,
-            activate_auto_profile,
-            enable_debug_views,
+        Pool.register_post_init_hooks(tryton_syntax_analysis, module='debug')
+        Pool.register_post_init_hooks(set_method_names_for_profiling,
             module='debug')
+        Pool.register_post_init_hooks(name_one2many_gets, module='debug')
+        Pool.register_post_init_hooks(activate_auto_profile, module='debug')
+        Pool.register_post_init_hooks(enable_debug_views, module='debug')
     except AttributeError:
         logger.warning('Post init hooks disabled')
 

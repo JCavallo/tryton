@@ -58,6 +58,15 @@ class Pool(object):
     _pool_modules = defaultdict(list)
     _pool_instances = WeakSet()
     test = False
+    _init_hooks = {}
+    _final_init_hooks = {}
+    _post_init_calls = {}
+    _final_init_calls = {}
+    _registered_migration_hooks = {}
+    _final_migrations = {}
+    _registered_notifications = {}
+    _notification_callbacks = {}
+    pool_types = {'model', 'report', 'wizard'}
 
     def __new__(cls, database_name=None):
         if database_name is None:
@@ -77,8 +86,8 @@ class Pool(object):
             database_name = Transaction().database.name
         self.database_name = database_name
 
-    @staticmethod
-    def register(*classes, **kwargs):
+    @classmethod
+    def register(cls, *classes, **kwargs):
         '''
         Register a list of classes
         '''
@@ -86,7 +95,7 @@ class Pool(object):
             module = kwargs['module']
             type_ = kwargs['type_']
             depends = set(kwargs.get('depends', []))
-            assert type_ in {'model', 'report', 'wizard'}, (
+            assert type_ in cls.pool_types, (
                 f"{type_} is not a valid type_")
             for cls in classes:
                 mpool = Pool.classes[type_][module]
@@ -95,9 +104,67 @@ class Pool(object):
                     f"{cls} is missing metaclass {PoolMeta}")
                 mpool[cls] = depends
 
+    @classmethod
+    def add_pool_type(cls, type):
+        cls.pool_types.add(type)
+        if type not in cls.classes:
+            cls.classes[type] = defaultdict(OrderedDict)
+
     @staticmethod
     def register_mixin(mixin, classinfo, module):
         Pool.classes_mixin[module].append((classinfo, mixin))
+
+    @staticmethod
+    def register_post_init_hooks(hook, *, module):
+        '''
+        Add the "hook" to be called at the end of the setup (after
+        __post_setup__ calls) if <module> is installed.
+
+        This can be used to patch standard functions, or add global behaviours
+        via added inheritance.
+        '''
+        if module not in Pool._init_hooks:
+            Pool._init_hooks[module] = []
+        Pool._init_hooks[module].append(hook)
+
+    @staticmethod
+    def register_final_init_hooks(hook, *, module):
+        '''
+        Add the "hook" to be called once the pool is ready, if <module> is
+        installed.
+
+        This can be used to trigger additional commands that require a ready
+        pool before executing
+        '''
+        if module not in Pool._final_init_hooks:
+            Pool._final_init_hooks[module] = []
+        Pool._final_init_hooks[module].append(hook)
+
+    @staticmethod
+    def register_final_migration(hook, *, module):
+        '''
+        Add the "hook" to be called at the end of the upgrade process, if
+        <module> is installed and upgraded.
+
+        This can be used to run modular, multi-module migrations
+        '''
+        assert module is not None
+        if module not in Pool._registered_migration_hooks:
+            Pool._registered_migration_hooks[module] = []
+        Pool._registered_migration_hooks[module].append(hook)
+
+    @staticmethod
+    def register_notification_callbacks(keyword, callback, *, module):
+        '''
+        Register the <callback> to be triggered if the <keyword> is received
+        via a postgres channel.
+
+        This can be used to update some globals when some pre-defined actions
+        are taken in the application
+        '''
+        if module not in Pool._registered_notifications:
+            Pool._registered_notifications[module] = {}
+        Pool._registered_notifications[module][keyword] = callback
 
     @classmethod
     def start(cls):
@@ -107,6 +174,9 @@ class Pool(object):
         with cls._lock:
             for classes in Pool.classes.values():
                 classes.clear()
+            cls._init_hooks = {}
+            cls._final_init_hooks = {}
+            cls._registered_notifications = {}
             register_classes(with_test=cls.test)
             cls._started = True
 
@@ -140,15 +210,31 @@ class Pool(object):
             # Clear before loading modules
             self._pool = defaultdict(dict)
             self._modules = []
-            restart = not load_modules(
-                self.database_name, self, update=update, lang=lang,
-                activatedeps=activatedeps, indexes=indexes)
+            self._post_init_calls[self.database_name] = []
+            self._final_init_calls[self.database_name] = []
+            self._final_migrations[self.database_name] = []
+            self._notification_callbacks[self.database_name] = {}
+            try:
+                restart = not load_modules(
+                    self.database_name, self, update=update, lang=lang,
+                    activatedeps=activatedeps, indexes=indexes)
+            except Exception:
+                self._modules = None
+                raise
             self._pools[self.database_name] = self._pool
             self._pool_modules[self.database_name] = self._modules
             self._pool_instances.clear()
             self._pool_instances.add(self)
             if restart:
                 self.init()
+
+    def post_init(self, update):
+        for hook in self._post_init_calls[self.database_name]:
+            hook(self, update)
+
+    def final_migrations(self, options):
+        for migration in self._final_migrations[self.database_name]:
+            migration(self, options)
 
     def get(self, name, type='model'):
         '''
@@ -217,6 +303,14 @@ class Pool(object):
                     f"{cls} is not a subclass of {PoolBase}")
                 self.add(cls, type=type_)
                 classes[type_].append(cls)
+        self._post_init_calls[self.database_name] += self._init_hooks.get(
+            module, [])
+        self._final_init_calls[self.database_name] += \
+            self._final_init_hooks.get(module, [])
+        self._final_migrations[self.database_name] += \
+            self._registered_migration_hooks.get(module, [])
+        self._notification_callbacks[self.database_name].update(
+            self._registered_notifications.get(module, {}))
         self._modules.append(module)
         return classes
 
@@ -231,6 +325,10 @@ class Pool(object):
                 cls.__setup__()
             for cls in lst:
                 cls.__post_setup__()
+
+    def setup_complete(self, update):
+        for hook in self._final_init_calls[self.database_name]:
+            hook(self, update)
 
     def setup_mixin(self, type=None, name=None):
         logger.info('setup mixin for "%s"', self.database_name)

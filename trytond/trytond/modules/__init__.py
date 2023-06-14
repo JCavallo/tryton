@@ -188,6 +188,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
         if update:
             for module in early_modules:
                 pool.setup(early_classes[module])
+                pool.post_init(module)
             for module in early_modules:
                 if (is_module_to_install(module, update)
                         or module2state[module] in to_install_states):
@@ -207,6 +208,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                     # linger
                     transaction.cache.clear()
                     pool.setup(classes)
+                    pool.post_init(module)
             package_state = module2state[module]
             if (is_module_to_install(module, update)
                     or (update and package_state in to_install_states)):
@@ -264,6 +266,13 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
         if not update:
             pool.setup()
         else:
+            class Options:
+                pass
+
+            options = Options()
+            options.indexes = indexes
+
+            pool.final_migrations(options)
             # As the caches are cleared at the end of the process there's
             # no need to do it here.
             # It may deadlock on the ir_cache SELECT if the table schema has
@@ -275,6 +284,9 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
             Model.clean()
             ModelField = pool.get('ir.model.field')
             ModelField.clean()
+
+        # JCA: Add update parameter to post init hooks
+        pool.post_init(None)
 
         pool.setup_mixin()
 
@@ -317,6 +329,8 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
             # Ensure cache is clear for other instances
             Cache.clear_all()
             Cache.refresh_pool(transaction)
+
+        pool.setup_complete(update)
     logger.info('all modules loaded')
 
 
