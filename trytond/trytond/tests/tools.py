@@ -20,10 +20,10 @@ def _func_name(func):
         return func.__qualname__
 
 
-def activate_modules(modules, *setup):
+def activate_modules(modules, *setup, cache_file_name=None):
     if isinstance(modules, str):
         modules = [modules]
-    cache_name = '-'.join(sorted(modules))
+    cache_name = cache_file_name or '-'.join(modules)
     if setup_name := '|'.join(_func_name(f) for f in setup):
         cache_name += f'--{setup_name}'
     if restore_db_cache(cache_name):
