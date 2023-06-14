@@ -18,6 +18,7 @@
                 'class': 'hidden-lg',
             }).appendTo(this.name_el);
             this.view_prm = jQuery.when();
+            this.forced_count = false;
         },
         menu_def: function() {
             return [
@@ -291,6 +292,7 @@
                 }).appendTo(jQuery('<div/>', {
                     'class': 'navbar-text hidden-xs',
                 }).insertAfter(this.buttons.previous));
+                this.status_label.click(this._force_count.bind(this));
                 this.buttons.previous.addClass('hidden-xs');
             }
             if (this.buttons.next) {
@@ -380,6 +382,9 @@
         compare: function(attributes) {
             return false;
         },
+        _force_count: function(evt) {
+            this.forced_count = true;
+        }
     });
 
     Sao.Tab.counter = 0;
@@ -1652,21 +1657,29 @@
             set_sensitive('next', this.screen.has_next());
 
             var msg;
+            var size_display_func;
+            if (this.forced_count) {
+                size_display_func = (x) => x;
+            } else {
+                size_display_func = Sao.common.humanize;
+            }
             if (size < max_size) {
                 msg = (
                     name + '@' +
-                    Sao.common.humanize(size) + '/' +
-                    Sao.common.humanize(max_size));
-                if (max_size >= this.screen.count_limit) {
+                    size_display_func(size) + '/' +
+                    size_display_func(max_size));
+                if (!this.forced_count &&
+                        (max_size >= this.screen.count_limit)) {
                     msg += '+';
                 }
             } else {
-                msg = name + '/' + Sao.common.humanize(size);
+                msg = name + '/' + size_display_func(size);
             }
             this.status_label.text(msg).attr('title', msg);
             this.info_bar.clear();
             this.set_buttons_sensitive();
             this.refresh_attachment_preview();
+            this.forced_count = false;
 
             if (this._chat) {
                 let chat = this.sidebar_content.find('.chat');
@@ -1781,6 +1794,11 @@
         },
         get current_view_type() {
             return this.screen.current_view.view_type;
+        },
+        _force_count: function(evt) {
+            Sao.Tab.Form._super._force_count.call(this, evt);
+            var domain = this.screen.screen_container.get_text();
+            this.screen._force_count(domain);
         },
         set_name: function(name) {
             if (name != this.attributes.name) {
