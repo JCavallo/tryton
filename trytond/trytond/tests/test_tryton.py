@@ -18,6 +18,7 @@ import unittest
 import unittest.mock
 import warnings
 from collections import defaultdict
+import uuid
 from configparser import ConfigParser
 from fnmatch import fnmatchcase
 from functools import reduce, wraps
@@ -69,7 +70,7 @@ if not (DB_NAME := os.environ.get('DB_NAME')):
     if backend.name == 'sqlite':
         DB_NAME = ':memory:'
     else:
-        DB_NAME = 'test_' + str(int(time.time()))
+        DB_NAME = 'test_' + str(uuid.uuid4().int)
     os.environ['DB_NAME'] = DB_NAME
 DB_CACHE = os.environ.get('DB_CACHE')
 
