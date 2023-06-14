@@ -675,6 +675,15 @@ class AccountTemplate(
                     table, (table.debit_type + table.credit_type) == Null),
                 'account.msg_only_one_debit_credit_types'))
 
+    @classmethod
+    def __register__(cls, module_name):
+        super().__register__(module_name)
+
+        # Drop the required constraint on 'kind'
+        table_h = cls.__table_handler__(module_name)
+        if table_h.column_exist('kind'):
+            table_h.not_null_action('kind', 'remove')
+
     def _get_account_value(self, account=None):
         '''
         Set the values for account creation.
@@ -970,6 +979,15 @@ class Account(
                 table,
                 (table.left, Index.Range(cardinality='high')),
                 (table.right, Index.Range(cardinality='high'))))
+
+    @classmethod
+    def __register__(cls, module_name):
+        super().__register__(module_name)
+
+        # Drop the required constraint on 'kind'
+        table_h = cls.__table_handler__(module_name)
+        if table_h.column_exist('kind'):
+            table_h.not_null_action('kind', 'remove')
 
     @classmethod
     def validate_fields(cls, accounts, field_names):
