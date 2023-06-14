@@ -119,6 +119,11 @@ def get_parser_admin():
         "--indexes", dest="indexes",
         action=getattr(argparse, 'BooleanOptionalAction', 'store_true'),
         default=None, help="update indexes")
+    # ABDC: Add option to check if update is needed
+    parser.add_argument("-cu", "--check-update", dest="check_update",
+        nargs='+', default=[], metavar='VALUE',
+        help="Verify if installed module versions has changed before playing "
+        "the update")
     parser.add_argument("--all", dest="update", action="append_const",
         const="ir", help="update all activated modules")
     parser.add_argument("--activate-dependencies", dest="activatedeps",
