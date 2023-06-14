@@ -268,7 +268,7 @@ class Screen:
 
     def search_prev(self, search_string):
         if self.limit:
-            self.offset = max(self.offset - self.limit, 0)
+            self.offset -= self.limit
         self.search_filter(search_string=search_string)
 
     def search_next(self, search_string):
@@ -301,16 +301,11 @@ class Screen:
         if (self.screen_container.but_active.props.visible
                 and self.screen_container.but_active.get_active()):
             context['active_test'] = False
-        ids = []
-        while True:
-            try:
-                ids = RPCExecute('model', self.model_name, 'search', domain,
-                    self.offset, self.limit, self.order, context=context)
-            except RPCException:
-                break
-            if ids or self.offset <= 0:
-                break
-            self.offset = max(self.offset - self.limit, 0)
+        try:
+            ids = RPCExecute('model', self.model_name, 'search', domain,
+                self.offset, self.limit, self.order, context=context)
+        except RPCException:
+            ids = []
         if not only_ids:
             if self.limit is not None and len(ids) == self.limit:
                 try:
