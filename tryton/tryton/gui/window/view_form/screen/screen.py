@@ -885,7 +885,7 @@ class Screen:
 
     def remove(self, delete=False, remove=False, force_remove=False,
             records=None):
-        records = records or self.selected_records
+        records = list(reversed(records or self.selected_records))
         if not records:
             return
         current_record = self.current_record
