@@ -3,13 +3,23 @@
 from trytond.config import config
 from trytond.model import fields
 from trytond.pool import PoolMeta
+from trytond.transaction import Transaction
 
-price_decimal = config.getint('product', 'price_decimal', default=4)
+price_decimal = config.getint('product', 'price_decimal', default=6)
 
 
 class Configuration(metaclass=PoolMeta):
     __name__ = 'ir.configuration'
     product_price_decimal = fields.Integer("Product Price Decimal")
+
+    @classmethod
+    def __register__(cls, module_name):
+        super().__register__(module_name)
+        table = cls.__table__()
+
+        # set price_decimal to 6
+        cursor = Transaction().connection.cursor()
+        cursor.execute(*table.update([table.product_price_decimal], [6]))
 
     @classmethod
     def default_product_price_decimal(cls):
