@@ -20,6 +20,11 @@ from tryton.jsonrpc import Fault, ServerPool, ServerProxy
 logger = logging.getLogger(__name__)
 CONNECTION = None
 _USER = None
+_USERNAME = ''
+_HOST = ''
+_PORT = None
+_CLIENT_DATE = None
+_DATABASE = ''
 CONTEXT = {}
 _VIEW_CACHE = {}
 _TOOLBAR_CACHE = {}
@@ -109,16 +114,19 @@ def set_service_session(parameters):
     Bus.listen(CONNECTION)
 
 
+# ABD: Add date and set_date parameters to login function (ca093423)
 def login(parameters):
     from tryton import common
     from tryton.bus import Bus
     global CONNECTION, _USER
+    global _CLIENT_DATE
     host = CONFIG['login.host']
     hostname = common.get_hostname(host)
     port = common.get_port(host)
     database = CONFIG['login.db']
     username = CONFIG['login.login']
     language = CONFIG['client.lang']
+    date = CONFIG['login.date']
     parameters['device_cookie'] = device_cookie.get()
     connection = ServerProxy(hostname, port, database)
     logger.info('common.db.login(%s, %s, %s)', username, 'x' * 10, language)
@@ -130,12 +138,14 @@ def login(parameters):
         CONNECTION.close()
     CONNECTION = ServerPool(
         hostname, port, database, session=session, cache=not CONFIG['dev'])
+    _CLIENT_DATE = date
     device_cookie.renew()
     Bus.listen(CONNECTION)
 
 
 def logout():
     global CONNECTION, _USER
+    global _CLIENT_DATE
     if CONNECTION is not None:
         try:
             logger.info('common.db.logout()')
@@ -145,6 +155,7 @@ def logout():
             pass
         CONNECTION.close()
         CONNECTION = None
+    _CLIENT_DATE = None
     _USER = None
 
 
