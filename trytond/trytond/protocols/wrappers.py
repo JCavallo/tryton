@@ -324,6 +324,15 @@ def with_pool(func):
     return wrapper
 
 
+def with_pool_by_config(func):
+    @wraps(func)
+    def wrapper(request, *args, **kwargs):
+        uri = config.get('database', 'uri')
+        database_name = config.parse_uri(uri).path[1:]
+        return with_pool(func)(request, database_name, *args, **kwargs)
+    return wrapper
+
+
 def with_transaction(readonly=None, user=0, context=None, timeout=None):
     from trytond.worker import run_task
 
