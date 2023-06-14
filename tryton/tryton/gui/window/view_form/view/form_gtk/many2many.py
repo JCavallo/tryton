@@ -126,6 +126,11 @@ class Many2Many(Widget):
 
         self._popup = False
 
+    def _color_widget(self):
+        if hasattr(self.screen.current_view, 'treeview'):
+            return self.screen.current_view.treeview
+        return super(Many2Many, self)._color_widget()
+
     def on_keypress(self, widget, event):
         editable = self.wid_text.get_editable()
         activate_keys = [Gdk.KEY_Tab, Gdk.KEY_ISO_Left_Tab]
