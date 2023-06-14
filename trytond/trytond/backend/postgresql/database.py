@@ -42,6 +42,10 @@ logger = logging.getLogger(__name__)
 
 os.environ['PGTZ'] = os.environ.get('TZ', '')
 _default_name = config.get('database', 'default_name', default='template1')
+_all_logging_enabled = logger.isEnabledFor(logging.DEBUG)
+_slow_threshold = config.getfloat('database', 'log_time_threshold', default=-1)
+_slow_logging_enabled = _slow_threshold > 0 and logger.isEnabledFor(
+    logging.WARNING)
 
 
 def unescape_quote(s):
@@ -57,11 +61,22 @@ def replace_special_values(s, **mapping):
 
 
 class LoggingCursor(Cursor):
-
     def execute(self, query, params=None, *, prepare=None, binary=None):
-        if logger.isEnabledFor(logging.DEBUG):
-            logger.debug(ClientCursor(self.connection).mogrify(query, params))
-        return super().execute(query, params, prepare=prepare, binary=binary)
+        logged_query = None
+        if _all_logging_enabled:
+            logged_query = ClientCursor(self.connection).mogrify(query, params)
+            logger.debug(logged_query)
+        if _slow_logging_enabled:
+            start = time.time()
+        value = super().execute(query, params, prepare=prepare, binary=binary)
+        if _slow_logging_enabled:
+            end = time.time()
+            if end - start > _slow_threshold:
+                if logged_query is None:
+                    logged_query = ClientCursor(self.connection).mogrify(
+                        query, params)
+                logger.warning('slow:(%s s):%s' % (end - start, logged_query))
+        return value
 
 
 class ForSkipLocked(For):

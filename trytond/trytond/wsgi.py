@@ -196,6 +196,7 @@ class TrytondWSGI(object):
                             or origin.startswith('chrome-extension://')):
                         origin = 'null'
                     else:
+                        logger.info('bad cors: %s unauthorized' % str(origin))
                         abort(HTTPStatus.FORBIDDEN)
             if origin == 'null':
                 adapter = self.url_map.bind_to_environ(request.environ)
