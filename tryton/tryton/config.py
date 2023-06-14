@@ -93,6 +93,7 @@ class ConfigManager(object):
             'client.code_scanner_sound': True,
             'client.lang': locale.getdefaultlocale()[0],
             'client.language_direction': 'ltr',
+            # JCA: Set default limit to 100 for performances
             'client.limit': 100,
             'client.check_version': False,
             'client.bus_timeout': 10 * 60,
