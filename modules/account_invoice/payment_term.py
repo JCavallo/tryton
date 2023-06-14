@@ -28,24 +28,6 @@ class PaymentTerm(DeactivableMixin, ModelSQL, ModelView):
         super().__setup__()
         cls._order.insert(0, ('name', 'ASC'))
 
-    @classmethod
-    def validate_fields(cls, terms, field_names):
-        super().validate_fields(terms, field_names)
-        cls.check_remainder(terms, field_names)
-
-    @classmethod
-    def check_remainder(cls, terms, field_names=None):
-        if Transaction().user == 0:
-            return
-        if field_names and 'lines' not in field_names:
-            return
-        for term in terms:
-            if not term.lines or not term.lines[-1].type == 'remainder':
-                raise PaymentTermValidationError(gettext(
-                        'account_invoice'
-                        '.msg_payment_term_missing_last_remainder',
-                        payment_term=term.rec_name))
-
     def compute(self, amount, currency, date):
         """Calculate payment terms and return a list of tuples
         with (date, amount) for each payment term line.
