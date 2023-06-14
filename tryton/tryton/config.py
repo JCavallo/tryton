@@ -84,7 +84,7 @@ class ConfigManager(object):
             'tip.autostart': False,
             'tip.position': 0,
             'form.toolbar': True,
-            'client.title': 'Tryton',
+            'client.title': 'Coopengo',
             'rpc.cache_size': 1024,
             'client.modepda': False,
             'client.toolbar': 'default',
