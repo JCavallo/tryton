@@ -66,6 +66,7 @@ class WinForm(NoModal, InfoBar):
         self.win.set_deletable(False)
         self.win.connect('delete-event', lambda *a: True)
         self.win.connect('close', self.close)
+        self.win.connect('delete-event', self.delete_event)
         self.win.connect('response', self.response)
 
         self.win.set_default_size(*self.default_size())
@@ -429,6 +430,10 @@ class WinForm(NoModal, InfoBar):
     def close(self, widget):
         widget.stop_emission_by_name('close')
         self.response(self.win, Gtk.ResponseType.CANCEL)
+        return True
+
+    def delete_event(self, widget, event):
+        widget.emit_stop_by_name('delete-event')
         return True
 
     def response(self, win, response_id):
