@@ -17,6 +17,10 @@ def main():
     # Import after application is configured
     from trytond.pool import Pool
 
+    # AKE: handle term signals
+    handler = commandline.generate_signal_handler(options.pidfile)
+    commandline.handle_signals(handler)
+
     with commandline.pidfile(options):
         try:
             Pool.start()
