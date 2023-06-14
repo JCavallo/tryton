@@ -350,7 +350,10 @@ class ModelView(Model):
             tree, result['type'], view_id=view_id,
             field_children=result['field_childs'], level=level)
 
-        return cls._fields_view_get_cache.set(key, result)
+        if not config.getboolean(
+                'cache', 'disable_fields_view_get_cache', default=False):
+            cls._fields_view_get_cache.set(key, result)
+        return result
 
     @classmethod
     def view_toolbar_get(cls):
