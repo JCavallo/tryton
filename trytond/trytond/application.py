@@ -1,6 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import csv
+import logging
 import logging.config
 import os
 import threading
@@ -8,16 +9,19 @@ from io import StringIO
 
 __all__ = ['app']
 
+log_file = os.environ.get('WSGI_LOG_FILE')
+log_level = os.environ.get('LOG_LEVEL', 'ERROR')
+if log_file:
+    logging.basicConfig(level=getattr(logging, log_level),
+        filename=log_file)
+
 # Logging must be set before importing
 if logging_config := os.environ.get('TRYTOND_LOGGING_CONFIG'):
     logging.config.fileConfig(logging_config)
 else:
-    logging_level = int(
-        os.environ.get('TRYTOND_LOGGING_LEVEL') or logging.ERROR)
-    logformat = ('%(process)s %(thread)s [%(asctime)s] '
-        '%(levelname)s %(name)s %(message)s')
-    level = max(logging_level, logging.NOTSET)
-    logging.basicConfig(level=level, format=logformat)
+    LF = ('%(process)s %(thread)s [%(asctime)s] %(levelname)s'
+        ' %(name)s %(message)s')
+    logging.basicConfig(level=getattr(logging, log_level), format=LF)
 logging.captureWarnings(True)
 
 if os.environ.get('TRYTOND_COROUTINE'):
