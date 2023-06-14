@@ -874,7 +874,7 @@ class Screen:
             self.group.written(ids)
         if self.parent:
             self.parent.root_parent.reload()
-        self.display()
+        record_id = self.current_record.id if self.current_record else None
         if self._multiview_form:
             root_parent = self.current_record.root_parent
             assert root_parent.model_name \
@@ -882,6 +882,7 @@ class Screen:
                     root_parent.model_name, 'is not',
                     self._multiview_form.screen.model_name)
             self._multiview_form.screen.reload([root_parent.id])
+        self.display(res_id=record_id)
 
     def unremove(self):
         records = self.selected_records
