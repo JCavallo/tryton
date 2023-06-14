@@ -197,10 +197,9 @@ class Reference(SelectionMixin, Field):
             Model.id.sql_type().base)
 
     @inactive_records
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         if '.' not in domain[0]:
-            return super().convert_domain(domain, tables, Model)
+            return super()._convert_domain(domain, tables, Model)
         pool = Pool()
         name, operator, value, target = domain[:4]
         Target = pool.get(target)

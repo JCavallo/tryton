@@ -116,11 +116,10 @@ class Dict(Field):
                 expression &= (column != Null)
         return expression
 
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         name, operator, value = domain[:3]
         if '.' not in name:
-            return super().convert_domain(domain, tables, Model)
+            return super()._convert_domain(domain, tables, Model)
         database = Transaction().database
         name, key = name.split('.', 1)
         Operator = SQL_OPERATORS[operator]
