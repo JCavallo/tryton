@@ -120,12 +120,16 @@ class Action(object):
             ctx.update(params['context'])
             ctx.update(action_ctx)
 
-            ctx['context'] = ctx
+            ctx['context'] = copy.deepcopy(ctx)
+            action_ctx.update(ctx)
             decoder = PYSONDecoder(ctx)
             params['domain'] = decoder.decode(action['pyson_domain'])
             params['order'] = decoder.decode(action['pyson_order'])
             params['search_value'] = decoder.decode(
                 action['pyson_search_value'] or '[]')
+            # XXX: Evaluate tab domain later
+            # Dynamic domain evaluation in screens and tabs
+            # see : 4cfefeab5
             params['tab_domain'] = [
                 (n, (action_ctx, d), c) for n, d, c in action['domains']]
 
