@@ -28,6 +28,7 @@ except ImportError:
     from werkzeug.wsgi import SharedDataMiddleware
 
 from trytond import backend, config, security
+from . import opentelemetry
 from trytond.protocols.jsonrpc import JSONProtocol
 from trytond.protocols.wrappers import (
     BaseResponse, HTTPStatus, Request, Response, abort, exceptions)
@@ -276,6 +277,10 @@ if config.has_section('wsgi middleware'):
             if config.has_option(section, 'kwargs'):
                 kwargs = eval(config.get(section, 'kwargs'))
         app.wsgi_app = Middleware(app.wsgi_app, *args, **kwargs)
+
+
+app.wsgi_app = opentelemetry.Middleware(app.wsgi_app)
+
 
 import trytond.bus  # noqa: E402,F401
 import trytond.protocols.dispatcher  # noqa: E402,F401
