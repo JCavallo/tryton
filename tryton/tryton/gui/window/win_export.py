@@ -428,9 +428,9 @@ class WinExport(WinCSV, InfoBar):
         locale_format = self.csv_locale.get_active()
 
         try:
+            file_obj = open(fname, 'w', encoding=encoding, newline='')
             writer = csv.writer(
-                open(fname, 'w', encoding=encoding, newline=''),
-                quotechar=self.get_quotechar(),
+                file_obj, quotechar=self.get_quotechar(),
                 delimiter=self.get_delimiter())
             for row, path in zip_longest(data, paths or []):
                 indent = len(path) - 1 if path else 0
