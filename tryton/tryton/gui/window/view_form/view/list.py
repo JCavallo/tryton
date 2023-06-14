@@ -390,6 +390,22 @@ class TreeXMLViewParser(XMLViewParser):
         if 'optional' in attributes and name != self.exclude_field:
             self.view.optionals[column.name].append(column)
 
+        if 'sum' in attributes:
+            highlight_sum_ = attributes.get('highlight_sum', '0')
+
+            text = attributes['sum'] + _(':')
+            label, sum_ = Gtk.Label(label=text), Gtk.Label()
+
+            hbox = Gtk.HBox()
+            hbox.pack_start(label, expand=True, fill=False, padding=2)
+            hbox.pack_start(sum_, expand=True, fill=False, padding=2)
+            hbox.show_all()
+            self.view.sum_box.pack_start(
+                hbox, expand=False, fill=False, padding=0)
+
+            self.view.sum_widgets.append(
+                (attributes['name'], sum_, highlight_sum_))
+
     def _parse_button(self, node, attributes):
         button = Button(self.view, attributes)
         self.view.state_widgets.append(button)
@@ -1376,7 +1392,7 @@ class ViewTree(View):
     @delay
     def update_sum(self):
         selected_records = self.selected_records
-        for name, label in self.sum_widgets:
+        for name, label, highlight_sum_ in self.sum_widgets:
             sum_ = None
             selected_sum = None
             loaded = True
@@ -1420,10 +1436,16 @@ class ViewTree(View):
                         '{}'.format(selected_sum or 0), True)
                     sum_ = locale.localize('{}'.format(sum_ or 0), True)
 
-                text = '%s\n%s' % (selected_sum, sum_)
+                # coog specific feature #8374
+                text1 = '%s /' % (selected_sum)
+                text2 = ' %s' % (sum_)
             else:
-                text = '-'
-            label.set_text(text)
+                text1 = ''
+                text2 = '-'
+            if highlight_sum_ == "1":
+                label.set_markup(text1 + '<b>' + text2 + '</b>')
+            else:
+                label.set_markup(text1 + text2)
 
     def set_cursor(self, new=False, reset_view=True):
         model = self.treeview.get_model()
