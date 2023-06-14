@@ -774,7 +774,7 @@ class O2MField(Field):
                 preloaded={v['id']: v for v in (data or [])})
         else:
             for vals in value:
-                if 'id' in vals:
+                if (vals.get('id', -1) or -1) > 0:
                     new_record = group.get(vals['id'])
                     if not new_record:
                         new_record = group.new(
