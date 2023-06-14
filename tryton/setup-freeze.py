@@ -103,7 +103,6 @@ if sys.platform == 'win32':
         ('share/languages/python3.lang', 'share/languages/python3.lang'),
         ('share/styles/classic.xml', 'share/styles/classix.xml'),
         ('share/styles/styles.rng', 'share/styles/styles.rng'),
-        (os.path.join(sys.prefix, 'ssl'), 'etc/ssl'),
         ])
     dll_paths = os.getenv('PATH', os.defpath).split(os.pathsep)
     required_dlls = [
@@ -155,6 +154,7 @@ setup(name='tryton',
         },
     executables=[Executable(
             'bin/tryton',
+            target_name='coog.exe',
             base='Win32GUI' if sys.platform == 'win32' else None,
             icon=os.path.join(
                 'tryton', 'data', 'pixmaps', 'tryton', 'tryton.ico'),
