@@ -40,7 +40,7 @@ def get_x2m_sub_fields(f_attrs, prefix):
 
 class Record:
 
-    id = -1
+    id = -100000000
 
     def __init__(self, model_name, obj_id, group=None):
         super().__init__()
