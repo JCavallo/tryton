@@ -270,10 +270,18 @@ class TableHandler(TableHandlerInterface):
 
     def alter_type(self, column_name, column_type):
         cursor = Transaction().connection.cursor()
-        cursor.execute(SQL('ALTER TABLE {} ALTER {} TYPE {}').format(
-                Identifier(self.table_name),
-                Identifier(column_name),
-                SQL(column_type)))
+        if column_type == 'jsonb':
+            cursor.execute(
+                SQL('ALTER TABLE {} ALTER {} TYPE {} USING {}::jsonb').format(
+                    Identifier(self.table_name),
+                    Identifier(column_name),
+                    SQL(column_type),
+                    Identifier(column_name)))
+        else:
+            cursor.execute(SQL('ALTER TABLE {} ALTER {} TYPE {}').format(
+                    Identifier(self.table_name),
+                    Identifier(column_name),
+                    SQL(column_type)))
         self._update_definitions(columns=True)
 
     def column_is_type(self, column_name, type_, *, size=-1):
@@ -334,7 +342,9 @@ class TableHandler(TableHandlerInterface):
             if base_type != typname:
                 if (typname, base_type) in [
                         ('varchar', 'text'),
+                        ('varchar', 'jsonb'),
                         ('text', 'varchar'),
+                        ('text', 'jsonb'),
                         ('date', 'timestamp'),
                         ('int2', 'int4'),
                         ('int2', 'float4'),
