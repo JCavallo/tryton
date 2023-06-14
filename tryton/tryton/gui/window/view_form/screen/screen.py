@@ -726,10 +726,9 @@ class Screen:
         return view
 
     def editable_open_get(self):
-        if hasattr(self.current_view, 'widget_tree'):
-            if hasattr(self.current_view.widget_tree, 'editable'):
-                if hasattr(self.current_view.widget_tree, 'editable_open'):
-                    return self.current_view.widget_tree.editable_open
+        if (self.current_view and self.current_view.view_type == 'tree'
+                and self.current_view.attributes.get('editable_open')):
+            return self.current_view.widget_tree.editable_open
         return False
 
     def new(self, default=True, defaults=None):
@@ -956,7 +955,8 @@ class Screen:
         if view.view_type in {'tree', 'list-form'}:
             if (state is None
                     and CONFIG['client.save_tree_state']
-                    and int(view.attributes.get('tree_state', False))):
+                    and int(view.attributes.get('tree_state', False))
+                    and (view.view_type != 'tree' or not view.always_expand)):
                 json_domain = self.get_tree_domain(parent)
                 try:
                     expanded_nodes, selected_nodes = RPCExecute('model',
