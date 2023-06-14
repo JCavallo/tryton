@@ -875,6 +875,8 @@ class Screen:
         if self.parent:
             self.parent.root_parent.reload()
         self.display()
+        if self._multiview_form:
+            self._multiview_form.screen.reload([self.parent.root_parent.id])
 
     def unremove(self):
         records = self.selected_records
