@@ -1290,8 +1290,9 @@ class TaxableMixin(object):
                 taxes = {}
                 for line in grouped_taxable_lines:
                     assert all(t.company == self.company for t in line.taxes)
-                    date = getattr(
-                        line, 'tax_date', getattr(self, 'tax_date', today))
+                    date = (getattr(line, 'tax_date', None)
+                        or getattr(self, 'tax_date', None)
+                        or today)
                     l_taxes = Tax.compute(
                         Tax.browse(line.taxes), line.unit_price,
                         line.quantity, date)
