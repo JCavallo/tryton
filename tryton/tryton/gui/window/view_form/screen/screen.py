@@ -45,6 +45,7 @@ class Screen:
         context = attributes.get('context', {})
         self._current_domain = []
         self.limit = attributes.get('limit', CONFIG['client.limit'])
+        self.position = 0
         self.offset = 0
         self.windows = []
 
@@ -509,14 +510,14 @@ class Screen:
         self.__current_record = record
         if record:
             try:
-                pos = self.group.index(record) + self.offset + 1
+                self.position = self.group.index(record) + self.offset + 1
             except ValueError:
                 # XXX offset?
-                pos = -1
+                self.position = -1
         else:
-            pos = 0
+            self.position = 0
         self.record_message(
-            pos, len(self.group) + self.offset,
+            self.position, len(self.group) + self.offset,
             self.search_count, record and record.id)
         # Coog Specific for multimixed view
         # Somehow _validate_synced_group should be called, but it does not
@@ -1483,3 +1484,14 @@ class Screen:
         return urllib.parse.urlunparse(('tryton',
                 CONFIG['login.host'],
                 '/'.join(path), query_string, '', ''))
+
+    def _force_count(self, search_string):
+        domain = self.search_domain(search_string, True)
+        context = self.context
+        if self.screen_container.but_active.get_active():
+            context['active_test'] = False
+        self.search_count = RPCExecute(
+            'model', self.model_name, 'search_count', domain, context=context)
+        self.record_message(
+            self.position, len(self.group) + self.offset,
+            self.search_count, self.current_record and self.current_record.id)
