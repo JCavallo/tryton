@@ -62,15 +62,6 @@ clean() {
     rm -rf build dist coog-*
 }
 
-patch() {
-    git apply win-patch.diff
-    [ ! -z "$1" ] && echo "__version_coog__ = '$v'" >> tryton/__init__.py
-}
-
-unpatch() {
-    git checkout HEAD -- tryton
-}
-
 build() {
     clean
     local v; v=$(version)
