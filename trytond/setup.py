@@ -5,6 +5,7 @@
 import glob
 import io
 import os
+import platform
 import re
 import subprocess
 
@@ -54,6 +55,11 @@ else:
         major_version, minor_version)
 
 tests_require = ['pillow', 'pydot', 'html2text']
+
+if platform.python_implementation() == 'PyPy':
+    pg_require = ['psycopg2cffi >= 2.5']
+else:
+    pg_require = ['psycopg2 >= 2.7']
 
 setup(name=name,
     version=version,
@@ -128,6 +134,7 @@ setup(name=name,
         'Programming Language :: Python :: 3.12',
         'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: Implementation :: CPython',
+        'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Application Frameworks',
         ],
     platforms='any',
@@ -149,7 +156,7 @@ setup(name=name,
         ],
     extras_require={
         'test': tests_require,
-        'PostgreSQL': ['psycopg2 >= 2.7.0'],
+        'PostgreSQL': pg_require,
         'graphviz': ['pydot'],
         'Levenshtein': ['python-Levenshtein'],
         'html2text': ['html2text'],

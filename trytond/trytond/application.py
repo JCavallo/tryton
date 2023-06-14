@@ -7,7 +7,7 @@ import os
 import threading
 from io import StringIO
 
-__all__ = ['app']
+__all__ = ['app', 'application']
 
 log_file = os.environ.get('WSGI_LOG_FILE')
 log_level = os.environ.get('LOG_LEVEL', 'ERROR')
@@ -46,7 +46,6 @@ if db_names:
     for thread in threads:
         thread.join()
 
-
 # JCA: if for some reason the server works properly when starting with
 # "trytond" but not with "uwsgi", you may be in the right place.
 #
@@ -60,5 +59,6 @@ if db_names:
 # be NO CACHE INVALIDATION when the pool is initialized.
 #
 # If this is not the cause, good luck
+application = app
 Pool.app_initialization_completed()
 assert len(threads := threading.enumerate()) == 1, f"len({threads}) != 1"
