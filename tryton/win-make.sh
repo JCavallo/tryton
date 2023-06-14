@@ -87,6 +87,13 @@ upload() {
     done
 }
 
+upload() {
+  for f in ./coog-*
+  do
+    aws --region "eu-central-1" s3 cp "$f" s3://coog-client/
+  done
+}
+
 main() {
     [ -z "$1" ] && echo missing command && return 1
     "$1" "$@"
