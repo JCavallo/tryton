@@ -1248,7 +1248,7 @@ class DictField(Field):
         context = self.get_context(record)
         try:
             new_fields = RPCExecute('model', schema_model,
-                'get_keys', key_ids, context=context)
+                'search_get_keys', [('id', 'in', key_ids)], context=context)
         except RPCException:
             new_fields = []
 
