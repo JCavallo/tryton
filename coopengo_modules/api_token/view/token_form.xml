@@ -1,0 +1,19 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<form>
+    <label name="active"/>
+    <field name="active"/>
+    <label name="name"/>
+    <field name="name"/>
+    <newline/>
+    <label name="user"/>
+    <field name="user"/>
+    <newline/>
+    <label name="party"/>
+    <field name="party"/>
+    <newline/>
+    <label name="key"/>
+    <field name="key"/>
+    <button name="generate_key" string="Generate" icon="tryton-refresh" colspan="2"/>
+</form>
