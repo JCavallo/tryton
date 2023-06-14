@@ -1,0 +1,71 @@
+#
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "field:api.token,active:"
+msgid "Active"
+msgstr "Active"
+
+msgctxt "field:api.token,create_date:"
+msgid "Create Date"
+msgstr "Date de Création"
+
+msgctxt "field:api.token,create_uid:"
+msgid "Create User"
+msgstr "Créé par"
+
+msgctxt "field:api.token,id:"
+msgid "ID"
+msgstr "Identifiant"
+
+msgctxt "field:api.token,key:"
+msgid "Key"
+msgstr "Clé"
+
+msgctxt "field:api.token,name:"
+msgid "Name"
+msgstr "Nom"
+
+msgctxt "field:api.token,party:"
+msgid "Party"
+msgstr "Tiers"
+
+msgctxt "field:api.token,rec_name:"
+msgid "Record Name"
+msgstr "Nom de l' enregistrement"
+
+msgctxt "field:api.token,user:"
+msgid "User"
+msgstr "Utilisateur"
+
+msgctxt "field:api.token,write_date:"
+msgid "Write Date"
+msgstr "Modifié par"
+
+msgctxt "field:api.token,write_uid:"
+msgid "Write User"
+msgstr "Modifié par"
+
+msgctxt "model:api.token,name:"
+msgid "API Token"
+msgstr "Jeton API"
+
+msgctxt "model:res.user,tokens:"
+msgid "Tokens"
+msgstr "Jetons"
+
+msgctxt "model:ir.action,name:act_token_form"
+msgid "Tokens"
+msgstr "Jetons"
+
+msgctxt "model:ir.ui.menu,name:menu_token"
+msgid "Tokens"
+msgstr "Jetons"
+
+msgctxt "model:ir.message,text:msg_token_uniq_key"
+msgid "The key on token must be unique."
+msgstr "Le clé du token doit être unique."
+
+msgctxt "view:api.token:"
+msgid "Generate"
+msgstr "Générer"

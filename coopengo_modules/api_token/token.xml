@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<!-- This file is part of Tryton.  The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tryton>
+    <data>
+        <record model="ir.ui.view" id="token_view_form">
+            <field name="model">api.token</field>
+            <field name="type">form</field>
+            <field name="name">token_form</field>
+        </record>
+        <record model="ir.ui.view" id="token_view_tree">
+            <field name="model">api.token</field>
+            <field name="type">tree</field>
+            <field name="name">token_tree</field>
+        </record>
+        <record model="ir.action.act_window" id="act_token_form">
+            <field name="name">Tokens</field>
+            <field name="res_model">api.token</field>
+        </record>
+        <record model="ir.action.act_window.view" id="act_view_token_tree">
+            <field name="sequence" eval="10"/>
+            <field name="view" ref="token_view_tree"/>
+            <field name="act_window" ref="act_token_form"/>
+        </record>
+        <record model="ir.action.act_window.view" id="act_view_token_form">
+            <field name="sequence" eval="20"/>
+            <field name="view" ref="token_view_form"/>
+            <field name="act_window" ref="act_token_form"/>
+        </record>
+        <menuitem parent="res.menu_res" action="act_token_form" id="menu_token"/>
+        <record model="ir.model.button" id="button_api_token_generate_key">
+            <field name="name">generate_key</field>
+            <field name="model">api.token</field>
+        </record>
+    </data>
+</tryton>
