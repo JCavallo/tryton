@@ -442,10 +442,6 @@ class Screen:
             self.__group.fields[name].views.update(views)
         self.__group.exclude_field = self.exclude_field
         self.__group.readonly = self.__readonly
-        if len(group):
-            self.current_record = group[0]
-        else:
-            self.current_record = None
 
     group = property(__get_group, __set_group)
 
