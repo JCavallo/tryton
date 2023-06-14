@@ -867,8 +867,20 @@ class Translation(
                     domain.append(('src', '=', new_translation.src))
                     domain.append(('src_plural', '=',
                             new_translation.src_plural))
-                translation, = cls.search(domain)
-                if ((translation.value != new_translation.value)
+                found = cls.search(domain)
+                if found:
+                    translation, = found
+                else:
+                    translation = None
+                    logging.getLogger(name='trytond.translator').warning(
+                        'Impossible to find translation %s'
+                        ' from module %s for lang %s' % (
+                            new_translation.name,
+                            res_id_module,
+                            new_translation.lang,
+                            ))
+                if translation and (
+                        (translation.value != new_translation.value)
                         or (translation.value_1 != new_translation.value_1)
                         or (translation.value_2 != new_translation.value_2)
                         or (translation.value_3 != new_translation.value_3)):
