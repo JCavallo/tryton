@@ -41,6 +41,15 @@ def main():
             for thread in threads:
                 thread.join()
         hostname, port = config.split_netloc(config.get('web', 'listen'))
+
+        # JCA: Load static files in werkzeug
+        static_files = {
+            '/': config.get('web', 'root'),
+            }
+        bench = config.get('web', 'bench')
+        if bench:
+            static_files['/bench/'] = bench
+
         certificate = config.get('ssl', 'certificate')
         try:
             if config.getboolean('ssl', 'certificate'):
