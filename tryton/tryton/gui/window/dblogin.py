@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 
 import configparser
+import datetime
 import gettext
 import logging
 import os
@@ -15,6 +16,7 @@ from gi.repository import GLib, GObject, Gtk
 import tryton.common as common
 import tryton.rpc as rpc
 from tryton import __version__
+from tryton.common.datetime_ import Date
 from tryton.common.underline import set_underline
 from tryton.config import CONFIG, PIXMAPS_DIR, TRYTON_ICON, get_config_dir
 
@@ -489,6 +491,17 @@ class DBLogin(object):
         label_username.set_mnemonic_widget(self.entry_login)
         grid.attach(label_username, 0, 5, 1, 1)
 
+        # Date stuff
+        if CONFIG['login.date']:
+            self.label_date = Gtk.Label(
+                label=set_underline(_("Date:")),
+                use_underline=True, halign=Gtk.Align.END)
+            grid.attach(self.label_date, 0, 6, 1, 1)
+            self.entry_date = Date()
+            self.entry_date.props.format = '%d/%m/%Y'
+            self.entry_date.props.value = datetime.date.today()
+            grid.attach(self.entry_date, 1, 6, 2, 1)
+
         # Profile information
         config_dir = get_config_dir()
         self.profile_cfg = os.path.join(config_dir, 'profiles.cfg')
@@ -714,6 +727,8 @@ class DBLogin(object):
                 CONFIG['login.service'] = authentication
             result = (hostname, port, database, authentication)
 
+        if CONFIG['login.date']:
+            CONFIG['login.date'] = self.entry_date.props.value
         self.dialog.destroy()
         self._window.destroy()
         return response == Gtk.ResponseType.OK or response > 0
