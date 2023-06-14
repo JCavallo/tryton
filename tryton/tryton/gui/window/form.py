@@ -616,8 +616,7 @@ class Form(TabContent):
         if selected > 1:
             name += '#%i' % selected
         sensitive = record_id >= 0 if record_id is not None else False
-        for button_id in [
-                'print', 'relate', 'email', 'open', 'attach', 'chat']:
+        for button_id in ['relate', 'email', 'open', 'attach', 'chat']:
             button = self.buttons.get(button_id)
             if not button:
                 continue
@@ -756,7 +755,6 @@ class Form(TabContent):
                 ('relate', 'relate', _('Relate'), _('Open related records')),
                 (None,) * 4,
                 ('print', 'open', _('Report'), _('Open report')),
-                ('print', 'print', _('Print'), _('Print report')),
                 ):
             if action_type is not None:
                 tbutton = Gtk.ToggleToolButton()
