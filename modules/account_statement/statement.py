@@ -156,7 +156,7 @@ class Statement(Workflow, ModelSQL, ModelView):
                     'invisible': Eval('state') != 'cancelled',
                     'depends': ['state'],
                     },
-                'validate_statement': {
+                'dummy_validate_method': {
                     'invisible': Eval('state') != 'draft',
                     'depends': ['state'],
                     },
@@ -435,6 +435,10 @@ class Statement(Workflow, ModelSQL, ModelView):
     @classmethod
     @ModelView.button
     @Workflow.transition('validated')
+    def dummy_validate_method(cls, statements):
+        return
+
+    @classmethod
     def validate_statement(cls, statements):
         pool = Pool()
         Line = pool.get('account.statement.line')
@@ -574,6 +578,7 @@ class Statement(Workflow, ModelSQL, ModelView):
         pool = Pool()
         Lang = pool.get('ir.lang')
         StatementLine = pool.get('account.statement.line')
+        cls.validate_statement(statements)
         for statement in statements:
             for origin in statement.origins:
                 if origin.pending_amount:

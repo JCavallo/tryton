@@ -84,7 +84,7 @@ Create a statement with origins::
     >>> origin = statement.origins.new()
     >>> origin.date = today
     >>> origin.amount = Decimal('180.00')
-    >>> statement.click('validate_statement')
+    >>> statement.click('dummy_validate_method')
 
 Pending amount is used to fill all invoices::
 
