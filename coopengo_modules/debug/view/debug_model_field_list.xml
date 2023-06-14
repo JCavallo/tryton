@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<!-- This file is part of Coog. The COPYRIGHT file at the top level of
+this repository contains the full copyright notices and license terms. -->
+<tree>
+    <field name="name" expand="1"/>
+    <field name="module" expand="1"/>
+    <field name="string" expand="1"/>
+    <field name="model"/>
+    <field name="kind"/>
+    <field name="function"/>
+</tree>
