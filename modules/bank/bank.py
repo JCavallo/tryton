@@ -207,18 +207,18 @@ class AccountNumber(DeactivableMixin, sequence_ordered(), ModelSQL, ModelView):
         cls.number.search_unaccented = False
         cls.number_compact.search_unaccented = False
         super().__setup__()
-        # JCA: remove unicity constraint on ibans for multi_portfolios
-        # table = cls.__table__()
-        # cls._sql_constraints += [
-        #     ('number_iban_active_exclude',
-        #         Exclude(table, (table.number_compact, Equal),
-        #             where=(table.type == 'iban') & table.active),
-        #         'bank.msg_number_iban_unique'),
-        #     ('account_iban_active_exclude',
-        #         Exclude(table, (table.account, Equal),
-        #             where=(table.type == 'iban') & table.active),
-        #         'bank.msg_account_iban_unique'),
-        #     ]
+        table = cls.__table__()
+        cls._sql_constraints += [
+            # JCA: remove unicity constraint on ibans for multi_portfolios
+            # ('number_iban_active_exclude',
+            #     Exclude(table, (table.number_compact, Equal),
+            #         where=(table.type == 'iban') & table.active),
+            #     'bank.msg_number_iban_unique'),
+            ('account_iban_active_exclude',
+                Exclude(table, (table.account, Equal),
+                    where=(table.type == 'iban') & table.active),
+                'bank.msg_account_iban_unique'),
+            ]
         cls.__access__.add('account')
         cls._order.insert(0, ('account', 'ASC'))
 
