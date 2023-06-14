@@ -137,7 +137,10 @@ class IconFactory:
             try:
                 ET.register_namespace('', 'http://www.w3.org/2000/svg')
                 root = ET.fromstring(data)
-                root.attrib['fill'] = color
+                # If the color is set on the icon, we get it otherwise we take
+                # the color defined by default
+                if not root.attrib.get('fill'):
+                    root.attrib['fill'] = color
                 if view_box := root.attrib.get('viewBox'):
                     min_x, min_y, width, height = map(
                         float, view_box.split(' '))
