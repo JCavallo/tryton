@@ -60,14 +60,14 @@ data_files = []
 
 def get_version():
     init = read(os.path.join('tryton', '__init__.py'))
-    return re.search('__version__ = "([0-9.]*)"', init).group(1)
+    return re.search('__version_coog__ = "([0-9.]*)"', init).group(1)
 
 
 version = get_version()
 major_version, minor_version, _ = version.split('.', 2)
 major_version = int(major_version)
 minor_version = int(minor_version)
-name = 'tryton'
+name = 'Coog'
 
 if minor_version % 2:
     download_url = ''
@@ -77,19 +77,12 @@ else:
 
 dist = setup(name=name,
     version=version,
-    description='Tryton desktop client',
+    description='Coog client',
     long_description=read('README.rst'),
-    author='Tryton',
-    author_email='foundation@tryton.org',
-    url='http://www.tryton.org/',
-    download_url=download_url,
-    project_urls={
-        "Bug Tracker": 'https://bugs.tryton.org/',
-        "Documentation": 'https://docs.tryton.org/latest/client-desktop/',
-        "Forum": 'https://www.tryton.org/forum',
-        "Source Code": 'https://code.tryton.org/tryton',
-        },
-    keywords='business application ERP',
+    author='Coopengo',
+    author_email='support@coopengo.com',
+    url='http://www.coopengo.com/',
+    keywords='Insurance ERP',
     packages=find_packages(),
     package_data=package_data,
     data_files=data_files,
@@ -138,6 +131,7 @@ dist = setup(name=name,
         'pycairo',
         "python-dateutil",
         'PyGObject>=3.19',
+        "pyflakes",
         ],
     extras_require={
         'calendar': ['GooCalendar>=0.7'],
