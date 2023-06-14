@@ -1124,6 +1124,14 @@ class Invoice(Workflow, ModelSQL, ModelView, TaxableMixin, InvoiceReportMixin):
         if to_write:
             Tax.write(*to_write)
 
+    def get_payment_term_computation_date(self):
+        pool = Pool()
+        Date = pool.get('ir.date')
+        with Transaction().set_context(company=self.company.id):
+            today = Date.today()
+
+        return self.payment_term_date or self.invoice_date or today
+
     def _get_move_line(self, date, amount):
         '''
         Return move line
@@ -1219,7 +1227,7 @@ class Invoice(Workflow, ModelSQL, ModelView, TaxableMixin, InvoiceReportMixin):
 
         remainder = sum(l.debit - l.credit for l in move_lines)
         if self.payment_term:
-            payment_date = self.payment_term_date or self.invoice_date or today
+            payment_date = self.get_payment_term_computation_date()
             term_lines = self.payment_term.compute(
                 self.total_amount, self.currency, payment_date)
         else:
