@@ -1852,9 +1852,8 @@
                 }
                 td.attr('headers', column.header.attr('id'));
                 td.on('click keypress', {'index': i}, on_click);
-                if (!this.tree.editable) {
-                    td.dblclick(this.switch_row.bind(this));
-                } else {
+                td.dblclick(this.switch_row.bind(this));
+                if (this.tree.editable) {
                     if (column.attributes.required) {
                         td.addClass('required');
                     }
@@ -2890,14 +2889,17 @@
             cell.unbind('click');
             Sao.View.Tree.Many2OneColumn._super.update_text.call(this, cell, record);
             cell.click(event => {
+                event.preventDefault();
                 event.stopPropagation();
-                var params = {};
-                params.model = this.attributes.relation;
-                params.res_id = this.field.get(record);
-                params.mode = ['form'];
-                params.name = this.attributes.string;
-                params.context = this.field.get_context(record);
-                Sao.Tab.create(params);
+                if (event && event.ctrlKey) {
+                    var params = {};
+                    params.model = this.attributes.relation;
+                    params.res_id = this.field.get(record);
+                    params.mode = ['form'];
+                    params.name = this.attributes.string;
+                    params.context = this.field.get_context(record);
+                    Sao.Tab.create(params);
+                }
             });
         }
     });
