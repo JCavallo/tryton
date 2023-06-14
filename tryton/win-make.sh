@@ -1,6 +1,11 @@
 #!/bin/bash
 
-GDRIVE_FOLDER_ID=1yQaeqEMAaD6chcF4YMpmUZe9L3YoGa89
+# For build
+CERTIFICAT_PASSWORD=$2
+WINDOWS_USER_PASSWORD=$3
+
+# For upload
+GITHUB_TOKEN=$2
 
 version() {
     local t
@@ -67,14 +72,23 @@ build() {
     local v; v=$(version)
     python setup.py compile_catalog
     python setup-freeze.py install_exe -d dist
+    "C:/PSTools/PsExec.exe" -u Administrator -p ${WINDOWS_USER_PASSWORD} "C:\msys32\home\Administrator\tryton\tryton\sign-client.bat" ${CERTIFICAT_PASSWORD}
     makensis -DVERSION="$v" -DBITS=32 -DSERIES="$v" setup.nsi
-    makensis -DVERSION="$v" -DBITS=32 setup-single.nsi
+    # makensis -DVERSION="$v" -DBITS=32 setup-single.nsi
+    mv dist "$v"
+    "C:/PSTools/PsExec.exe" -u Administrator -p ${WINDOWS_USER_PASSWORD} "C:\msys32\home\Administrator\tryton\tryton\sign-client.bat" ${CERTIFICAT_PASSWORD}
+    zip -q -9 -r "coog-$v.zip" "$v"
 }
 
 upload() {
+    local v; v=$(version)
+
+    CREATE_RELEASE=$(curl -L -X POST -H "Accept: application/vnd.github+json" -H "Authorization: Bearer ${GITHUB_TOKEN}" -H "X-GitHub-Api-Version: 2022-11-28" https://api.github.com/repos/coopengo/tryton/releases -d "{\"tag_name\":\"coog-$v\",\"name\":\"coog-$v\",\"body\":\"Coog client for coog-$v\",\"make_latest\":\"false\"}")
+    UPLOAD_URL=$(echo "${CREATE_RELEASE}" | jq -r '.upload_url' | sed 's/{?name,label}//')
+
     for f in ./coog-*
     do
-        gdrive upload -p "$GDRIVE_FOLDER_ID" "$f"
+        curl -X POST -H "Content-Type: application/octet-stream" --data-binary "@${f/.\/}" -H "Authorization: Bearer ${GITHUB_TOKEN}" "${UPLOAD_URL}?name=${f/.\/}"
     done
 }
 
