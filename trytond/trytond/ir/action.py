@@ -4,7 +4,7 @@ import copy
 import os
 from collections import defaultdict
 from functools import partial
-from operator import itemgetter
+from unidecode import unidecode
 
 from genshi.template.text import TextTemplate
 
@@ -336,7 +336,7 @@ class ActionKeyword(ModelSQL, ModelView):
                         if parent:
                             value['name'] = (
                                 parent.rec_name + ' / ' + value['name'])
-        keywords.sort(key=itemgetter('name'))
+        keywords.sort(key=lambda x: unidecode(x['name']))
         return cls._get_keyword_cache.set(key, keywords)
 
 
