@@ -1,0 +1,21 @@
+{
+  "name": "tryton-paybox-callback",
+  "version": "4.4.0",
+  "description": "Callback server for Paybox",
+  "author": "Coopengo <dev@coopengo.com>",
+  "main": "index.js",
+  "scripts": {
+    "format": "standard --fix",
+    "docker": "docker build -t coopengo/paybox:$(node -pe \"require('./package.json').version\") ."
+  },
+  "dependencies": {
+    "debug": "^3.1.0",
+    "koa": "^2.7.0",
+    "koa-logger": "^3.1.0",
+    "tryton-model": "~4.4",
+    "tryton-session": "~4.4"
+  },
+  "devDependancies": {
+    "standard": "latest"
+  }
+}

@@ -1,0 +1,39 @@
+#
+msgid ""
+msgstr "Content-Type: text/plain; charset=utf-8\n"
+
+msgctxt "field:account.payment.group,journal_method:"
+msgid "Journal Method"
+msgstr "Methode de traitement du journal"
+
+msgctxt "field:account.payment.group,payment_url:"
+msgid "Payment Url"
+msgstr "URL de paiement"
+
+msgctxt "field:account.payment.payment_creation.start,created_payments:"
+msgid "Created Payments"
+msgstr "Paiements créés"
+
+msgctxt "field:account.payment.process.start,is_paybox:"
+msgid "Is Paybox"
+msgstr "Est Paybox"
+
+msgctxt "model:ir.message,text:msg_error_url_generation"
+msgid "Could not generate the paybox link."
+msgstr "Impossible de générer le lien paybox"
+
+msgctxt "model:ir.message,text:msg_missing_paybox_configuration"
+msgid ""
+"Variable %(required_paybox_param)s is not set in paybox section. "
+"It is required in order to process paybox payments."
+msgstr ""
+"La variable %(required_paybox_param)s n'est pas sélectionnée "
+"dans la section paybox. Elle est requise pour procéder aux paiements paybox."
+
+msgctxt "model:ir.message,text:msg_only_receivable_allowed"
+msgid "Only receivable payments are allowed with a Paybox journal."
+msgstr "Seuls les paiements à recevoir sont autorisés avec le journal Paybox."
+
+msgctxt "selection:account.payment.journal,process_method:"
+msgid "Paybox"
+msgstr "Paybox"
