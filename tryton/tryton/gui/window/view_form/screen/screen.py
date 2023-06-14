@@ -71,6 +71,8 @@ class Screen:
         self.tree_states = collections.defaultdict(
             lambda: collections.defaultdict(lambda: None))
         self.tree_states_done = set()
+        self._multiview_form = None
+        self._multiview_group = None
         self.__group = None
         self.__current_record = None
         self.new_group(context or {})
@@ -437,6 +439,10 @@ class Screen:
             self.__group.fields[name].views.update(views)
         self.__group.exclude_field = self.exclude_field
         self.__group.readonly = self.__readonly
+        if len(group):
+            self.current_record = group[0]
+        else:
+            self.current_record = None
 
     group = property(__get_group, __set_group)
 
@@ -507,17 +513,62 @@ class Screen:
                 pos = self.group.index(record) + self.offset + 1
             except ValueError:
                 # XXX offset?
-                pos = record.get_index_path()
+                pos = -1
         else:
             pos = 0
         self.record_message(
             pos, len(self.group) + self.offset,
             self.search_count, record and record.id)
+        # Coog Specific for multimixed view
+        # Somehow _validate_synced_group should be called, but it does not
+        # work as intended yet.
+        self._sync_group()
         self.update_resources(record.resources if record else None)
         # update resources after 1 second
         GLib.timeout_add(1000, self._update_resources, record)
 
     current_record = property(__get_current_record, __set_current_record)
+
+    def _validate_synced_group(self):
+        if not self._multiview_form or self.current_view.view_type != 'tree':
+            return True
+        if self.current_record is None:
+            return True
+
+        tree, *forms = self._multiview_form.widget_groups[
+            self._multiview_group]
+        for widget in forms:
+            if not widget.screen.current_record:
+                continue
+            if not widget._validate(set_value=False):
+                def go_previous():
+                    self.current_record = widget.screen.current_record
+                    self.display()
+                GLib.idle_add(go_previous)
+                return False
+        return True
+
+    def _sync_group(self):
+        if not self._multiview_form or self.current_view.view_type != 'tree':
+            return
+        if self.current_record is None:
+            return
+
+        to_sync = []
+        tree, *forms = self._multiview_form.widget_groups[
+            self._multiview_group]
+        for widget in forms:
+            if widget.screen.current_view.view_type != 'form':
+                continue
+            # TODO Useless now
+            if (widget.screen.group.model_name !=
+                    self.current_record.group.model_name):
+                continue
+            to_sync.append(widget)
+
+        for widget in to_sync:
+            widget.screen.current_record = self.current_record
+            widget.display()
 
     def _update_resources(self, record):
         if (record
@@ -668,7 +719,8 @@ class Screen:
         for field in fields:
             self.group.fields[field].views.add(view_id)
         view = View.parse(
-            self, view_id, view['type'], xml_dom, view.get('field_childs'))
+            self, view_id, view['type'], xml_dom, view.get('field_childs'),
+            view.get('children_definitions'))
         self.views.append(view)
 
         return view
@@ -1033,7 +1085,8 @@ class Screen:
             group = self.current_record.group
             record = self.current_record
             while group:
-                children = record.children_group(view.children_field)
+                children = record.children_group(view.children_field,
+                    view.children_definitions)
                 if children:
                     record = children[0]
                     break
@@ -1117,7 +1170,8 @@ class Screen:
                 record = group[idx]
                 children = True
                 while children:
-                    children = record.children_group(view.children_field)
+                    children = record.children_group(view.children_field,
+                        view.children_definitions)
                     if children:
                         record = children[-1]
             else:

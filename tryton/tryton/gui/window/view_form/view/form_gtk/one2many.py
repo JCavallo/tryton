@@ -3,7 +3,7 @@
 import gettext
 import itertools
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, Gtk, GLib
 
 import tryton.common as common
 from tryton.common.completion import get_completion, update_completion
@@ -172,6 +172,17 @@ class One2Many(Widget):
             breadcrumb=breadcrumb)
         self.screen.pre_validate = bool(int(attrs.get('pre_validate', 0)))
         self.screen.windows.append(self)
+        if self.attrs.get('group'):
+            self.screen._multiview_form = view
+            self.screen._multiview_group = self.attrs['group']
+            wgroup = view.widget_groups.setdefault(self.attrs['group'], [])
+            if self.screen.current_view.view_type == 'tree':
+                if (wgroup
+                        and wgroup[0].screen.current_view.view_type == 'tree'):
+                    raise ValueError("Wrong multiview definition")
+                wgroup.insert(0, self)
+            else:
+                wgroup.append(self)
 
         vbox.pack_start(self.screen.widget, expand=True, fill=True, padding=0)
 
@@ -292,6 +303,9 @@ class One2Many(Widget):
             o2m_size = None
             size_limit = False
 
+        has_form = ('form' in (x.view_type for x in self.screen.views)
+            or 'form' in self.screen.view_to_load)
+
         first = last = False
         if isinstance(self._position, int):
             first = self._position <= 1
@@ -312,7 +326,8 @@ class One2Many(Widget):
         self.but_new.set_sensitive(bool(
                 not self._readonly
                 and self.create_access
-                and not size_limit))
+                and not size_limit
+                and has_form or self.screen.current_view.editable))
         self.but_del.set_sensitive(bool(
                 not self._readonly
                 and self.delete_access
@@ -348,7 +363,6 @@ class One2Many(Widget):
             self.wid_text.set_editable(self.but_add.get_sensitive())
 
     def _validate(self):
-        self.view.set_value()
         record = self.screen.current_record
         if record:
             fields = self.screen.current_view.get_fields()
@@ -463,7 +477,7 @@ class One2Many(Widget):
         search_set()
 
     def _sig_edit(self, widget=None):
-        if not common.MODELACCESS[self.screen.model_name]['read']:
+        if not self.but_open.props.sensitive:
             return
         if not self._validate():
             return
@@ -505,7 +519,6 @@ class One2Many(Widget):
     def _sig_add(self, *args):
         if not self.write_access or not self.read_access:
             return
-        self.view.set_value()
         domain = self.field.domain_get(self.record)
         context = self.field.get_search_context(self.record)
         domain = [domain, self.record.expr_eval(self.attrs.get('add_remove'))]
@@ -569,7 +582,10 @@ class One2Many(Widget):
             return False
         new_group = self.field.get_client(self.record)
 
-        if id(self.screen.group) != id(new_group):
+        if self.attrs.get('group') and self.attrs.get('mode') == 'form':
+            if self.screen.current_record is None:
+                self.invisible_set(True)
+        elif id(self.screen.group) != id(new_group):
             self.screen.group = new_group
             if (self.screen.current_view.view_type == 'form'
                     and self.screen.group):

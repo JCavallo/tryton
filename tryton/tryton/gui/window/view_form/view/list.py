@@ -57,7 +57,8 @@ def path_convert_id2pos(model, id_path):
         try:
             record = group.get(current_id)
             indexes.append(group.index(record))
-            group = record.children_group(model.children_field)
+            group = record.children_group(model.children_field,
+                model.children_definitions)
         except (KeyError, AttributeError, ValueError):
             return None
     return tuple(indexes)
@@ -65,11 +66,12 @@ def path_convert_id2pos(model, id_path):
 
 class ModelGroup(GObject.GObject, Gtk.TreeModel):
 
-    def __init__(self, group, children_field=None):
+    def __init__(self, group, children_field=None, children_definitions=None):
         super().__init__()
         self._pool = WeakValueDictionary()
         self.group = group
         self.children_field = children_field
+        self.children_definitions = children_definitions or []
         self.__removed = None  # XXX dirty hack to allow update of has_child
 
     def _get_user_data(self, iter):
@@ -94,7 +96,8 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
             path = record.get_index_path(self.group)
             iter_ = self.get_iter(path)
             self.row_inserted(path, iter_)
-            if record.children_group(self.children_field):
+            if record.children_group(self.children_field,
+                    self.children_definitions):
                 self.row_has_child_toggled(path, iter_)
             if (record.parent
                     and record.group is not self.group):
@@ -148,7 +151,8 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
     def move_into(self, record, path):
         iter_ = self.get_iter(path)
         parent = self.get_value(iter_, 0)
-        group = parent.children_group(self.children_field)
+        group = parent.children_group(self.children_field,
+            self.children_definitions)
         if group is not record.group:
             record.group.remove(record, remove=True, force_remove=True)
             # Don't remove record from previous group
@@ -216,7 +220,10 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
             record = group[i]
             if not self.children_field:
                 break
-            group = record.children_group(self.children_field)
+            if self.children_field not in group.fields:
+                break
+            group = record.children_group(
+                self.children_field, self.children_definitions)
         return (True, self._create_tree_iter(record))
 
     def do_get_value(self, iter, column):
@@ -233,7 +240,12 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
         record = self._get_user_data(parent) if parent else None
         if record is None or not self.children_field:
             return False
-        children = record.children_group(self.children_field)
+        if (record.model_name not in self.children_definitions
+                or self.children_field not in
+                self.children_definitions[record.model_name]):
+            return False
+        children = record.children_group(self.children_field,
+            self.children_definitions)
         if children is None:
             return False
         length = len(children)
@@ -248,7 +260,8 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
             if self.group:
                 child = self.group[0]
         elif self.children_field:
-            children = record.children_group(self.children_field)
+            children = record.children_group(
+                self.children_field, self.children_definitions)
             if children:
                 child = children[0]
         if child:
@@ -262,7 +275,8 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
             return len(self.group)
         if not self.children_field:
             return 0
-        return len(record.children_group(self.children_field))
+        return len(record.children_group(self.children_field,
+            self.children_definitions))
 
     def do_iter_nth_child(self, parent, n):
         record = self._get_user_data(parent) if parent else None
@@ -271,8 +285,10 @@ class ModelGroup(GObject.GObject, Gtk.TreeModel):
             if n < len(self.group):
                 child = self.group[n]
         elif self.children_field:
-            if n < len(record.children_group(self.children_field)):
-                child = record.children_group(self.children_field)[n]
+            if n < len(record.children_group(
+                        self.children_field, self.children_definitions)):
+                child = record.children_group(
+                    self.children_field, self.children_definitions)[n]
         if child:
             return (True, self._create_tree_iter(child))
         else:
@@ -471,8 +487,10 @@ class ViewTree(View):
     xml_parser = TreeXMLViewParser
     draggable = False
 
-    def __init__(self, view_id, screen, xml, children_field):
+    def __init__(self, view_id, screen, xml, children_field,
+            children_definitions):
         self.children_field = children_field
+        self.children_definitions = children_definitions
         self.optionals = defaultdict(list)
         self.sum_widgets = []
         self.sum_box = Gtk.HBox()
@@ -1132,60 +1150,76 @@ class ViewTree(View):
                     treeview.expand_row(path, False)
 
     def __select_changed(self, tree_sel):
-        previous_record = self.record
-        if (previous_record
-                and (previous_record not in previous_record.group
-                    or previous_record.destroyed)):
-            previous_record = None
+        def do_selection_changed():
+            previous_record = self.record
+            if (previous_record
+                    and (previous_record not in previous_record.group
+                        or previous_record.destroyed)):
+                previous_record = None
 
-        if tree_sel.get_mode() == Gtk.SelectionMode.SINGLE:
-            model, iter_ = tree_sel.get_selected()
-            if model and iter_:
-                record = model.get_value(iter_, 0)
-                self.record = record
-            else:
-                self.record = None
+            # Because do_selection_changed is call through an idle_add it can
+            # be called when the treeview of the selection has had it's
+            # underlying model modified we should thus check if the treeview
+            # linked to the selections still exists
+            has_treeview = tree_sel.get_tree_view() is not None
+            if has_treeview:
+                if tree_sel.get_mode() == Gtk.SelectionMode.SINGLE:
+                    model, iter_ = tree_sel.get_selected()
+                    if model and iter_:
+                        record = model.get_value(iter_, 0)
+                        self.record = record
+                    else:
+                        self.record = None
 
-        elif tree_sel.get_mode() == Gtk.SelectionMode.MULTIPLE:
-            model, paths = tree_sel.get_selected_rows()
-            if model and paths:
-                records = []
-                for path in paths:
-                    iter_ = model.get_iter(path)
-                    records.append(model.get_value(iter_, 0))
-                if self.record not in records:
-                    self.record = records[0]
-                else:
-                    # Force record_message
-                    self.record = self.record
-            else:
-                self.record = None
+                elif tree_sel.get_mode() == Gtk.SelectionMode.MULTIPLE:
+                    model, paths = tree_sel.get_selected_rows()
+                    if model and paths:
+                        records = []
+                        for path in paths:
+                            iter_ = model.get_iter(path)
+                            records.append(model.get_value(iter_, 0))
+                        if self.record not in records:
+                            self.record = records[0]
+                        else:
+                            # Force record_message
+                            self.record = self.record
+                    else:
+                        self.record = None
 
-        if self.editable and previous_record:
-            def go_previous():
-                self.record = previous_record
-                self.set_cursor()
-            if not self.screen.parent and previous_record != self.record:
+            if self.editable and previous_record:
+                def go_previous():
+                    self.record = previous_record
+                    self.set_cursor()
+                if not self.screen.parent and previous_record != self.record:
 
-                def save():
-                    if not previous_record.destroyed:
-                        if not previous_record.save():
-                            go_previous()
+                    def save():
+                        if not previous_record.destroyed:
+                            if not previous_record.save():
+                                go_previous()
 
-                if not previous_record.validate(self.get_fields()):
-                    go_previous()
-                    return True
-                # Delay the save to let GTK process the current event
-                GLib.idle_add(save)
-            elif previous_record != self.record and self.screen.pre_validate:
+                    if not previous_record.validate(self.get_fields()):
+                        go_previous()
+                        return True
+                    # Delay the save to let GTK process the current event
+                    GLib.idle_add(save)
+                elif (previous_record != self.record
+                        and self.screen.pre_validate):
 
-                def pre_validate():
-                    if not previous_record.destroyed:
-                        if not previous_record.pre_validate():
-                            go_previous()
-                # Delay the pre_validate to let GTK process the current event
-                GLib.idle_add(pre_validate)
-        self.update_sum()
+                    def pre_validate():
+                        if not previous_record.destroyed:
+                            if not previous_record.pre_validate():
+                                go_previous()
+                    # Delay the pre_validate to let GTK process the current
+                    # event
+                    GLib.idle_add(pre_validate)
+            self.update_sum()
+
+        if self.screen._multiview_form:
+            tree, *forms = self.screen._multiview_form.widget_groups[\
+                self.screen._multiview_group]
+            for form in forms:
+                form.set_value()
+        do_selection_changed()
 
     def set_value(self):
         if self.editable:
@@ -1204,7 +1238,8 @@ class ViewTree(View):
         if (force
                 or not self.treeview.get_model()
                 or self.group != self.treeview.get_model().group):
-            model = ModelGroup(self.group, self.children_field)
+            model = ModelGroup(
+                self.group, self.children_field, self.children_definitions)
             self.treeview.set_model(model)
             # __select_changed resets current_record to None
             self.record = current_record
