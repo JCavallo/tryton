@@ -813,10 +813,14 @@ var Sao = {
         if (!screen) {
             return;
         }
+        if (Date.now() - Sao.last_menu_open < 150) {
+            return;
+        }
+        Sao.last_menu_open = Date.now();
         const id = screen.get_id();
         if (id) {
             // ids is not defined to prevent to add suffix
-            Sao.Action.exec_keyword('tree_open', {
+            return Sao.Action.exec_keyword('tree_open', {
                 'model': screen.model_name,
                 'id': screen.get_id(),
             }, null, false);
@@ -855,6 +859,7 @@ var Sao = {
             'row_activate': Sao.main_menu_row_activate,
         });
         Sao.main_menu_screen = screen;
+        Sao.last_menu_open = Date.now();
         screen.switch_view().done(function() {
             var view = screen.current_view;
             view.table.removeClass('table table-bordered');

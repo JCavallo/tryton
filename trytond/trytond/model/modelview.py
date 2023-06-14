@@ -375,6 +375,7 @@ class ModelView(Model):
         prints = Action.get_keyword('form_print', (cls.__name__, -1))
         actions = Action.get_keyword('form_action', (cls.__name__, -1))
         relates = Action.get_keyword('form_relate', (cls.__name__, -1))
+        quick_actions = Action.get_keyword('form_toolbar', (cls.__name__, -1))
         exports = Export.search_read([
                 ('resource', '=', cls.__name__),
                 ('ignore_search_limit', '=', False),
@@ -387,6 +388,7 @@ class ModelView(Model):
             'print': prints,
             'action': actions,
             'relate': relates,
+            'quick_actions': quick_actions,
             'exports': exports,
             'emails': emails,
             }
