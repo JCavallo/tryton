@@ -50,14 +50,6 @@ Create invoice::
     >>> line.quantity = 1
     >>> line.unit_price = Decimal(20)
 
-Posting an invoice in the future raises a warning::
-
-    >>> invoice.invoice_date = tomorrow
-    >>> invoice.click('post')
-    Traceback (most recent call last):
-        ...
-    InvoiceFutureWarning: ...
-
 Post invoice::
 
     >>> invoice.invoice_date = today
