@@ -1150,7 +1150,13 @@ class Model(object):
                     record = Relation(_default=False, **vals)
                 records.append(record)
         else:
-            self._values[field] = value
+            # JCA : Properly clear M2M fields following on_change
+            if self._fields[field]['type'] == 'many2many' and not value:
+                records = getattr(self, field)
+                while len(records):
+                    records.pop(_changed=False)
+            else:
+                self._values[field] = value
         self._changed.add(field)
 
     def _set_on_change(self, values):
