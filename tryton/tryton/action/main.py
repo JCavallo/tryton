@@ -1,5 +1,6 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+import copy
 import gettext
 import webbrowser
 
@@ -138,6 +139,8 @@ class Action(object):
 
             Window.create(res_model, **params)
         elif action['type'] == 'ir.action.wizard':
+            context = copy.deepcopy(context)
+            context.update(data.get('extra_context', {}))
             params['context'] = context
             params['window'] = action.get('window')
             name = action.get('name', '')
