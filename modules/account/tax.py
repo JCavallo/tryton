@@ -1023,6 +1023,7 @@ class Tax(sequence_ordered(), ModelSQL, ModelView, DeactivableMixin):
             rate += self.rate
         elif self.type == 'fixed':
             amount += self.amount
+        return rate, amount
 
     @classmethod
     def _reverse_rate_amount(cls, taxes, date):
@@ -1033,7 +1034,7 @@ class Tax(sequence_ordered(), ModelSQL, ModelView, DeactivableMixin):
             if not (start_date <= date <= end_date):
                 continue
 
-            tax._reverse_rate_amount_from_type(rate, amount)
+            rate, amount = tax._reverse_rate_amount_from_type(rate, amount)
 
             if tax.childs:
                 child_rate, child_amount = cls._reverse_rate_amount(
