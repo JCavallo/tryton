@@ -87,6 +87,7 @@ class ViewListForm(View):
     def _create_form(self, item):
         view_form = ListBoxViewForm(self.view_id, self.screen, self.form_xml)
         view_form.record = item.record
+        view_form.listform = self
         view_form.widget.props.margin = 3
         self._view_forms.append(view_form)
         frame = Gtk.Frame.new()
