@@ -495,7 +495,7 @@ class ProductTestCase(CompanyTestMixin, ModuleTestCase):
     def test_round_price(self):
         for value, result in [
                 (Decimal('1'), Decimal('1.0000')),
-                (Decimal('1.12345'), Decimal('1.1234')),
+                (Decimal('1.12345678'), Decimal('1.123457')),
                 (1, Decimal('1')),
                 ]:
             with self.subTest(value=value):
