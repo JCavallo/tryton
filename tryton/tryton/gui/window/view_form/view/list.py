@@ -1477,7 +1477,8 @@ class ViewTree(View):
             records.append(model.get_value(iter_, 0))
         records = []
         sel = self.treeview.get_selection()
-        sel.selected_foreach(_func_sel_get, records)
+        if sel is not None:
+            sel.selected_foreach(_func_sel_get, records)
         if not records and self.record:
             records.append(self.record)
         return records
