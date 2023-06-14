@@ -451,6 +451,10 @@ class Field(object):
     @domain_method
     def convert_domain(self, domain, tables, Model):
         "Return a SQL expression for the domain using tables"
+        # JCA: Hook for pseudo super calls in "domain_<field_name>" methods
+        return self._convert_domain(domain, tables, Model)
+
+    def _convert_domain(self, domain, tables, Model):
         table, _ = tables[None]
         name, operator, value = domain
         Operator = SQL_OPERATORS[operator]
@@ -675,11 +679,9 @@ class FieldTranslate(Field):
             language = get_parent_language(language)
         return table, join, column
 
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         if not self.translate:
-            return super().convert_domain(
-                domain, tables, Model)
+            return super()._convert_domain(domain, tables, Model)
         table, _ = tables[None]
         name, operator, value = domain
         model, join, column = self._get_translation_column(Model, name)

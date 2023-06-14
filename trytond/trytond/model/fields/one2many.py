@@ -321,8 +321,7 @@ class One2Many(Field):
             inst, self.name,
             [r for r in getattr(inst, self.name) if r not in records])
 
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         from ..modelsql import convert_from
         pool = Pool()
         Rule = pool.get('ir.rule')

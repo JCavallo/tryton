@@ -48,7 +48,7 @@ class FullText(Field):
                 value, language=transaction.language)
             return database.rank_full_text(column, value, normalize=['rank'])
 
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         transaction = Transaction()
         database = transaction.database
         table, _ = tables[None]

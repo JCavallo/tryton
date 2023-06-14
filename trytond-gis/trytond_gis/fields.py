@@ -36,7 +36,7 @@ class Geometry(fields.Field):
             return _GeoJSON(value)
         return super().sql_format(value)
 
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         table, _ = tables[None]
         name, operator, value = domain
 
