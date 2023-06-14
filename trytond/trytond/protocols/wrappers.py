@@ -154,7 +154,7 @@ class Request(BaseRequest):
     @cached_property
     def authorization(self):
         authorization = super().authorization
-        if authorization is None:
+        if authorization is None or authorization.type in ('token', 'bearer'):
             header = self.headers.get('Authorization')
             return parse_authorization_header(header)
         elif authorization.type == 'session':
@@ -257,6 +257,8 @@ def parse_authorization_header(value):
         return
     if auth_type == 'session':
         return parse_session(auth_info)
+    elif auth_type in ('token', 'bearer'):
+        return Authorization('token', {'token': auth_info}, token=auth_info)
     else:
         authorization = Authorization(auth_type)
         authorization.token = auth_info
@@ -395,7 +397,7 @@ def user_application(name, json=True):
             if authorization is None:
                 abort(HTTPStatus.UNAUTHORIZED)
 
-            if authorization.type == 'bearer':
+            if authorization.type in {'bearer', 'token'}:
                 token = getattr(authorization, 'token', '')
             elif authorization.type == 'basic':
                 token = authorization.get('password')
