@@ -127,7 +127,7 @@ class Action(object):
             params['search_value'] = decoder.decode(
                 action['pyson_search_value'] or '[]')
             params['tab_domain'] = [
-                (n, decoder.decode(d), c) for n, d, c in action['domains']]
+                (n, (action_ctx, d), c) for n, d, c in action['domains']]
 
             name = action.get('name', '')
             if action.get('keyword', ''):
