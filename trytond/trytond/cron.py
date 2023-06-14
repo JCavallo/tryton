@@ -7,6 +7,7 @@ import sys
 import time
 from concurrent import futures
 from multiprocessing import cpu_count
+from pathlib import Path
 
 from trytond.pool import Pool
 from trytond.transaction import Transaction
@@ -34,7 +35,16 @@ def run(options):
     with futures.ProcessPoolExecutor(**executor_options) as executor:
         while True:
             for database_name in options.database_names:
+                path = Path(f'/tmp/cron_canary_{database_name}')
+                if options.check:
+                    if path.exists():
+                        logger.info(f'canary file exists for {database_name}')
+                        path.unlink()
+                        return
+                    logger.error(f'No cron canary file for {database_name}')
+                    sys.exit(1)
                 executor.submit(run_cron, database_name)
+                path.touch()
             if options.once:
                 break
             else:
