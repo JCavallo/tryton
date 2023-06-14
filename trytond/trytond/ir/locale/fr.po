@@ -3271,6 +3271,14 @@ msgctxt "model:ir.message,text:msg_model_data_xml_id_module_unique"
 msgid "The XML ID must be unique per module."
 msgstr "L'ID XML doit être unique par module."
 
+msgctxt "model:ir.message,text:msg_missing_configuration"
+msgid ""
+"The connection to email server failed. Please check your email server "
+"configuration."
+msgstr ""
+"La connexion au serveur de mail a échoué. Veuillez vérifier votre "
+"configuration de serveur d'email."
+
 #, python-format
 msgctxt "model:ir.message,text:msg_model_invalid_condition"
 msgid ""
