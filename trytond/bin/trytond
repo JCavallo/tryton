@@ -89,6 +89,10 @@ with commandline.pidfile(options):
                 extra_files.extend(glob.glob(path, recursive=True))
     app.dev = options.dev
 
+    # AKE: handle term signals
+    handler = commandline.generate_signal_handler(options.pidfile)
+    commandline.handle_signals(handler)
+
     if options.coroutine:
         from gevent.pywsgi import WSGIServer
         logger = logging.getLogger('gevent')
