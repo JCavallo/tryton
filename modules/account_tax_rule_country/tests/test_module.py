@@ -11,7 +11,9 @@ from trytond.tests.test_tryton import ModuleTestCase, with_transaction
 class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
     'Test Account Tax Rule Country module'
     module = 'account_tax_rule_country'
-    extras = ['account_invoice', 'sale', 'purchase', 'stock']
+    # JMO: we do not have sale, purchase and stock in our repos
+    # extras = ['account_invoice', 'sale', 'purchase', 'stock']
+    extras = ['account_invoice']
 
     @with_transaction()
     def test_account_chart(self):
