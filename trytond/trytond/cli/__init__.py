@@ -30,14 +30,16 @@ def main():
     from trytond.wsgi import app
 
     with commandline.pidfile(options):
-        Pool.start()
-        threads = []
-        for name in options.database_names:
-            thread = threading.Thread(target=lambda: Pool(name).init())
-            thread.start()
-            threads.append(thread)
-        for thread in threads:
-            thread.join()
+        if (os.environ.get('WERKZEUG_RUN_MAIN') == 'true'
+                or not options.dev or options.coroutine):
+            Pool.start()
+            threads = []
+            for name in options.database_names:
+                thread = threading.Thread(target=lambda: Pool(name).init())
+                thread.start()
+                threads.append(thread)
+            for thread in threads:
+                thread.join()
         hostname, port = config.split_netloc(config.get('web', 'listen'))
         certificate = config.get('ssl', 'certificate')
         try:
