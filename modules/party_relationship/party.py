@@ -127,12 +127,18 @@ class RelationAll(Relation, ModelView):
     __name__ = 'party.relation.all'
 
     @classmethod
+    def get_table_for_table_query(cls):
+        Relation = Pool().get('party.relation')
+        return Relation.__table__()
+
+    @classmethod
     def table_query(cls):
         pool = Pool()
         Relation = pool.get('party.relation')
         Type = pool.get('party.relation.type')
-
-        relation = Relation.__table__()
+        # FLA: Fix #11470: Add a hook in order to be able to use it in
+        # party_cog to manage party relation history
+        relation = cls.get_table_for_table_query()
         type = Type.__table__()
 
         tables = {
@@ -168,9 +174,13 @@ class RelationAll(Relation, ModelView):
         if name == 'id':
             return As(table.id * 2, name), As(reverse_table.id * 2 + 1, name)
         elif name == 'from_':
-            return table.from_, reverse_table.to.as_(name)
+            # FLA: Fix #11470: Use column in order to be able to use
+            # _get_history_table
+            return Column(table, 'from_'), reverse_table.to.as_(name)
         elif name == 'to':
-            return table.to, reverse_table.from_.as_(name)
+            # FLA: Fix #11470: Use column in order to be able to use
+            # _get_history_table
+            return table.to, Column(reverse_table, 'from_').as_(name)
         elif name == 'type':
             reverse_type, _ = reverse_tables[name][None]
             return table.type, reverse_type.reverse.as_(name)
