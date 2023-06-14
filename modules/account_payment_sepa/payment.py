@@ -594,10 +594,14 @@ class Mandate(Workflow, ModelSQL, ModelView):
                     },
                 })
         t = cls.__table__()
-        cls._sql_constraints = [
-            ('identification_unique', Unique(t, t.company, t.identification),
-                'account_payment_sepa.msg_mandate_unique_id'),
-            ]
+        # JMO/RSE 2017_04_18 Following 4929e02594d
+        # We override in coog the possibility to keep the mandate
+        # for several bank account but we suffer from the register order
+        # if we try to delete the constraint from coog module
+        # cls._sql_constraints = [
+        #     ('identification_unique', Unique(t, t.company, t.identification),
+        #         'account_payment_sepa.msg_mandate_unique_id'),
+        #     ]
         cls._sql_indexes.add(
             Index(
                 t, (t.state, Index.Equality(cardinality='low')),
