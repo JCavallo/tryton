@@ -288,7 +288,7 @@ class Statement(Workflow, ModelSQL, ModelView):
                             except AttributeError:
                                 pass
                         new_line.amount = line.amount + amount_to_pay
-                        new_line.invoice = None
+                        new_line.reset_remaining_line(line)
                         line_offset += 1
                         lines.insert(index + line_offset, new_line)
                         invoice_id2amount_to_pay[line.invoice.id] = Decimal(0)
@@ -1078,6 +1078,9 @@ class Line(origin_mixin(_states), sequence_ordered(), ModelSQL, ModelView):
             second_currency=second_currency,
             amount_second_currency=amount_second_currency,
             )
+
+    def reset_remaining_line(self, from_line):
+        self.invoice = None
 
 
 del _states
