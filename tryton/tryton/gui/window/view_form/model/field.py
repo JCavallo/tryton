@@ -93,6 +93,10 @@ class Field(object):
         if bool(int(state_attrs.get('required') or 0)):
             if (self._is_empty(record)
                     and not bool(int(state_attrs.get('readonly') or 0))):
+                logging.getLogger('root').debug('Field %s required on %s : '
+                    'states : %s'
+                    % (self.name, record.model_name,
+                        str(self.attrs.get('states', {}))))
                 return False
         return True
 
@@ -110,8 +114,12 @@ class Field(object):
                 invalid = 'required'
         if isinstance(domain, bool):
             if not domain:
+                logging.getLogger('root').debug('Invalid domain on Field %s of'
+                    ' %s : %s' % (self.name, record.model_name, str(domain)))
                 invalid = 'domain'
         elif domain == [('id', '=', None)]:
+            logging.getLogger('root').debug('Invalid domain on Field %s of'
+                ' %s : %s' % (self.name, record.model_name, str(domain)))
             invalid = 'domain'
         else:
             screen_domain, _ = self.domains_get(record, pre_validate)
@@ -147,6 +155,8 @@ class Field(object):
                     state_attrs['domain_readonly'] = domain_readonly
             if not eval_domain(domain, EvalEnvironment(record)):
                 invalid = domain
+                logging.getLogger('root').debug('Invalid domain on Field %s of'
+                    ' %s : %s' % (self.name, record.model_name, str(domain)))
         state_attrs['invalid'] = invalid
         return not invalid
 
