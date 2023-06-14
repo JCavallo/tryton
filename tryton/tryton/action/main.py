@@ -135,7 +135,7 @@ class Action(object):
                     'active_ids': data.get('ids', []),
                     })
             params['tab_domain'] = [
-                (n, (action_ctx, d), c) for n, d, c in action['domains']]
+                (n, (ctx, d), c) for n, d, c in action['domains']]
 
             name = action.get('name', '')
             if action.get('keyword', ''):
