@@ -325,7 +325,10 @@ class One2ManyDescriptor(FieldDescriptor):
                 ctx.update(decoder.decode(self.definition.get('context')))
             config = Relation._config
             with config.reset_context(), config.set_context(ctx):
-                value = ModelList(self.definition, (Relation(id)
+                # JCA : Instantiate function O2M, which are read as dicts
+                # rather than ids
+                value = ModelList(self.definition, (
+                        Relation(**id) if isinstance(id, dict) else Relation(id)
                         for id in value or []), instance, self.name)
             instance._values[self.name] = value
         return value
@@ -732,6 +735,8 @@ class Model(object):
             self._default_get()
 
         for field_name, value in kwargs.items():
+            if field_name.endswith('.rec_name') or field_name.endswith('.'):
+                continue
             definition = self._fields[field_name]
             if definition['type'] in ('one2many', 'many2many'):
                 relation = Model.get(definition['relation'], self._config)
