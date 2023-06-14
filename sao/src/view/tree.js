@@ -1897,9 +1897,8 @@
                 }
                 td.attr('headers', column.header.attr('id'));
                 td.on('click keypress', {'index': i}, on_click);
-                if (!this.tree.editable) {
-                    td.dblclick(this.switch_row.bind(this));
-                } else {
+                td.dblclick(this.switch_row.bind(this));
+                if (this.tree.editable) {
                     if (column.attributes.required) {
                         td.addClass('required');
                     }
@@ -2951,14 +2950,16 @@
             cell.click(event => {
                 event.preventDefault();
                 event.stopPropagation();
-                var params = {};
-                params.model = this.attributes.relation;
-                params.res_id = this.field.get(record);
-                params.mode = ['form'];
-                params.view_ids = view_ids;
-                params.name = this.attributes.string;
-                params.context = this.field.get_context(record);
-                Sao.Tab.create(params);
+                if (event && event.ctrlKey) {
+                    var params = {};
+                    params.model = this.attributes.relation;
+                    params.res_id = this.field.get(record);
+                    params.mode = ['form'];
+                    params.view_ids = view_ids;
+                    params.name = this.attributes.string;
+                    params.context = this.field.get_context(record);
+                    Sao.Tab.create(params);
+                }
             });
         }
     });
