@@ -1243,6 +1243,24 @@ msgstr "Annuler la suppression de l'enregistrement sélectionné"
 msgid "%s%%"
 msgstr "%s%%"
 
+msgid "Replace"
+msgstr "Remplacer"
+
+msgid "Replace All"
+msgstr "Remplacer tout"
+
+msgid "L"
+msgstr "L"
+
+msgid "Message"
+msgstr "Messages"
+
+msgid "Parameters: {}"
+msgstr "Paramètres : {}"
+
+msgid "No parameters"
+msgstr "Pas de paramètres"
+
 msgid "Choose a language"
 msgstr "Choisir une langue"
 
@@ -1266,3 +1284,4 @@ msgstr "#ERREUR"
 
 msgid "Translate view"
 msgstr "Traduire la vue"
+

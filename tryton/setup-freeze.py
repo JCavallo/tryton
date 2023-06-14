@@ -95,6 +95,20 @@ for ns in required_gi_namespaces:
     include_files.append((typefile_tmp, typefile_file))
 
 if sys.platform == 'win32':
+    include_files.extend([
+        ('share/themes/Coog', 'share/themes/Coog'),
+        ('share/languages/language2.rng', 'share/languages/language2.rng'),
+        ('share/languages/def.lang', 'share/languages/def.lang'),
+        ('share/languages/python.lang', 'share/languages/python.lang'),
+        ('share/languages/python3.lang', 'share/languages/python3.lang'),
+        ('share/styles/classic.xml', 'share/styles/classix.xml'),
+        ('share/styles/styles.rng', 'share/styles/styles.rng'),
+        (os.path.join(sys.prefix, 'ssl'), 'etc/ssl'),
+        ])
+    dll_paths = os.getenv('PATH', os.defpath).split(os.pathsep)
+    required_dlls = [
+        'librsvg-2-2.dll',
+        ]
     required_libs.update([
         'libepoxy-0.dll',
         ])
