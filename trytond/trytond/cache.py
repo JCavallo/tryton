@@ -220,9 +220,12 @@ class MemoryCache(BaseCache):
             cache.move_to_end(key)
             self.hit += 1
             return result
-        except (KeyError, TypeError):
+        except KeyError:
             self.miss += 1
             return default
+        except TypeError:
+            # JCA : Properly crash on type error
+            raise
 
     def set(self, key, value):
         key = self._key(key)
@@ -239,9 +242,13 @@ class MemoryCache(BaseCache):
 
         try:
             value = immutable(value)
-            cache[key] = (expire, value)
         except TypeError:
             pass
+        try:
+            cache[key] = (expire, value)
+        except TypeError:
+            # JCA : Do not silently fail when trying to use a non hashable key
+            raise
         return value
 
     def clear(self):
