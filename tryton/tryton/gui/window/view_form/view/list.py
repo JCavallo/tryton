@@ -1,21 +1,24 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+import ast
 import csv
 import gettext
 import json
 import locale
+import logging
 import sys
 from collections import defaultdict
 from functools import wraps
 from io import StringIO
 from weakref import WeakValueDictionary
 
-from gi.repository import Gdk, GLib, GObject, Gtk
+from gi.repository import Gdk, GLib, GObject, Gtk, Pango
 
 import tryton.common as common
 from tryton.common import (
-    RPCException, RPCExecute, Tooltips, domain_inversion, get_monitor_size,
-    node_attributes, simplify, unique_value)
+    COLOR_RGB, FORMAT_ERROR, RPCException, RPCExecute, Tooltips,
+    domain_inversion, get_monitor_size, node_attributes, simplify,
+    unique_value)
 from tryton.common.cellrendererbutton import CellRendererButton
 from tryton.common.popup_menu import populate, popup
 from tryton.config import CONFIG
@@ -31,6 +34,7 @@ from .list_gtk.widget import (
     Reference, Selection, Text, Time, TimeDelta)
 
 _ = gettext.gettext
+logger = logging.getLogger(__name__)
 
 
 def delay(func):
@@ -420,6 +424,9 @@ class TreeXMLViewParser(XMLViewParser):
             required = field.get('required')
             readonly = field.get('readonly')
             common.apply_label_attributes(label, readonly, required)
+        attrlist = Pango.AttrList()
+        self._format_set(attributes, attrlist)
+        label.set_attributes(attrlist)
         label.show()
         help = attributes.get('help')
         if help:
@@ -1266,7 +1273,7 @@ class ViewTree(View):
             self.update_sum()
 
         if self.screen._multiview_form:
-            tree, *forms = self.screen._multiview_form.widget_groups[\
+            tree, *forms = self.screen._multiview_form.widget_groups[
                 self.screen._multiview_group]
             for form in forms:
                 form.set_value()

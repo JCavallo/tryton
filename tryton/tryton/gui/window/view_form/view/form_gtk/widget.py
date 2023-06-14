@@ -2,10 +2,11 @@
 # this repository contains the full copyright notices and license terms.
 import gettext
 
-from gi.repository import Gdk, GLib, Gtk
+from gi.repository import Gdk, GLib, Gtk, Pango
 
+from tryton.common import COLORS
 import tryton.common as common
-from tryton.common import TRYTON_ICON, RPCException, RPCExecute
+from tryton.common import FORMAT_ERROR, TRYTON_ICON, RPCException, RPCExecute
 from tryton.common.underline import set_underline
 from tryton.common.widget_style import widget_class
 from tryton.gui import Main
@@ -96,6 +97,49 @@ class Widget(object):
         if not self.visible:
             return False
         self.set_value()
+
+    def _set_background(self, value):
+        widget = self._color_widget()
+        widget.modify_bg(Gtk.StateType.ACTIVE, Gdk.color_parse(value))
+
+    def _set_foreground(self, value):
+        widget = self._color_widget()
+        widget.modify_fg(Gtk.StateType.NORMAL, Gdk.color_parse(value))
+
+    def _set_font(self, value):
+        widget = self._color_widget()
+        widget.modify_font(Pango.FontDescription(value))
+
+    def _set_color(self, value):
+        widget = self._color_widget()
+        widget.modify_text(Gtk.StateType.NORMAL, Gdk.color_parse(value))
+        widget.modify_text(Gtk.StateType.INSENSITIVE, Gdk.color_parse(value))
+
+    def _format_set(self):
+        functions = {
+            'color': self._set_color,
+            'fg': self._set_foreground,
+            'bg': self._set_background,
+            'font': self._set_font
+            }
+        attrs = self.record.expr_eval(self.field.get_state_attrs(self.record).
+            get('states', {}))
+        states = self.record.expr_eval(self.attrs.get('states', {})).copy()
+        states.update(attrs)
+        for attr in list(states.keys()):
+            if not states[attr]:
+                continue
+            key = attr.split('_')
+            if key[0] == 'field':
+                key = key[1:]
+            if key[0] == 'label':
+                continue
+            if isinstance(states[attr], str):
+                key.append(states[attr])
+            if key[0] in functions:
+                if len(key) != 2:
+                    raise ValueError(FORMAT_ERROR + attr)
+                functions[key[0]](key[1])
 
     def display(self):
         if not self.field:
