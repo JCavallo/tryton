@@ -318,7 +318,8 @@ class Payment(Workflow, ModelSQL, ModelView):
             If(Eval('state') == 'draft',
                 [
                     ('reconciliation', '=', None),
-                    ('maturity_date', '!=', None),
+                    # JMO: Coog Specific no domain on maturity_date
+                    # ('maturity_date', '!=', None),
                     ],
                 []),
             ['OR',
