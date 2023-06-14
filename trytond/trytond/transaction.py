@@ -238,7 +238,9 @@ class Transaction(object):
     _atexit = SavepointAwareProperty(list)
     _datamanagers = SavepointAwareProperty(list)
 
-    cache_keys = {'language', 'fuzzy_translation', '_datetime'}
+    cache_keys = {
+        'language', 'fuzzy_translation', '_datetime', '_datetime_exclude',
+        }
 
     def __new__(cls, new=False):
         transactions = cls._local.transactions
