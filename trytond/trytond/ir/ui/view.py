@@ -220,7 +220,16 @@ class View(
             xml = view.arch.strip()
             if not xml:
                 continue
-            tree = etree.fromstring(xml)
+            try:
+                tree = etree.fromstring(xml)
+            except Exception:
+                # JCA : print faulty xml
+                try:
+                    import pprint
+                    pprint.pprint(xml)
+                except Exception:
+                    print(xml)
+                raise
 
             if hasattr(etree, 'RelaxNG'):
                 validator = etree.RelaxNG(etree=cls.get_rng(view.rng_type))
@@ -340,9 +349,11 @@ class View(
     def inherit_apply(cls, tree, inherit):
         root_inherit = inherit.getroottree().getroot()
         for element in root_inherit:
-            expr = element.get('expr')
-            targets = tree.xpath(expr)
-            assert targets, "No elements found for expression %r" % expr
+            targets = tree.xpath(element.get('expr'))
+            if not targets:
+                raise AttributeError(
+                    'Couldn\'t find tag (%s: %s) in parent view!'
+                    % (element.tag, element.get('expr')))
             for target in targets:
                 position = element.get('position', 'inside')
                 new_tree = getattr(cls, '_inherit_apply_%s' % position)(

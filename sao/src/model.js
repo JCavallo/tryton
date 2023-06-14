@@ -1738,14 +1738,23 @@
                         pre_validate));
             if (!softvalidation) {
                 if (!this.check_required(record)) {
+                    Sao.Logger.debug(
+                        `validate:required: ${record.model.name}->${this.name}`
+                    );
                     invalid = 'required';
                 }
             }
             if (typeof domain == 'boolean') {
                 if (!domain) {
+                    Sao.Logger.debug(
+                        `validate:domain: ${record.model.name}->${this.name}`
+                    );
                     invalid = 'domain';
                 }
             } else if (Sao.common.compare(domain, [['id', '=', null]])) {
+                Sao.Logger.debug(
+                    `validate:domain: ${record.model.name}->${this.name}`
+                );
                 invalid = 'domain';
             } else {
                 let [screen_domain] = this.get_domains(record, pre_validate);
@@ -1792,6 +1801,10 @@
                 }
                 if (!inversion.eval_domain(domain,
                             Sao.common.EvalEnvironment(record))) {
+                    Sao.Logger.debug(
+                        `validate:domain: ${record.model.name}->${this.name}`
+                        + ` (${domain})`
+                    );
                     invalid = domain;
                 }
             }

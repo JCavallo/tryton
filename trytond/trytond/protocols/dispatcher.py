@@ -1,9 +1,11 @@
 # -*- coding: utf-8 -*-
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+import http.client
 import logging
 import pydoc
 import time
+import traceback
 
 from sql import Table
 
@@ -25,10 +27,62 @@ __all__ = ['register_authentication_service']
 
 logger = logging.getLogger(__name__)
 
+# JCA: log slow RPC (> log_time_threshold)
+slow_threshold = config.getfloat('web', 'log_time_threshold', default=-1)
+if slow_threshold >= 0:
+    slow_logger = logging.getLogger('trytond.rpc.performance')
+
+# JCA: Format json logs
+format_json_parameters = config.getboolean('web', 'format_parameters_logs',
+    default=False)
+format_json_result = config.getboolean('web', 'format_result_logs',
+    default=False)
+if format_json_parameters or format_json_result:
+    import datetime
+    import base64
+    import json
+    from decimal import Decimal
+
+    class DEBUGEncoder(json.JSONEncoder):
+
+        serializers = {}
+
+        @classmethod
+        def register(cls, klass, encoder):
+            assert klass not in cls.serializers
+            cls.serializers[klass] = encoder
+
+        def default(self, obj):
+            marshaller = self.serializers.get(type(obj),
+                super(DEBUGEncoder, self).default)
+            return marshaller(obj)
+
+    DEBUGEncoder.register(datetime.datetime,
+        lambda x: 'DateTime(%s-%s-%s %s:%s:%s.%s)' % (x.year, x.month, x.day,
+            x.hour, x.minute, x.second, x.microsecond))
+    DEBUGEncoder.register(datetime.date, lambda x: 'Date(%s-%s-%s)' % (
+            x.year, x.month, x.day))
+    DEBUGEncoder.register(datetime.time, lambda x: 'Time(%s:%s:%s.%s)' % (
+            x.hour, x.minute, x.second, x.microsecond))
+    DEBUGEncoder.register(datetime.timedelta, lambda x: 'TimeDelta(%s seconds)' % (
+            x.total_seconds()))
+    DEBUGEncoder.register(Decimal, lambda x: 'Decimal(%s)' % str(x))
+    DEBUGEncoder.register(bytes, lambda x: 'Bytes(%s)' % base64.encodebytes(x))
+    DEBUGEncoder.register(bytearray,
+        lambda x: 'Bytes(%s)' % base64.encodebytes(x))
+
+
 ir_configuration = Table('ir_configuration')
 ir_lang = Table('ir_lang')
 ir_module = Table('ir_module')
 res_user = Table('res_user')
+
+# JCA: log slow RPC
+def log_exception(method, *args, **kwargs):
+    kwargs['exc_info'] = False
+    method(*args, **kwargs)
+    for elem in traceback.format_exc().split('\n'):
+        method(elem)
 
 
 @app.route('/<string:database_name>/', methods=['POST'])
@@ -175,16 +229,15 @@ def _dispatch(request, pool, *args, **kwargs):
     else:
         abort(HTTPStatus.FORBIDDEN)
 
-    user = request.user_id
-    session = None
     if request.authorization.type == 'session':
         session = request.authorization.get('session')
 
+    user = request.user_id
     if rpc.fresh_session and session:
         context = {'_request': request.context}
         if not security.check_timeout(
                 pool.database_name, user, session, context=context):
-            abort(HTTPStatus.UNAUTHORIZED)
+            abort(http.client.UNAUTHORIZED)
 
     log_message = '%s.%s%s from %s@%s%s in %i ms'
     username = request.authorization.username
@@ -192,12 +245,32 @@ def _dispatch(request, pool, *args, **kwargs):
         username = username.decode('utf-8')
     log_args = (
         obj.__name__, method,
-        format_args(args, kwargs, logger.isEnabledFor(logging.DEBUG)),
+        format_args(args, kwargs, verbose=logger.isEnabledFor(logging.DEBUG)),
         username, request.remote_addr, request.path)
 
     def duration():
         return (time.monotonic() - started) * 1000
     started = time.monotonic()
+
+    # JCA: log slow RPC
+    if slow_threshold >= 0:
+        slow_msg = '%s.%s (%s s)'
+        slow_args = (obj, method)
+        slow_start = time.time()
+
+    # JCA: Format parameters
+    if format_json_parameters and logger.isEnabledFor(logging.DEBUG):
+        try:
+            for line in json.dumps(args, indent=2, sort_keys=True,
+                    cls=DEBUGEncoder).split('\n'):
+                logger.debug('Parameters: %s' % line)
+        except Exception:
+            logger.debug('Could not format parameters in log', exc_info=True)
+
+    # AKE: add session to transaction context
+    session = None
+    if request.authorization.type == 'session':
+        session = request.authorization.get('session')
 
     retry = config.getint('database', 'retry')
     count = 0
@@ -241,6 +314,11 @@ def _dispatch(request, pool, *args, **kwargs):
                     logger.debug("Retry: %i", count)
                     continue
                 logger.exception(log_message, *log_args, duration())
+
+                # JCA: log slow RPC
+                if slow_threshold >= 0:
+                    slow_args += (str(time.time() - slow_start),)
+                    log_exception(slow_logger.error, slow_msg, *slow_args)
                 raise
             except RPCReturnException as e:
                 transaction.rollback()
@@ -251,9 +329,20 @@ def _dispatch(request, pool, *args, **kwargs):
                 logger.info(
                     log_message, *log_args, duration(),
                     exc_info=logger.isEnabledFor(logging.DEBUG))
+
+                # JCA: log slow RPC
+                if slow_threshold >= 0:
+                    slow_args += (str(time.time() - slow_start),)
+                    log_exception(slow_logger.debug, slow_msg, *slow_args)
+
                 raise
             except Exception:
                 logger.exception(log_message, *log_args, duration())
+
+                # JCA: log slow RPC
+                if slow_threshold >= 0:
+                    slow_args += (str(time.time() - slow_start),)
+                    log_exception(slow_logger.error, slow_msg, *slow_args)
                 raise
             # Need to commit to unlock SQLite database
             transaction.commit()
@@ -264,7 +353,28 @@ def _dispatch(request, pool, *args, **kwargs):
             context = {'_request': request.context}
             security.reset(pool.database_name, session, context=context)
         logger.info(log_message, *log_args, duration())
-        logger.debug('Result: %r', result)
+
+        # JCA: Allow to format json result
+        if format_json_result and logger.isEnabledFor(logging.DEBUG):
+            try:
+                for line in json.dumps(result, indent=2,
+                        sort_keys=True, cls=DEBUGEncoder).split('\n'):
+                    logger.debug('Result: %s' % line)
+            except Exception:
+                logger.debug('Could not format parameters in log',
+                    exc_info=True)
+        else:
+            logger.debug('Result: %s', result)
+
+        # JCA: log slow RPC
+        if slow_threshold >= 0:
+            slow_diff = time.time() - slow_start
+            slow_args += (str(slow_diff),)
+            if slow_diff > slow_threshold:
+                slow_logger.info(slow_msg, *slow_args)
+            else:
+                slow_logger.debug(slow_msg, *slow_args)
+
         response = app.make_response(request, result)
         if rpc.readonly and rpc.cache:
             response.headers.extend(rpc.cache.headers())

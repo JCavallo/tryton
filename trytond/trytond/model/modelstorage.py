@@ -6,6 +6,7 @@ import csv
 import datetime
 import decimal
 import math
+import logging
 import random
 import time
 import warnings
@@ -1603,6 +1604,10 @@ class ModelStorage(Model):
                                 and not value)
                             or (field._type == 'reference'
                                 and not isinstance(value, ModelStorage))):
+                        # JCA : Add log to help debugging
+                        logging.getLogger().debug(
+                            'Field %s of %s is required' %
+                            (field_name, cls.__name__))
                         raise RequiredValidationError(
                             gettext('ir.msg_required_validation_record',
                                 **cls.__names__(field_name, record)))
@@ -1725,6 +1730,11 @@ class ModelStorage(Model):
                             values = value or []
                         for value in values:
                             if value not in test:
+                                logging.getLogger().debug(
+                                    'Bad Selection : field %s of model %s :'
+                                    ' %s is not in %s' % (
+                                        field_name, cls.__name__, value,
+                                        test))
                                 error_args = cls.__names__(field_name, record)
                                 error_args['value'] = value
                                 raise SelectionValidationError(gettext(
