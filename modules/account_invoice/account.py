@@ -263,7 +263,7 @@ class Reconciliation(metaclass=PoolMeta):
 
         with transaction.set_context(
                 queue_batch=context.get('queue_batch', True)):
-            Invoice.__queue__.process(
+            Invoice.process(
                 list(_invoices_to_process(reconciliations)))
 
 
