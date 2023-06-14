@@ -308,6 +308,26 @@ class Database(DatabaseInterface):
                 self._connpool.putconn(conn, close=True)
                 continue
             break
+
+        # We do not use set_session because psycopg2 < 2.7 and psycopg2cffi
+        # change the default_transaction_* attributes which breaks external
+        # pooling at the transaction level.
+        if autocommit:
+            conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        else:
+            conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
+        statements = []
+        # psycopg2cffi does not have the readonly property
+        if hasattr(conn, 'readonly'):
+            conn.readonly = readonly
+        elif not autocommit and readonly:
+            statements.append('SET TRANSACTION READ ONLY')
+        if statement_timeout:
+            statements.append(
+                'SET statement_timeout=%s' % (statement_timeout * 1000))
+        if statements:
+            cursor = conn.cursor()
+            cursor.execute(';'.join(statements))
         return conn
 
     def put_connection(self, connection, close=False):
