@@ -11,7 +11,8 @@ from sql import (
 from sql.aggregate import Count, Max
 from sql.conditionals import Coalesce
 from sql.functions import CurrentTimestamp, Extract, RowNumber, Substring
-from sql.operators import And, Concat, Equal, Exists, Operator, Or
+from sql.operators import (
+    And, Concat, Equal, Exists, Less, LessEqual, Operator, Or)
 
 from trytond import backend, config
 from trytond.cache import freeze
@@ -1183,6 +1184,7 @@ class ModelSQL(ModelStorage):
         Translation = pool.get('ir.translation')
         transaction = Transaction()
         cursor = Transaction().connection.cursor()
+        context = transaction.context
 
         ids, fields_names = cls._before_read(ids, fields_names)
 
@@ -1221,11 +1223,15 @@ class ModelSQL(ModelStorage):
         history_clause = None
         history_limit = None
         if (cls._history
-                and transaction.context.get('_datetime')
+                and context.get('_datetime')
                 and not cls._is_table_query()):
             table = cls.__table_history__()
             column = Coalesce(table.write_date, table.create_date)
-            history_clause = (column <= Transaction().context['_datetime'])
+            if context.get('_datetime_included', True):
+                h_operator = LessEqual
+            else:
+                h_operator = Less
+            history_clause = h_operator(column, context['_datetime'])
             history_order = (column.desc, Column(table, '__id').desc)
             history_limit = 1
         tables = {None: (table, None)}
@@ -1730,7 +1736,12 @@ class ModelSQL(ModelStorage):
                 and not cls._is_table_query()):
             table = cls.__table_history__()
             column = Coalesce(table.write_date, table.create_date)
-            history_clause = (column <= Transaction().context['_datetime'])
+            if transaction.context.get('_datetime_included', True):
+                h_operator = LessEqual
+            else:
+                h_operator = Less
+            history_clause = h_operator(
+                column, transaction.context['_datetime'])
             limit = 1
         cursor = transaction.connection.cursor()
         assert mode in Rule.modes
@@ -2040,12 +2051,13 @@ class ModelSQL(ModelStorage):
         transaction = Transaction()
         if active_test is None:
             active_test = transaction.active_records
+        context = transaction.context
         domain = cls._search_domain_active(domain, active_test=active_test)
 
         if tables is None:
             tables = {}
         if None not in tables:
-            if cls._history and transaction.context.get('_datetime'):
+            if cls._history and context.get('_datetime'):
                 tables[None] = (cls.__table_history__(), None)
             else:
                 tables[None] = (cls.__table__(), None)
@@ -2069,10 +2081,15 @@ class ModelSQL(ModelStorage):
         with without_check_access():
             expression = convert(domain)
 
-        if cls._history and transaction.context.get('_datetime'):
+        if cls._history and context.get('_datetime'):
             table, _ = tables[None]
             history = cls.__table_history__()
             last_change = Coalesce(history.write_date, history.create_date)
+            if context.get('_datetime_included', True):
+                h_operator = LessEqual
+            else:
+                h_operator = Less
+            last_change_expr = h_operator(last_change, context['_datetime'])
             # prefilter the history records for a bit of a speedup
             selected_h_ids = convert_from(None, tables).select(
                 table.id, where=expression)
@@ -2083,8 +2100,7 @@ class ModelSQL(ModelStorage):
                         order_by=[
                             last_change.desc,
                             Column(history, '__id').desc])).as_('rank'),
-                where=((last_change <= transaction.context['_datetime'])
-                    & history.id.in_(selected_h_ids)))
+                where=(last_change_expr & history.id.in_(selected_h_ids)))
             # Filter again as the latest records from most_recent might not
             # match the expression
             expression &= Exists(most_recent.select(

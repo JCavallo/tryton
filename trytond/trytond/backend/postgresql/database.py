@@ -14,6 +14,7 @@ import psycopg
 from psycopg import Binary, ClientCursor, Cursor
 from psycopg import DataError as DatabaseDataError
 from psycopg import IntegrityError as DatabaseIntegrityError
+from psycopg import InterfaceError
 from psycopg import IsolationLevel
 from psycopg import OperationalError as DatabaseOperationalError
 from psycopg import connect
@@ -280,8 +281,14 @@ class Database(DatabaseInterface):
                     (statement_timeout * 1000))
         return conn
 
-    def put_connection(self, connection):
-        self._connpool.putconn(connection)
+    def put_connection(self, connection, close=False):
+        if not connection:
+            return
+        try:
+            self._connpool.putconn(connection)
+        except InterfaceError:
+            # When cleaning up, the pool may already be closed
+            pass
 
     def close(self):
         with self._lock:
