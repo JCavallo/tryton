@@ -323,6 +323,8 @@ class Transaction(object):
             self.current_savepoint = None
             self.timestamp = {}
             self.counter = 0
+            self._sub_transactions = []
+            self._sub_transactions_to_close = []
 
             self.connection = database.get_connection(readonly=readonly,
                 autocommit=autocommit, statement_timeout=timeout)
@@ -363,6 +365,7 @@ class Transaction(object):
         self.stop(type is None)
 
     def stop(self, commit=False):
+        from trytond import backend
         transactions = self._local.transactions
         try:
             if transactions.count(self) == 1:
@@ -376,6 +379,13 @@ class Transaction(object):
                         if self.connection:
                             self.database.put_connection(
                                 self.connection, self.close)
+                            to_put = {x.connection for x in
+                                self._sub_transactions_to_close
+                                if (backend.name == 'sqlite'
+                                    or not x.connection.closed)}
+                            for conn in to_put:
+                                self.database.put_connection(
+                                    conn, self.close)
                 finally:
                     self.database = None
                     self.readonly = False
@@ -473,6 +483,16 @@ class Transaction(object):
     def _clear_warnings(self):
         self.check_warnings.clear()
 
+    def add_sub_transactions(self, sub_transactions):
+        self._sub_transactions.extend(sub_transactions)
+
+    def add_sub_transaction_to_close(self, sub_transaction):
+        # Needed by sub_transaction_retry Coog decorator
+        # We need to close connection that will not
+        # be committed to prevent depletion of
+        # the connection pool.
+        self._sub_transactions_to_close.append(sub_transaction)
+
     def commit(self):
         assert self.current_savepoint is None
 
@@ -487,6 +507,13 @@ class Transaction(object):
                     datamanager.commit(self)
                 for datamanager in self._datamanagers:
                     datamanager.tpc_vote(self)
+            # ABD: Some datamanager may returns transactions which should
+            # be committed just before the main transaction
+            for sub_transaction in self._sub_transactions:
+                # Does not handle TPC or recursive transaction commit
+                # This just commits the sub transactions to avoid any crashes
+                # which could occur otherwise.
+                sub_transaction.connection.commit()
             self.started_at = self.monotonic_time()
             for cache in self.cache.values():
                 cache.clear()
@@ -508,6 +535,8 @@ class Transaction(object):
         from trytond.cache import Cache
         for cache in self.cache.values():
             cache.clear()
+        for sub_transaction in self._sub_transactions:
+            sub_transaction.rollback()
         for datamanager in self._datamanagers:
             datamanager.tpc_abort(self)
         Cache.rollback(self)
