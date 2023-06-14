@@ -120,8 +120,7 @@ class Action(object):
             ctx.update(params['context'])
             ctx.update(action_ctx)
 
-            ctx['context'] = copy.deepcopy(ctx)
-            action_ctx.update(ctx)
+            ctx['context'] = ctx
             decoder = PYSONDecoder(ctx)
             params['domain'] = decoder.decode(action['pyson_domain'])
             params['order'] = decoder.decode(action['pyson_order'])
@@ -130,6 +129,11 @@ class Action(object):
             # XXX: Evaluate tab domain later
             # Dynamic domain evaluation in screens and tabs
             # see : 4cfefeab5
+            action_ctx.update({
+                    'active_model': data.get('model'),
+                    'active_id': data.get('id'),
+                    'active_ids': data.get('ids', []),
+                    })
             params['tab_domain'] = [
                 (n, (action_ctx, d), c) for n, d, c in action['domains']]
 
