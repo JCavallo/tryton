@@ -1072,6 +1072,7 @@ class Screen:
                         or view.view_type == 'tree'
                         or view.widget.get_parent()):
                     view.display()
+
             self.current_view.widget.set_sensitive(
                 bool(self.group
                     or (self.current_view.view_type != 'form')
@@ -1373,12 +1374,21 @@ class Screen:
                 ids, context=context)
         except RPCException:
             action = None
+
+        # PJA: handle different returns values from button
+        if isinstance(action, list):
+            action_id, action = action
+        elif isinstance(action, int):
+            action_id, action = action, None
+        else:
+            action_id, action = None, action
+
         self.reload(ids, written=True)
         self.record_saved()
         if isinstance(action, str):
             self.client_action(action)
-        elif action:
-            Action.execute(action, {
+        if action_id:
+            Action.execute(action_id, {
                     'model': self.model_name,
                     'id': self.current_record.id,
                     'ids': ids,
