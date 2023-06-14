@@ -11,6 +11,8 @@ from urllib.parse import parse_qs, unquote_plus
 import trytond.config as config
 from trytond.transaction import Transaction
 from trytond.url import host
+from trytond.model.exceptions import ValidationError
+from trytond.i18n import gettext
 
 __all__ = [
     'sendmail_transactional', 'sendmail',
@@ -124,9 +126,9 @@ def get_smtp_server(uri=None, strict=False):
     try:
         server = connector(uri.hostname, uri.port, **extra)
     except Exception:
-        if strict:
-            raise
         logger.error('fail to connect to %s', uri, exc_info=True)
+        if strict:
+            raise ValidationError(gettext('ir.msg_missing_configuration'))
         return
 
     if 'tls' in uri.scheme:
