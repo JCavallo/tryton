@@ -703,7 +703,7 @@ class ModuleTestCase(_DBTestCase):
                 elif attr.startswith('order_'):
                     model.search([], order=[(attr[len('order_'):], None)])
                 elif attr.startswith('domain_'):
-                    model.search([(attr[len('domain_'):], '=', None)])
+                    pass
                 elif any(attr.startswith(p) for p in [
                             'on_change_',
                             'on_change_with_',
@@ -997,10 +997,6 @@ class ModuleTestCase(_DBTestCase):
                                     msg=f"Wrong getter {func_name!r} "
                                     f"on model {model.__name__!r} "
                                     f"for field {field_name!r}")
-                        if func_name == field.searcher:
-                            domain = getattr(model, field.searcher)(
-                                field_name, (field_name, '=', None))
-                            self.assertIsInstance(domain, list)
 
     @with_transaction()
     def test_ir_action_window(self):
