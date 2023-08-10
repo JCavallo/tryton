@@ -226,12 +226,15 @@ class Payment(metaclass=PoolMeta):
     @ModelView.button
     @Workflow.transition('succeeded')
     def succeed(cls, payments):
-        pool = Pool()
-        Line = pool.get('account.move.line')
-
         super().succeed(payments)
 
         cls.set_clearing_move(payments)
+        cls._reconcile_lines_from_payments(payments)
+
+    @classmethod
+    def _reconcile_lines_from_payments(cls, payments):
+        pool = Pool()
+        Line = pool.get('account.move.line')
         to_reconcile = []
         for payment in payments:
             if (payment.line
