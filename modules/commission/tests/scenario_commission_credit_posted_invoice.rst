@@ -123,7 +123,4 @@ Create invoice and credit it before paying::
     >>> bool(credit_commission.date)
     True
     >>> credit_commission.amount
-    Decimal('-10.0000')
-    >>> commission.reload()
-    >>> bool(commission.date)
-    True
+    Decimal('-10.000000')

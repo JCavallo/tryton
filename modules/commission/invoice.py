@@ -127,7 +127,8 @@ class Invoice(metaclass=PoolMeta):
                 invoices_to_revert_commission.append(invoice)
 
         super().cancel(invoices)
-        cls.set_commissions_date(invoices_to_set_date)
+        # Do not set commissions date on cancel
+        # cls.set_commissions_date(invoices_to_set_date)
 
         to_delete = []
         for sub_invoices in grouped_slice(invoices):
