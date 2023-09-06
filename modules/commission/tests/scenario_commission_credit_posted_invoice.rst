@@ -111,7 +111,7 @@ Create invoice and credit it before paying::
     >>> bool(commission.date)
     False
     >>> commission.amount
-    Decimal('10.0000')
+    Decimal('10.000000')
     >>> credit = Wizard('account.invoice.credit', [invoice])
     >>> credit.execute('credit')
     >>> credit_note, = credit.actions[0]
