@@ -1807,13 +1807,17 @@ class Invoice(Workflow, ModelSQL, ModelView, TaxableMixin, InvoiceReportMixin):
         cls._store_cache(invoices)
         moves = []
         for invoice in invoices_in:
-            move = invoice.get_move()
-            if move != invoice.move:
+            # COOPENGO:
+            move = invoice.get_validated_move()
+            if move is not None and move != invoice.move:
                 invoice.move = move
                 moves.append(move)
         if moves:
             Move.save(moves)
         cls.save(invoices_in)
+
+    def get_validated_move(self):
+        return self.get_move()
 
     @classmethod
     @Workflow.transition('posted')
