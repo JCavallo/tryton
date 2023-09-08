@@ -11,9 +11,10 @@ from itertools import chain
 from threading import local
 from weakref import WeakValueDictionary
 
-from sql import Flavor
+from sql import Flavor, For, Literal, Table
 
 from trytond.config import config
+from trytond.tools import grouped_slice, reduce_ids
 from trytond.tools.immutabledict import ImmutableDict
 
 __all__ = ['Transaction',
@@ -438,13 +439,21 @@ class Transaction(object):
         return manager
 
     def lock_table(self, table):
-        if table not in self._locked_tables:
-            raise _TransactionLockError(table)
+        # JCA (merge 6.8): restore previous behaviour until inlined commits can
+        # be managed
+        self.database.lock(self.connection, table)
+        # if table not in self._locked_tables:
+        #     raise _TransactionLockError(table)
 
     def lock_records(self, table, ids):
-        if table not in self._locked_tables:
-            if missing := (set(ids) - self._locked_records[table]):
-                raise _TransactionLockRecordsError(table, missing)
+        if self.database.has_select_for():
+            table = Table(table)
+            for sub_records in grouped_slice(ids):
+                where = reduce_ids(table.id, sub_records)
+                query = table.select(
+                    Literal(1), where=where, for_=For('UPDATE', nowait=True))
+                with self.connection.cursor() as cursor:
+                    cursor.execute(*query)
 
     def set_current_transaction(self, transaction):
         self._local.transactions.append(transaction)
