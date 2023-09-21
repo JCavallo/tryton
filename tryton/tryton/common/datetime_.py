@@ -2,8 +2,8 @@
 # this repository contains the full copyright notices and license terms.
 import datetime
 import gettext
+import re
 
-from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
 from gi.repository import Gdk, GObject, Gtk
 
@@ -43,23 +43,56 @@ def _fix_format(format_):
 
 
 def date_parse(text, format_='%x'):
-    try:
-        return datetime.datetime.strptime(text, format_)
-    except ValueError:
-        pass
-    formatted_date = datetime.date(1988, 7, 16).strftime(format_)
-    try:
-        dayfirst = formatted_date.index('16') == 0
-    except ValueError:
-        dayfirst = False
-    try:
-        monthfirst = formatted_date.index('7') <= 1
-    except ValueError:
-        monthfirst = False
-    yearfirst = not dayfirst and not monthfirst
-    if len(text) == 8 and dayfirst:
-        return datetime.datetime.strptime(text, '%d%m%Y')
-    return parse(text, dayfirst=dayfirst, yearfirst=yearfirst, ignoretz=True)
+    def parse_date(text):
+        formatted_date = datetime.date(1988, 7, 16).strftime(format_)
+        try:
+            dayfirst = formatted_date.index('16') == 0
+        except ValueError:
+            dayfirst = False
+        try:
+            monthfirst = formatted_date.index('7') <= 1
+        except ValueError:
+            monthfirst = False
+
+        text = re.sub('[^0-9]', '', text)
+        if len(text) not in {6, 8}:
+            raise ValueError
+
+        year_format = '%Y' if len(text) == 8 else '%y'
+        if dayfirst:
+            parse_format = '%d%m' + year_format
+        elif monthfirst:
+            parse_format = '%m%d' + year_format
+        else:
+            # Probably ISO otherwise it's very strange
+            parse_format = year_format + '%m%d'
+
+        return datetime.datetime.strptime(text, parse_format).date()
+
+    def parse_time(text):
+        h, m, *s = text.split(':', 2)
+        if s:
+            if '.' in s[0]:
+                s, us = s[0].split('.')
+            else:
+                s, us = s[0], None
+        else:
+            s, us = None, None
+        return datetime.time(
+            int(h), int(m), int(s) if s else 0,
+            int(us) if us else 0)
+
+    date, time = None, None
+    if ' ' in text:
+        date, time = text.split(' ', 1)
+    elif ':' in text:
+        time = text
+    else:
+        date = text
+
+    date = parse_date(date) if date else datetime.date.today()
+    time = parse_time(time) if time else datetime.time()
+    return datetime.datetime.combine(date, time)
 
 
 class Date(Gtk.Entry):
