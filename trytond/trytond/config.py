@@ -45,7 +45,7 @@ def parse_uri(uri):
 
 class TrytonConfigParser(configparser.ConfigParser):
 
-    def __init__(self):
+    def __init__(self, overrides=None):
         super().__init__(interpolation=None)
         self.add_section('web')
         self.set('web', 'listen', 'localhost:8000')
@@ -101,6 +101,8 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('bus', 'select_timeout', '5')
         self.add_section('report')
         self.add_section('html')
+        if overrides:
+            self.update_etc(configfile=overrides)
         self.update_environ()
         self.update_etc()
 
@@ -170,5 +172,10 @@ class TrytonConfigParser(configparser.ConfigParser):
                 AttributeError):
             return default
 
+    def apply_overriden_defaults(self):
+        overrides = self.get('admin', 'config_default_overrides')
+        if not overrides:
+            return self
+        return TrytonConfigParser(overrides=overrides)
 
-config = TrytonConfigParser()
+config = TrytonConfigParser().apply_overriden_defaults()
