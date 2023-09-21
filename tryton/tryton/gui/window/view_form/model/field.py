@@ -308,6 +308,8 @@ class DateTimeField(Field):
                     current_value.date(), value)
             else:
                 value = None
+        elif value is INVALID_DT_VALUE:
+            pass
         elif value and not isinstance(value, datetime.datetime):
             current_value = self.get_client(record)
             if current_value:
@@ -315,13 +317,15 @@ class DateTimeField(Field):
             else:
                 time = datetime.time()
             value = datetime.datetime.combine(value, time)
-        if value:
+        if value and value is not INVALID_DT_VALUE:
             value = common.untimezoned_date(value)
         super().set_client(record, value,
             force_change=force_change)
 
     def get_client(self, record):
         value = super().get_client(record)
+        if value is INVALID_DT_VALUE:
+            return value
         if value:
             return common.timezoned_date(value)
 
