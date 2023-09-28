@@ -65,10 +65,17 @@ if sys.platform == 'win32':
 
 
 def check_code(code):
+    class CustomSyntaxError():
+        def __init__(self, lineno, offset):
+            self.lineno = lineno
+            self.col_offset = offset
+
     try:
         tree = compile(code, 'test', 'exec', _ast.PyCF_ONLY_AST)
     except SyntaxError as syn_error:
-        error = pyflakes.messages.Message('test', syn_error)
+        custom_syn_error = CustomSyntaxError(
+            syn_error.lineno, syn_error.offset)
+        error = pyflakes.messages.Message('test', custom_syn_error)
         error.message = 'Syntax Error'
         return [error]
     else:
