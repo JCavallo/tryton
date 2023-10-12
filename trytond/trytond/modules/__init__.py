@@ -410,8 +410,6 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                 model._table_query_refresh(concurrently=False, force=True)
             if indexes or indexes is None:
                 create_indexes(concurrently=False)
-            else:
-                logger.info('skip indexes creation')
             for model_name in models_to_update_history:
                 model = pool.get(model_name)
                 if model._history:
