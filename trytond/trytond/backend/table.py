@@ -110,6 +110,9 @@ class TableHandlerInterface(object):
     def set_indexes(self, indexes, concurrently=False):
         raise NotImplementedError
 
+    def dump_indexes(self, indexes, file, concurrently=False):
+        raise NotImplementedError
+
     def index_translator_for(self, index):
         return next(
             filter(

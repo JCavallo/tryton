@@ -561,7 +561,9 @@ class TableHandler(TableHandlerInterface):
                     (name,))
                 if (idx_valid := cursor.fetchone()) and not idx_valid[0]:
                     cursor.execute(
-                        SQL("DROP INDEX {}").format(Identifier(name)))
+                        SQL("DROP INDEX {} {}").format(
+                            SQL('CONCURRENTLY' if concurrently else ''),
+                            Identifier(name)))
                 cursor.execute(
                     SQL('CREATE INDEX {} IF NOT EXISTS {} ON {} USING {}')
                     .format(
@@ -578,8 +580,35 @@ class TableHandler(TableHandlerInterface):
                     '_' not in name and
                     name not in self._constraints)):
                 logger.info(f'Drop index {name}')
-                cursor.execute(SQL('DROP INDEX {}').format(Identifier(name)))
+                cursor.execute(
+                    SQL("DROP INDEX {} {}").format(
+                        SQL('CONCURRENTLY' if concurrently else ''),
+                        Identifier(name)))
         self.__indexes = None
+
+    def dump_indexes(self, indexes, file, concurrently=False):
+        def sql_quote(o):
+            if isinstance(o, str):
+                return f"'{o}'"
+            else:
+                return str(o)
+
+        connection = Transaction().connection
+        for index in indexes:
+            translator = self.index_translator_for(index)
+            if translator:
+                name, query, params = translator.definition(index)
+                name = '_'.join([self.table_name, name])
+                name = ('idx_'
+                    + self.convert_name(name, reserved=len('idx_')))
+                file.write(
+                    ('CREATE INDEX {} IF NOT EXISTS {} ON {} USING {};\n'
+                    .format(
+                        'CONCURRENTLY' if concurrently else '',
+                        Identifier(name).as_string(connection),
+                        Identifier(self.table_name).as_string(connection),
+                        query.as_string({})) % tuple(map(sql_quote, params))
+                    ).encode('utf8'))
 
     def drop_column(self, column_name):
         if not self.column_exist(column_name):

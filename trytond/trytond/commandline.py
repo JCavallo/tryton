@@ -134,7 +134,7 @@ def get_parser_admin():
         const="ir", help="update all activated modules")
     parser.add_argument("--activate-dependencies", dest="activatedeps",
         action="store_true",
-        help="activate missing dependencies of updated modules")
+        help="Activate missing dependencies of updated modules")
     parser.add_argument("--email", dest="email", type=validate_email,
         help="set the user email")
     parser.add_argument("--login", dest="login", type=str,

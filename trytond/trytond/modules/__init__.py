@@ -7,6 +7,7 @@ import os
 import sys
 import os.path
 import pkgutil
+import tempfile
 from collections import defaultdict
 from glob import iglob
 
@@ -325,8 +326,6 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                     [ir_configuration.series], [__series__]))
             if indexes or indexes is None:
                 create_indexes(concurrently=False)
-            else:
-                logger.info('skip indexes creation')
             for model_name in models_to_update_history:
                 model = pool.get(model_name)
                 if model._history:
