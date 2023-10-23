@@ -1,8 +1,11 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+import pprint
 import gettext
 from collections import defaultdict
 
+from tryton.config import CONFIG
+from tryton.pyson import PYSONDecoder
 from tryton.common import node_attributes
 
 _ = gettext.gettext
@@ -116,6 +119,36 @@ class XMLViewParser:
                 node_attrs['string'] = field['string'] + _(':')
             if node.tagName == 'field' and 'help' not in node_attrs:
                 node_attrs['help'] = field['help']
+            help = node_attrs.get('help', '')
+            if CONFIG['debug.field_infos']:
+                if help:
+                    help += '\n\n'
+                help += f"{self.view.group.model_name}::{field['name']} "
+                help += f"({field['type']}):\n\n"
+                decoder = PYSONDecoder(noeval=True)
+                for k, v in field.items():
+                    if k in (
+                            'on_change', 'on_change_with', 'relation_fields',
+                            'help', 'name', 'type', 'views',
+                            'selection_change_with'):
+                        continue
+                    if k == 'domain':
+                        v = decoder.decode(v)
+                        help += f"{k}: {pprint.pformat(v)}\n"
+                    elif k == 'states':
+                        for state, value in decoder.decode(v).items():
+                            value = pprint.pformat(value)
+                            help += f'states[{state}]: {value}\n'
+                    elif k == 'selection' and isinstance(v, list_) and any(
+                            x[0] for x in v):
+                        help += 'selection:\n'
+                        for i, j in v[:10]:
+                            help += f'    {i}: {j}\n'
+                        if len(v) > 10:
+                            help += f'    ... {len(v) - 10} elements ommitted\n'
+                    else:
+                        help += f"{k}: {pprint.pformat(v)}\n"
+            node_attrs['help'] = help
             for name in [
                     'relation', 'domain', 'selection', 'string', 'states',
                     'relation_field', 'views', 'invisible', 'add_remove',

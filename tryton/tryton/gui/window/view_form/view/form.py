@@ -474,6 +474,11 @@ class ViewForm(View):
 
         super().__init__(view_id, screen, xml)
 
+        if CONFIG['debug.field_infos'] and self.group:
+            help = f'{self.group.model_name}:\n'
+            help += f'domain: {self.group.domain}\n'
+            help += f'context: {self.group.local_context}'
+            self.viewport.set_tooltip_text(help)
         self.creatable = bool(int(self.attributes.get('creatable', 1)))
 
         if self.attributes.get('scan_code'):
