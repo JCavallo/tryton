@@ -155,6 +155,7 @@ class SourceView(Widget):
         self.search_entry.props.max_width_chars = 40
         self.search_entry.props.placeholder_text = _("Search")
         self.search_entry.connect('activate', self.do_search)
+        self.search_entry.connect('focus-out-event', self.do_search)
         self.search_entry.set_icon_from_icon_name(
             Gtk.EntryIconPosition.PRIMARY, 'system-search-symbolic')
         self.replace_entry = Gtk.Entry()
