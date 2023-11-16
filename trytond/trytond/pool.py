@@ -51,6 +51,7 @@ class Pool(object):
         'report': defaultdict(OrderedDict),
     }
     classes_mixin = defaultdict(list)
+    _application_initializing = False
     _started = False
     _lock = RLock()
     _local = local()
@@ -103,6 +104,18 @@ class Pool(object):
                 assert issubclass(cls.__class__, PoolMeta), (
                     f"{cls} is missing metaclass {PoolMeta}")
                 mpool[cls] = depends
+
+    @classmethod
+    def start_app_initialization(cls):
+        cls._application_initializing = True
+
+    @classmethod
+    def app_initialization_completed(cls):
+        cls._application_initializing = False
+
+    @classmethod
+    def app_initializing(cls):
+        return cls._application_initializing
 
     @classmethod
     def add_pool_type(cls, type):

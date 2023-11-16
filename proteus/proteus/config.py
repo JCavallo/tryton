@@ -280,9 +280,11 @@ class TrytondConfig(Config):
         self.config_file = config_file
         self.skip_warning = False
 
+        Pool.start_app_initialization()
         Pool.start()
         self.pool = Pool(database_name)
         self.pool.init()
+        Pool.app_initialization_completed()
 
         with Transaction().start(self.database_name, 0) as transaction:
             User = self.pool.get('res.user')
