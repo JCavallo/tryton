@@ -55,6 +55,10 @@ class TableHandler(TableHandlerInterface):
 
         if view_exists:
             return
+        if not transaction.readonly and model.__doc__ and self.is_owner:
+            cursor.execute(SQL('COMMENT ON TABLE {} IS %s').format(
+                        Identifier(self.table_name)),
+                (model.__doc__,))
 
         def migrate_to_identity(table, column):
             previous_seq_name = f"{table}_{column}_seq"
