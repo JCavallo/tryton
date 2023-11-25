@@ -123,6 +123,9 @@ class TrytonConfigParser(configparser.ConfigParser):
                 continue
             if section.startswith('wsgi_'):
                 section = section.replace('wsgi_', 'wsgi ')
+            if section.startswith('authentication_saml'):
+                section = section.replace(
+                    'authentication_saml_', 'authentication_saml ')
             if not self.has_section(section):
                 self.add_section(section)
             self.set(section, option, value)
