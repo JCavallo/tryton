@@ -9,6 +9,8 @@ import warnings
 from functools import cache
 from getpass import getuser
 
+import __main__ as main
+
 __all__ = [
     'get_hostname', 'get_port', 'split_netloc',
     'parse_listen', 'parse_uri',
@@ -112,6 +114,8 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('bus', 'select_timeout', '5')
         self.add_section('html')
         self.add_section('attachment')
+        self.add_section('custom')
+        self.set('custom', 'enable_stat_thread', 'False')
         if overrides:
             self.update_etc(configfile=overrides)
         self.update_environ()
