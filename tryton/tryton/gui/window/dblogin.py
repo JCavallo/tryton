@@ -523,11 +523,6 @@ class DBLogin(object):
                 f"Failed to parse {self.profiles_cfg}. "
                 f"A backup can be found at {temp_name}",
                 exc_info=True)
-        if not self.profiles.sections():
-            self.profiles.add_section(current_demo)
-            self.profiles.set(current_demo, 'host', current_demo)
-            self.profiles.set(current_demo, 'database', f'demo{series}')
-            self.profiles.set(current_demo, 'username', 'demo')
         to_remove = []
         for section in self.profiles.sections():
             host = self.profiles.get(section, 'host', fallback='')

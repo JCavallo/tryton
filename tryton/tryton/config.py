@@ -69,8 +69,8 @@ class ConfigManager(object):
     "Config manager"
 
     def __init__(self):
-        demo_server = 'coog'
-        demo_database = 'demo'
+        demo_server = ''
+        demo_database = ''
         self.defaults = {
             'login.profile': demo_server,
             'login.login': 'demo',
