@@ -12,6 +12,10 @@ from contextlib import contextmanager
 
 from trytond.config import config
 
+
+start_stat_thread = config.getboolean(
+    'custom', 'enable_stat_thread', default=False)
+
 status = dict()
 logger = logging.getLogger(__name__)
 address = 'trytond-stat.socket'
@@ -24,6 +28,11 @@ _LOCK = threading.Lock()
 
 @contextmanager
 def processing(request):
+    if not start_stat_thread:
+        try:
+            yield
+        finally:
+            return
     start()  # check if running thread
     process = Process(time.perf_counter(), request)
     status[id(process)] = process
@@ -79,6 +88,8 @@ def start():
     global _PID
     if not hasattr(socket, 'AF_UNIX'):
         return
+    if not start_stat_thread:
+        return
     if _PID != os.getpid():  # Quick test without lock
         with _LOCK:
             if _PID != os.getpid():
@@ -91,6 +102,8 @@ def start():
 def listen(path, callback=None):
     if not hasattr(socket, 'AF_UNIX'):
         return False
+    if not start_stat_thread:
+        return
     sock = socket.socket(socket.AF_UNIX)
     socket_file = os.path.join(path, address)
     try:
