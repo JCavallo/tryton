@@ -825,9 +825,11 @@ class Form(TabContent):
         if quick_actions:
             gtktoolbar.insert(Gtk.SeparatorToolItem(), -1)
         for quick_action in quick_actions:
-            icon = quick_action.get('icon.', {}).get('rec_name')
+            icon = quick_action.get('icon.', {})
             if not icon:
                 icon = 'tryton-executable'
+            else:
+                icon = icon.get('rec_name')
 
             # prevent problem with variables scopes in lambda
             # cf. https://docs.python.org/3/faq/programming.html#
