@@ -397,6 +397,7 @@ var Sao = {
     Sao.config.graph_color = '#267f82';
     Sao.config.bus_timeout = 10 * 60 * 1000;
     Sao.config.image_max_size = Math.pow(10, 6);
+    Sao.config.mount_point = '';
 
     Sao.i18n = i18n();
     Sao.i18n.setlang = function(lang) {

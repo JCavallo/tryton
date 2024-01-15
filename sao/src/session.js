@@ -337,7 +337,7 @@
             }
             disable_form();
             var host = window.location.protocol + '//' + window.location.host;
-            var next = new URL(host + '/');
+            var next = new URL(host + Sao.config.mount_point + '/');
             next.searchParams.append('login_service', evt.data);
             var url = new URL(host + '/' + database + evt.data);
             url.searchParams.append('next', next.href);
@@ -430,7 +430,7 @@
         } else {
             session.unstore();
             var host = window.location.protocol + '//' + window.location.host;
-            var next = new URL(host + '/');
+            var next = new URL(host + Sao.config.mount_point + '/');
             next.searchParams.append('login_service', session.login_service);
             next.searchParams.append('renew', session.user_id);
             var url = new URL(host + '/' + session.database + session.login_service);
