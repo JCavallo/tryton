@@ -10,28 +10,10 @@ from gi.repository import Gdk, GObject, Gtk
 from .common import IconFactory
 
 __all__ = [
-    'Date', 'CellRendererDate', 'InvalidDateTime', 'Time', 'CellRendererTime',
-    'DateTime', 'date_parse']
+    'Date', 'CellRendererDate', 'Time', 'CellRendererTime', 'DateTime',
+    'date_parse']
 
 _ = gettext.gettext
-
-
-class InvalidDateTime:
-    _instance = None
-
-    def __new__(cls):
-        if cls._instance:
-            return cls._instance
-        return super().__new__(cls)
-
-    __gt__ = lambda self, other: False  # noqa: E731
-    __lt__ = lambda self, other: False  # noqa: E731
-    __le__ = lambda self, other: False  # noqa: E731
-    __ge__ = lambda self, other: False  # noqa: E731
-    __eq__ = lambda self, other: False  # noqa: E731
-
-
-INVALID_DT_VALUE = InvalidDateTime()
 
 
 def _fix_format(format_):
@@ -98,6 +80,11 @@ def date_parse(text, format_='%x'):
 class Date(Gtk.Entry):
     __gtype_name__ = 'Date'
     __gproperties__ = {
+        'valid': (GObject.TYPE_BOOLEAN,
+            _('Validity'),
+            _('Date Validity'),
+            True,
+            GObject.ParamFlags.READABLE),
         'value': (GObject.TYPE_PYOBJECT,
             _('Value'),
             _('Displayed value'),
@@ -117,6 +104,7 @@ class Date(Gtk.Entry):
     def __init__(self):
         self.__date = None
         self.__format = '%x'
+        self.__valid = True
 
         Gtk.Entry.__init__(self)
 
@@ -162,15 +150,18 @@ class Date(Gtk.Entry):
             try:
                 self.__date = date_parse(text, self.__format).date()
                 style_context.remove_class('invalid')
+                self.__valid = True
             except (ValueError, OverflowError):
-                self.__date = INVALID_DT_VALUE
+                self.__date = None
+                self.__valid = False
                 style_context.add_class('invalid')
         else:
             self.__date = None
+            self.__valid = True
             style_context.remove_class('invalid')
 
     def update_label(self):
-        if self.__date is INVALID_DT_VALUE:
+        if not self.__valid:
             return
         if not self.__date:
             self.set_text('')
@@ -196,6 +187,7 @@ class Date(Gtk.Entry):
     def cal_popup_changed(self, calendar):
         year, month, day = self.__calendar.get_date()
         self.__date = datetime.date(year, month + 1, day)
+        self.__valid = True
 
         self.update_label()
 
@@ -255,10 +247,15 @@ class Date(Gtk.Entry):
                 self.set_text(value)
                 self.parse()
                 value = self.__date
-            if value and value is not INVALID_DT_VALUE:
+            elif value is None:
+                self.__valid = True
+            elif isinstance(value, (datetime.datetime, datetime.date)):
+                self.__valid = True
                 if isinstance(value, datetime.datetime):
                     value = value.date()
-                assert isinstance(value, datetime.date), value
+            else:
+                self.__valid = False
+                value = None
             self.__date = value
             self.update_label()
         elif prop.name == 'format':
@@ -270,6 +267,8 @@ class Date(Gtk.Entry):
             return self.__date
         elif prop.name == 'format':
             return self.__format
+        elif prop.name == 'valid':
+            return self.__valid
 
 
 GObject.type_register(Date)
@@ -342,6 +341,11 @@ GObject.type_register(CellRendererDate)
 class Time(Gtk.ComboBox):
     __gtype_name__ = 'Time'
     __gproperties__ = {
+        'valid': (GObject.TYPE_BOOLEAN,
+            _('Validity'),
+            _('Time Validity'),
+            True,
+            GObject.ParamFlags.READABLE),
         'value': (GObject.TYPE_PYOBJECT,
             _('Value'),
             _('Displayed value'),
@@ -361,6 +365,7 @@ class Time(Gtk.ComboBox):
     def __init__(self):
         self.__time = None
         self.__format = '%X'
+        self.__valid = True
 
         Gtk.ComboBox.__init__(self, has_entry=True)
 
@@ -385,14 +390,16 @@ class Time(Gtk.ComboBox):
                 self.__time = date_parse(text).time()
                 style_context.remove_class('invalid')
             except (ValueError, OverflowError):
-                self.__time = INVALID_DT_VALUE
+                self.__time = None
+                self.__valid = False
                 style_context.add_class('invalid')
         else:
             self.__time = None
+            self.__valid = True
             style_context.remove_class('invalid')
 
     def update_label(self):
-        if self.__time is INVALID_DT_VALUE:
+        if not self.__valid:
             return
         if self.__time is None:
             self.__entry.set_text('')
@@ -433,9 +440,15 @@ class Time(Gtk.ComboBox):
                 self.__entry.set_text(value)
                 self.parse()
                 value = self.__time
-            if value and value is not INVALID_DT_VALUE:
+            elif value is None:
+                self.__valid = True
+            elif isinstance(value, (datetime.datetime, datetime.time)):
+                self.__value = True
                 if isinstance(value, datetime.datetime):
                     value = value.time()
+            else:
+                self.__valid = False
+                value = None
             self.__time = value
             self.update_label()
         elif prop.name == 'format':
@@ -448,6 +461,8 @@ class Time(Gtk.ComboBox):
             return self.__time
         elif prop.name == 'format':
             return self.__format
+        elif prop.name == 'valid':
+            return self.__valid
 
 
 GObject.type_register(Time)
@@ -514,6 +529,11 @@ GObject.type_register(CellRendererTime)
 class DateTime(Gtk.HBox):
     __gtype_name__ = 'DateTime'
     __gproperties__ = {
+        'valid': (GObject.TYPE_BOOLEAN,
+            _('Validity'),
+            _('DateTime Validity'),
+            True,
+            GObject.ParamFlags.READABLE),
         'value': (GObject.TYPE_PYOBJECT,
             _('Value'),
             _('Displayed value'),
@@ -567,9 +587,7 @@ class DateTime(Gtk.HBox):
         if prop.name == 'value':
             date = self.__date.props.value
             time = self.__time.props.value or datetime.time()
-            if (date is INVALID_DT_VALUE or time is INVALID_DT_VALUE):
-                return INVALID_DT_VALUE
-            elif date:
+            if date:
                 return datetime.datetime.combine(date, time)
             else:
                 return
@@ -577,6 +595,8 @@ class DateTime(Gtk.HBox):
             return self.__date.props.format
         elif prop.name == 'time-format':
             return self.__time.props.format
+        elif prop.name == 'valid':
+            return self.__date.props.valid and self.__time.props.valid
 
     def modify_bg(self, state, color):
         self.__date.modify_bg(state, color)
