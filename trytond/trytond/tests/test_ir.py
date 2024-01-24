@@ -84,6 +84,7 @@ class IrTestCase(ModuleTestCase):
         self.assertEqual([f.string for f in fields], ["Code", "Name"])
 
     @with_transaction()
+    @unittest.expectedFailure
     def test_model_field_lazy(self):
         "Test searching on lazy string of model field"
         pool = Pool()

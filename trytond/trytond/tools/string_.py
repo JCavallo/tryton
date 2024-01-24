@@ -86,6 +86,11 @@ class StringPartitioned(str):
     "A string subclass that stores parts that composes itself."
     __slots__ = ('_parts',)
 
+    def __new__(cls, base):
+        if isinstance(base, (LazyString, StringPartitioned)):
+            return super().__new__(cls)
+        return super().__new__(cls, base)
+
     def __init__(self, base):
         super().__init__()
         if isinstance(base, StringPartitioned):
@@ -105,6 +110,18 @@ class StringPartitioned(str):
         new = self.__class__(other + str(self))
         new._parts = (other,) + self._parts
         return new
+
+    def __eq__(self, other):
+        return str(self) == str(other)
+
+    def __hash__(self):
+        return hash(str(self))
+
+    def __bool__(self):
+        return bool(self._parts)
+
+    def __str__(self):
+        return ''.join(str(p) for p in self._parts)
 
 
 class LazyString():
