@@ -12,7 +12,7 @@ from decimal import Decimal
 from io import BytesIO
 from multiprocessing import Process
 from multiprocessing.managers import SharedMemoryManager
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 from uuid import uuid4
 
 import sql
@@ -531,6 +531,25 @@ class LazyStringTestCase(TestCase):
         s = 'bar' + s
 
         self.assertEqual(s, 'barfoo')
+
+    def test_lazy_evaluation(self):
+        "Test that StringPartitioned doesn't evaluate its argument on __init__"
+        getter = Mock()
+        getter.side_effect = lambda s: s
+        ls = LazyString(getter, 'foo')
+
+        s = StringPartitioned(ls)
+        getter.assert_not_called()
+
+        str(s)
+        getter.assert_called_once()
+
+        getter.reset_mock()
+        s = StringPartitioned(s)
+        getter.assert_not_called()
+
+        str(s)
+        getter.assert_called_once()
 
 
 class ImmutableDictTestCase(TestCase):
