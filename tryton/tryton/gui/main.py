@@ -111,6 +111,10 @@ class Main(Gtk.Application):
         self.add_action(action)
         self.set_accels_for_action('app.shortcuts', ['<Primary>F1'])
 
+        open_log_dir = Gio.SimpleAction.new('open_log_dir', None)
+        open_log_dir.connect('activate', self.open_log_dir)
+        self.add_action(open_log_dir)
+
         action = Gio.SimpleAction.new('about', None)
         action.connect('activate', lambda *a: self.about())
         self.add_action(action)
@@ -297,6 +301,7 @@ class Main(Gtk.Application):
     def _get_primary_menu(self):
         menu = Gio.Menu.new()
         menu.append(_("Preferences..."), 'app.preferences')
+        menu.append(_("Open logs directory"), 'app.open_log_dir')
 
         section = Gio.Menu.new()
         toolbar = Gio.Menu.new()
@@ -1128,3 +1133,7 @@ class Main(Gtk.Application):
         notification.set_priority(_PRIORITIES[priority])
         if sys.platform != 'win32' or GLib.glib_version >= (2, 57, 0):
             self.send_notification(None, notification)
+
+    def open_log_dir(self, *args):
+        config_dir = get_config_dir()
+        webbrowser.open(config_dir)
