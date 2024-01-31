@@ -1,11 +1,13 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import configparser
+import datetime
 import gettext
 import locale
 import logging
 import optparse
 import os
+import glob
 import pathlib
 import shutil
 import sys
@@ -149,10 +151,16 @@ class ConfigManager(object):
             logging_config['filename'] = opt.log_output
         else:
             config_dir = pathlib.Path(get_config_dir())
-            logging_file = config_dir / 'tryton.log'
-            if logging_file.exists():
-                shutil.copy(logging_file, config_dir / 'tryton.log.old')
-                logging_file.unlink()
+            # Remove old log files, keeping only 10
+            files = [
+                config_dir / x
+                for x in glob.glob('tryton-*.log', root_dir=config_dir)
+                if os.path.isfile(config_dir / x)]
+            files.sort(key=lambda x: str(x), reverse=True)
+            for file in files[9:]:
+                os.remove(file)
+            now = datetime.datetime.now().strftime('%Y%m%d-%Hh%Mm%Ss')
+            logging_file = config_dir / f'tryton-{now}.log'
             logging_config['filename'] = str(logging_file)
 
         loglevels = {
