@@ -153,10 +153,10 @@ class ConfigManager(object):
             config_dir = pathlib.Path(get_config_dir())
             # Remove old log files, keeping only 10
             files = [
-                config_dir / x
-                for x in glob.glob('tryton-*.log', root_dir=config_dir)
-                if os.path.isfile(config_dir / x)]
-            files.sort(key=lambda x: str(x), reverse=True)
+                str(x.absolute())
+                for x in config_dir.glob('tryton-*.log')
+                if x.is_file()]
+            files.sort(reverse=True)
             for file in files[9:]:
                 os.remove(file)
             now = datetime.datetime.now().strftime('%Y%m%d-%Hh%Mm%Ss')
