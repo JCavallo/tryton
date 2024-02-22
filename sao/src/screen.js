@@ -2092,6 +2092,41 @@
                 return this.display();
             });
         },
+        get_many2ones: function() {
+            var is_visible = (record) => {
+                return (field) => {
+                    var states = record.expr_eval(field.description.states || {});
+                    return !states.invisible;
+                };
+            };
+
+            if (!this.current_view ||
+                !['form', 'tree'].includes(this.current_view.view_type)) {
+                return [];
+            }
+
+            if (!this.selected_records) {
+                return [];
+            }
+
+            var m2os = [];
+            for (const fieldname of this.current_view.get_fields(true)) {
+                var field = this.group.model.fields[fieldname];
+                if (field.description.type != 'many2one') {
+                    continue;
+                }
+                m2os.push(field);
+            }
+
+            for (const record of this.selected_records) {
+                m2os = m2os.filter(is_visible(record));
+                if (!m2os) {
+                    break;
+                }
+            }
+
+            return m2os;
+        },
         get_buttons: function() {
             var selected_records = (
                 this.current_view ? this.current_view.selected_records : []);

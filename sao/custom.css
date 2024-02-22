@@ -1,0 +1,23 @@
+#popup-menu {
+    position: absolute;
+    display: none;
+}
+
+#popup-menu > ul.contextual {
+    display: block;
+}
+
+ul.contextual li {
+    position: relative;
+}
+
+ul.contextual li a.contextual-submenu::after {
+    content: ">";
+    float: right;
+}
+
+ul.contextual > li:hover > ul.contextual-submenu {
+    display: block;
+    left: 100%;
+    top: 0;
+}

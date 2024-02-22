@@ -342,6 +342,7 @@
 
             this.tbody = jQuery('<tbody/>');
             this.table.append(this.tbody);
+            this.tbody.on('contextmenu', this.contextmenu.bind(this));
 
             this.colgroup.prepend(jQuery('<col/>', {
                 'class': 'tree-menu',
@@ -879,8 +880,12 @@
                     this.attributes.sequence, this.screen.new_position);
             }
         },
-        get_fields: function() {
-            return Object.keys(this.widgets);
+        get_fields: function(visible_only=false) {
+            var invisible = this.optionals
+                .filter((c) => !c.get_visible())
+                .map((c) => c.attributes.name);
+            return Object.keys(this.widgets).filter(
+                (c) => !visible_only || !invisible.includes(c));
         },
         get_buttons: function() {
             var buttons = [];
@@ -1172,6 +1177,7 @@
                 // after the rows have been rendered
                 // to minimize browser reflow
                 this.tbody = jQuery('<tbody/>');
+                this.tbody.on('contextmenu', this.contextmenu.bind(this));
                 if (this.draggable) {
                     this._add_drag_n_drop();
                 }
@@ -1623,6 +1629,195 @@
             };
             this.rows.forEach(find_row);
             return row;
+        },
+        contextmenu: function(evt) {
+            evt.preventDefault();
+            evt.stopPropagation();
+
+            var tr = document.elementFromPoint(evt.pageX, evt.pageY);
+            // Gruiik Gruiik
+            while (true) {
+                if (tr.parentElement === undefined) {
+                    return;
+                }
+                if (tr.parentElement.nodeName === 'TBODY') {
+                    break;
+                }
+                tr = tr.parentElement;
+            }
+            var idx = Array.from(tr.parentElement.children).findIndex((e) => e === tr);
+            if (idx != -1) {
+                var record = this.rows[idx].record;
+                if (! this.selected_records.some((r) => r.id === record.id)) {
+                    this.select_records(record, record);
+                }
+            } else {
+                return;
+            }
+            if (this.selected_records.some((r) =>  r.id < 0)) {
+                return;
+            }
+            // Gruiiik
+            var is_m2m = this.tbody.parents('.screen-container')
+                .parent().hasClass('form-many2many-content');
+
+            const populate = (menu, model_name, field_name) => {
+                var model = new Sao.Model(model_name);
+                var toolbar = model.execute(
+                    'view_toolbar_get', [], this.screen.context, false);
+
+                const popLocation = (e) => {
+                    var menu = e.data;
+                    if ((menu.offset().left + menu.width()) > window.innerWidth) {
+                        menu.css('left', (-1 * menu.width()) + 'px');
+                    }
+                };
+                const open_records = (records) => {
+                    return (evt) => {
+                        if (field_name) {
+                            for (const record of records) {
+                                record.load(field_name, false);
+                            }
+                        }
+
+                        var ids = records.map(
+                            (r) => {
+                                if (field_name) {
+                                    return r.get_eval()[field_name];
+                                } else {
+                                    return r.id;
+                                }
+                            });
+
+                        Sao.Tab.create({
+                            'model': model_name,
+                            'mode': ['form'],
+                            'context': this.screen.context,
+                            'res_id': ids,
+                        });
+                    };
+                };
+                const execute_action = (action, records) => {
+                    return (evt) => {
+                        if (field_name) {
+                            for (const record of records) {
+                                record.load(field_name, false);
+                            }
+                        }
+
+                        var ids = records.map(
+                            (r) => {
+                                if (field_name) {
+                                    return r.get_eval()[field_name];
+                                } else {
+                                    return r.id;
+                                }
+                            });
+                        var data = {
+                            model: model_name,
+                            id: ids[0],
+                            ids: ids,
+                        };
+                        Sao.Action.execute(
+                            jQuery.extend({}, action), data,
+                            jQuery.extend({}, this.screen.context));
+                    };
+                };
+
+                if (field_name || is_m2m) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                    }).append(jQuery('<a/>', {
+                        'role': 'menuitem',
+                        'href': '#',
+                        'tabindex': -1
+                    }).text(Sao.i18n.gettext("Edit...")).click(
+                        open_records(this.screen.selected_records))
+                    ).appendTo(menu);
+                }
+
+                for (const [action_type, action_name] of [
+                        ['action', Sao.i18n.gettext("Action")],
+                        ['relate', Sao.i18n.gettext("Relation")],
+                        ['print', Sao.i18n.gettext("Report")],
+                ]) {
+                    if (!(toolbar[action_type] || []).length) {
+                        continue;
+                    }
+                    if (menu.children().length) {
+                        jQuery('<li/>', {
+                            'role': 'presentation',
+                            'class': 'divider',
+                        }).appendTo(menu);
+                    }
+                    var action_li = jQuery('<li/>', {
+                        'role': 'presentation',
+                    }).append(jQuery('<a/>', {
+                        'class': 'contextual-submenu',
+                        'role': 'menuitem',
+                        'href': '#',
+                        'tabindex': -1
+                    }).text(action_name)).appendTo(menu);
+                    var action_menu = jQuery('<ul/>', {
+                        'class': 'dropdown-menu contextual contextual-submenu',
+                    }).appendTo(action_li);
+                    action_li.on('mouseenter', action_menu, popLocation);
+                    for (const action of (toolbar[action_type] || [])) {
+                        jQuery('<li/>', {
+                            'role': 'presentation',
+                        }).append(jQuery('<a/>', {
+                            'role': 'menuitem',
+                            'href': '#',
+                            'tabindex': -1,
+                        }).text(action.name).click(execute_action(
+                            action, this.screen.selected_records))
+                        ).appendTo(action_menu);
+                    }
+                }
+            };
+
+            var menu = jQuery('#popup-menu');
+            menu.empty();
+
+            var ul = jQuery('<ul/>', {
+                'class': 'dropdown-menu contextual',
+            }).appendTo(menu);
+
+            populate(ul, this.screen.model_name);
+
+            if (this.selected_records.length === 1) {
+                var m2os = this.screen.get_many2ones();
+                if (m2os.length) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                        'class': 'divider',
+                    }).appendTo(ul);
+                }
+                for (const m2o of m2os) {
+                    var item = jQuery('<li/>', {
+                        'role': 'presentation',
+                    }).append(jQuery('<a/>', {
+                        'class': 'contextual-submenu',
+                        'role': 'menuitem',
+                        'href': '#',
+                        'tabindex': -1,
+                    }).text(m2o.description.string)).appendTo(ul);
+                    var submenu = jQuery('<ul/>', {
+                        'class': 'dropdown-menu contextual contextual-submenu',
+                    }).appendTo(item);
+                    populate(submenu, m2o.description.relation, m2o.description.name);
+                }
+            }
+
+            $(document).one('click', () => {
+                menu.css('display', 'none');
+            });
+
+            menu.css({
+                'top': evt.pageY,
+                'left': evt.pageX,
+                'display': 'block',
+            });
         }
     });
 
