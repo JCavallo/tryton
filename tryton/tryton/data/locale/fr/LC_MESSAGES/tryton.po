@@ -650,7 +650,7 @@ msgstr "Suivant"
 
 #, python-format
 msgid "Attachment (%s)"
-msgstr "Attachement (%s)"
+msgstr "Pièce jointe (%s)"
 
 #, python-format
 msgid "Note (%d/%d)"
@@ -825,7 +825,7 @@ msgid "A_ttachments..."
 msgstr "_Pièces jointes..."
 
 msgid "Add an attachment to the record"
-msgstr "Ajouter un attachement à l'enregistrement"
+msgstr "Ajouter une pièce jointe à l'enregistrement"
 
 msgid "_Notes..."
 msgstr "_Notes..."
