@@ -86,6 +86,7 @@
                         null, key, this.__response.bind(this));
                 this.el.append(infobar);
                 infobar.data('kind', kind);
+                setTimeout(() => this.refresh(kind), 3000);
             }
         },
         __response: function(evt) {
