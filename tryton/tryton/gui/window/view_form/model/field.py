@@ -782,7 +782,8 @@ class O2MField(Field):
             fields = {n: attr_fields[n]
                 for n in field_names
                 if n in attr_fields}
-            if to_fetch := (field_names - attr_fields.keys()):
+            to_fetch = field_names - attr_fields.keys()
+            if to_fetch:
                 try:
                     fields |= RPCExecute('model', self.attrs['relation'],
                         'fields_get', list(to_fetch), context=context)
