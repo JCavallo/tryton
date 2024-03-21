@@ -269,7 +269,8 @@ class Group(list):
                 else:
                     self.insert(position, new_record)
                     position += 1
-            if preloaded and (already_loaded := preloaded.get(id)):
+            already_loaded = preloaded.get(id) if preloaded else None
+            if already_loaded:
                 new_record.set(already_loaded, modified=False, validate=False)
             new_records.append(new_record)
 

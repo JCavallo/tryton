@@ -556,8 +556,8 @@ class Record:
             self._loaded.add(fieldname)
             fieldnames.append(fieldname)
         for fieldname, value in later.items():
-            if isinstance(
-                    field := self.group.fields[fieldname], fields.O2MField):
+            field = self.group.fields[fieldname]
+            if isinstance(field, fields.O2MField):
                 field.set(self, value, preloaded=val.get(f"{fieldname}."))
             self._loaded.add(fieldname)
             fieldnames.append(fieldname)
