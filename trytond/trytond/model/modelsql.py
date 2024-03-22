@@ -1419,7 +1419,10 @@ class ModelSQL(ModelStorage):
                 value = row[name]
                 if value is not None:
                     add(value)
-            related_read_limit = transaction.context.get('related_read_limit')
+            # JCA: Deactivate related limit for now, it leads to cache
+            # corrution
+            # related_read_limit = transaction.context.get('related_read_limit')
+            related_read_limit = None
             # use dict keys to make target ids unique but preserving the order
             target_ids = list(dict.fromkeys(target_ids).keys())
             rows = Target.read(target_ids[:related_read_limit], fields)
