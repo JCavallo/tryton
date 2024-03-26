@@ -2471,7 +2471,11 @@
             }
             record._values[this.name] = undefined;
             this._set_default_value(record, model);
+
+            group = record._values[this.name];
+            group.parent = null;
             this._set_value(record, value, _default, undefined, data);
+            group.parent = record;
         },
         get: function(record) {
             var group = record._values[this.name];
