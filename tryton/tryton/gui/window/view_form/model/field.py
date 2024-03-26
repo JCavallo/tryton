@@ -776,7 +776,7 @@ class O2MField(Field):
                     and ':' not in f
                     and not f.startswith('_'))}
             attr_fields = functools.reduce(
-                operator.or_,
+                lambda a, b: a.update(b) or a,
                 (v['fields'] for v in self.attrs.get('views', {}).values()),
                 {})
             fields = {n: attr_fields[n]
@@ -785,8 +785,8 @@ class O2MField(Field):
             to_fetch = field_names - attr_fields.keys()
             if to_fetch:
                 try:
-                    fields |= RPCExecute('model', self.attrs['relation'],
-                        'fields_get', list(to_fetch), context=context)
+                    fields.update(RPCExecute('model', self.attrs['relation'],
+                        'fields_get', list(to_fetch), context=context))
                 except RPCException:
                     return
 
