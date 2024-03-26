@@ -769,7 +769,10 @@ class DateTime(Date):
 
 class TimeDelta(PYSON):
 
-    def __init__(self, days=0, seconds=0, microseconds=0):
+    def __init__(self, days=0, seconds=0, microseconds=0, **kwargs):
+        days = kwargs.get('d', days)
+        seconds = kwargs.get('s', seconds)
+        microseconds = kwargs.get('m', microseconds)
         for i in [days, seconds, microseconds]:
             if isinstance(i, PYSON):
                 assert i.types().issubset({int, float}), \
