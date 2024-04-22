@@ -70,6 +70,8 @@ def main():
     sys.excepthook = excepthook
 
     copy_previous_configuration('tryton.cfg')
+    copy_previous_configuration('known_hosts')
+    copy_previous_configuration('accel_map')
     copy_previous_configuration('profiles.cfg')
     copy_previous_configuration('plugins')
     CONFIG.parse()
