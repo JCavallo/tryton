@@ -95,6 +95,8 @@ def main():
 
     copy_previous_configuration('tryton.conf')
     copy_previous_configuration('ca_certs')
+    copy_previous_configuration('known_hosts')
+    copy_previous_configuration('accel_map')
     copy_previous_configuration('profiles.cfg')
     copy_previous_configuration('plugins')
     copy_previous_configuration('theme.css')
