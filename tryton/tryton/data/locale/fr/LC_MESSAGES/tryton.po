@@ -1197,7 +1197,7 @@ msgid "All files"
 msgstr "Tous les fichiers"
 
 msgid "Show plain text"
-msgstr "Montrer en text clair"
+msgstr "Afficher en texte clair"
 
 #, python-format
 msgid "Select a color for \"%s\""
