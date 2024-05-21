@@ -1069,33 +1069,68 @@ class ActionWizard(
     wiz_name = fields.Char('Wizard name', required=True)
     model = fields.Char('Model')
     window = fields.Boolean('Window', help='Run wizard in a new window.')
+    _get_name_cache = Cache('ir_action_wizard.get_name')
+    _get_models_cache = Cache('ir_action_wizard.get_models')
 
     @staticmethod
     def default_type():
         return 'ir.action.wizard'
 
     @classmethod
+    def create(cls, vlist):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        return super().create(vlist)
+
+    @classmethod
+    def write(cls, records, values, *args):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        super().write(records, values, *args)
+
+    @classmethod
+    def delete(cls, records):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        super().delete(records)
+
+    @classmethod
     def get_models(cls, name, action_id=None):
-        # TODO add cache
+        key = (name, action_id)
+        models = cls._get_models_cache.get(key)
+        if models is not None:
+            return models
+
         domain = [
             (cls._action_name, '=', name),
             ]
         if action_id:
             domain.append(('id', '=', action_id))
         actions = cls.search(domain)
-        return {a.model for a in actions if a.model}
+        models = {a.model for a in actions if a.model}
+        cls._get_models_cache.set(key, models)
+        return models
 
     @classmethod
     def get_name(cls, name, model):
-        # TODO add cache
+        key = (Transaction().language, name, model)
+        wiz_name = cls._get_name_cache.get(key)
+        if wiz_name is not None:
+            return wiz_name
+        else:
+            wiz_name = name
+
         actions = cls.search([
                 (cls._action_name, '=', name),
-                ('model', '=', model),
-                ], limit=1)
+                ['OR',
+                    ('model', '=', model),
+                    ('model', '=', None),
+                    ],
+                ], order=[('model', 'ASC NULLS LAST')])
         if actions:
-            action, = actions
-            return action.name
-        return name
+            wiz_name = actions[0].name
+        cls._get_name_cache.set(key, wiz_name)
+        return wiz_name
 
 
 class ActionURL(ActionMixin, ModelSQL, ModelView):
