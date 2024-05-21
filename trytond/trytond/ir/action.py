@@ -1090,6 +1090,24 @@ class ActionWizard(
         return 'ir.action.wizard'
 
     @classmethod
+    def create(cls, vlist):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        return super().create(vlist)
+
+    @classmethod
+    def write(cls, records, values, *args):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        super().write(records, values, *args)
+
+    @classmethod
+    def delete(cls, records):
+        cls._get_name_cache.clear()
+        cls._get_models_cache.clear()
+        super().delete(records)
+
+    @classmethod
     def get_models(cls, name, action_id=None):
         key = (name, action_id)
         models = cls._get_models_cache.get(key)
@@ -1107,7 +1125,7 @@ class ActionWizard(
 
     @classmethod
     def get_name(cls, name, model):
-        key = (name, model)
+        key = (Transaction().language, name, model)
         wiz_name = cls._get_name_cache.get(key)
         if wiz_name is not None:
             return wiz_name
