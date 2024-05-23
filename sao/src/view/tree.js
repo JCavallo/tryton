@@ -1235,8 +1235,6 @@
                     to_show = to_show.add(this.tbody.find(selector));
                 }
             }
-            // Take into account the selection or optional column
-            var offset = 2;
 
             to_hide.addClass('invisible').hide();
             to_show.removeClass('invisible').show();
@@ -2805,7 +2803,8 @@
             }
         },
         get_visible: function() {
-            return !this.header.hasClass('invisible');
+            // 480px is bootstrap's screen-xs-max
+            return (window.visualViewport.width > 480) && this._visible_header;
         },
     });
 
@@ -3350,7 +3349,7 @@
             }
         },
         get_visible: function() {
-            return !this.header.hasClass('invisible');
+            return this._visible_header && !this.header.hasClass('invisible');
         },
         button_clicked: function(event) {
             var record = event.data[0];
