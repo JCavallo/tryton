@@ -233,7 +233,7 @@ class Pool(object):
                     with ServerContext().set_context(disable_auto_cache=True):
                         restart = not load_modules(
                             self.database_name, self, update=update, lang=lang,
-                            activatedeps=activatedeps)
+                            options=options)
                 except Exception:
                     del self._pool[self.database_name]
                     self._modules = None
