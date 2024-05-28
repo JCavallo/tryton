@@ -11,9 +11,9 @@ from trytond.transaction import Transaction
 __all__ = ['URLMixin', 'is_secure', 'host', 'http_host']
 
 HOSTNAME = (config.get('web', 'hostname')
-    or socket.getfqdn())
+            or socket.getfqdn())
 HOSTNAME = '.'.join(encodings.idna.ToASCII(part).decode('ascii')
-    if part else '' for part in HOSTNAME.split('.'))
+                    if part else '' for part in HOSTNAME.split('.'))
 
 
 class URLAccessor(object):
@@ -45,8 +45,8 @@ class URLAccessor(object):
     @classmethod
     def http_host(cls):
         return urllib.parse.urlunsplit((
-                'http' + ('s' if cls.is_secure() else ''),
-                cls.host(), '', '', ''))
+            'http' + ('s' if cls.is_secure() else ''),
+            cls.host(), '', '', ''))
 
     @property
     def protocol(self):
@@ -76,7 +76,8 @@ class URLAccessor(object):
             raise NotImplementedError
 
         url_part['name'] = cls.__name__
-        url_part['database'] = Transaction().database.name
+        url_part['database'] = 'TEMP NOT RELEVANT IN SETUP'
+        # url_part['database'] = Transaction().database.name
 
         local_part = urllib.parse.quote(
             '%(database)s/%(type)s/%(name)s' % url_part)

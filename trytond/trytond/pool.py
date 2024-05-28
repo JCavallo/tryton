@@ -5,7 +5,7 @@ import logging
 from collections import OrderedDict, defaultdict
 from threading import RLock
 
-from trytond.modules import load_modules, register_classes
+from trytond.modules import load_modules, register_classes, raw_load_modules
 from trytond.server_context import ServerContext
 from trytond.transaction import Transaction
 
@@ -65,10 +65,16 @@ class Pool(object):
     _notification_callbacks = {}
     _modules = None
     pool_types = {'model', 'report', 'wizard'}
+    _current = None
 
-    def __new__(cls, database_name=None):
+    def __new__(cls, database_name=None, module_list=None):
         if database_name is None:
-            database_name = Transaction().database.name
+            if cls._current is not None:
+                database_name = cls._current
+            elif not module_list:
+                database_name = Transaction().database.name
+            else:
+                database_name = tuple(sorted(module_list))
         result = cls._instances.get(database_name)
         if result:
             return result
@@ -80,9 +86,14 @@ class Pool(object):
             return cls._instances.setdefault(database_name,
                 super(Pool, cls).__new__(cls))
 
-    def __init__(self, database_name=None):
+    def __init__(self, database_name=None, module_list=None):
         if database_name is None:
-            database_name = Transaction().database.name
+            if self._current is not None:
+                database_name = self._current
+            elif not module_list:
+                database_name = Transaction().database.name
+            else:
+                database_name = tuple(sorted(module_list))
         self.database_name = database_name
 
     @classmethod
@@ -214,17 +225,21 @@ class Pool(object):
             self._post_init_calls[self.database_name] = []
             self._final_migrations[self.database_name] = []
             self._notification_callbacks[self.database_name] = {}
-            try:
-                with ServerContext().set_context(disable_auto_cache=True):
-                    restart = not load_modules(
-                        self.database_name, self, update=update, lang=lang,
-                        options=options)
-            except Exception:
-                del self._pool[self.database_name]
-                self._modules = None
-                raise
-            if restart:
-                self.init()
+            if isinstance(self.database_name, tuple):
+                Pool._current = self.database_name
+                raw_load_modules(self.database_name, self)
+            else:
+                try:
+                    with ServerContext().set_context(disable_auto_cache=True):
+                        restart = not load_modules(
+                            self.database_name, self, update=update, lang=lang,
+                            activatedeps=activatedeps)
+                except Exception:
+                    del self._pool[self.database_name]
+                    self._modules = None
+                    raise
+                if restart:
+                    self.init()
 
     def post_init(self, update):
         for hook in self._post_init_calls[self.database_name]:

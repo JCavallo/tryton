@@ -664,6 +664,7 @@ class ModelStorage(Model):
         Return the rec_name of the instance.
         It is used by the Function field rec_name.
         '''
+        # IGNORE-TRYTON-LS-1004
         rec_name = self._rec_name
         if rec_name not in self._fields:
             rec_name = 'id'
