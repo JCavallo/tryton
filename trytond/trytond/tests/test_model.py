@@ -481,7 +481,6 @@ class ModelTranslationTestCase(TestCase):
                     'lang': self.other_language,
                     'src': "Name",
                     'name': 'test.model,name',
-                    'res_id': -1,
                     'value': "Nom",
                     'type': 'field',
                     }])

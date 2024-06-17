@@ -339,6 +339,11 @@ class ModelField(
 
         # Migration from 7.4: rename field_description into string
         table_h.column_rename('field_description', 'string')
+        # This migration must be done before any translation creation takes
+        # place
+        cursor = Transaction().connection.cursor()
+        cursor.execute(
+            "ALTER TABLE ir_translation ALTER COLUMN res_id DROP NOT NULL")
 
         super().__register__(module)
 
