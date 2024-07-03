@@ -2,7 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import datetime
 from collections import defaultdict
-from functools import wraps
+from functools import cache, wraps
 from itertools import groupby, islice, product, repeat
 
 from sql import (
@@ -275,6 +275,7 @@ def no_table_query(func):
     return wrapper
 
 
+@cache
 def apply_sorting(keywords):
     order_types = {
         'DESC': Desc,
@@ -1866,22 +1867,8 @@ class ModelSQL(ModelStorage):
                         rule_domain, active_test=False, tables=tables)
                     expression &= domain_exp
                 main_table, _ = tables[None]
-                columns = cls.__searched_columns(
-                    tables, eager=not count and not query)
-
-                o_idx = 0
-                for oexpr, otype in order:
-                    column_name, _, extra_expr = oexpr.partition('.')
-                    field = cls._fields[column_name]
-                    # By construction tables is left untouched
-                    forder = field.convert_order(oexpr, tables, cls)
-                    columns.extend(o.as_(f'_order_{o_idx + idx}')
-                        for idx, o in enumerate(forder))
-                    o_idx += len(forder)
-                    if not done_orderings:
-                        orderings.extend([otype] * len(forder))
-                done_orderings = True
-
+                columns, orderings = cls.__searched_columns(
+                    tables, eager=not count and not query, order=order)
                 table = convert_from(None, tables)
                 union_tables.append(table.select(
                         *columns, where=expression))
@@ -1899,14 +1886,32 @@ class ModelSQL(ModelStorage):
         return tables, expression, orderings
 
     @classmethod
-    def __searched_columns(cls, tables, *, eager=False, history=False):
+    def __searched_columns(
+            cls, tables, *, eager=False, history=False, order=None):
         table, _ = tables[None]
+        if order is None:
+            order = []
         columns = [table.id.as_('id')]
         if (cls._history and Transaction().context.get('_datetime')
                 and (eager or history)):
             columns.append(
                 Coalesce(table.write_date, table.create_date).as_('_datetime'))
             columns.append(Column(table, '__id').as_('__id'))
+
+        orderings = []
+        o_idx = 0
+        tables = {
+            None: (table, None),
+            }
+        for oexpr, otype in order:
+            column_name, _, extra_expr = oexpr.partition('.')
+            field = cls._fields[column_name]
+            # By construction tables is left untouched
+            forder = field.convert_order(oexpr, tables, cls)
+            columns.extend(o.as_(f'_order_{o_idx + idx}')
+                for idx, o in enumerate(forder))
+            o_idx += len(forder)
+            orderings.extend([otype] * len(forder))
 
         if eager:
             table_query = cls._is_table_query()
@@ -1922,7 +1927,7 @@ class ModelSQL(ModelStorage):
                 columns += [Extract('EPOCH',
                         Coalesce(table.write_date, table.create_date)
                         ).cast(sql_type).as_('_timestamp')]
-        return columns
+        return columns, orderings
 
     @classmethod
     def __search_order(cls, order, tables):
@@ -1984,7 +1989,7 @@ class ModelSQL(ModelStorage):
         if query:
             columns = [main_table.id.as_('id')]
         else:
-            columns = cls.__searched_columns(tables, eager=True)
+            columns, _ = cls.__searched_columns(tables, eager=True)
             if union_orderings:
                 columns = [
                     Column(main_table, c.output_name).as_(c.output_name)

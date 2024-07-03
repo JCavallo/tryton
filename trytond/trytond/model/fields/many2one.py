@@ -282,6 +282,10 @@ class Many2One(Field):
                 if isinstance(target_id, As):
                     target_id = target_id.expression
                 if use_subquery:
+                    if query.where:
+                        query.where &= target_id == column
+                    else:
+                        query.where = target_id == column
                     expression = column.in_(query)
                 else:
                     query.where &= target_id == column
