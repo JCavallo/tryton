@@ -1703,7 +1703,8 @@ class ModelSQL(ModelStorage):
             if is_leaf(domain):
                 fname, *_ = domain[0].split('.', 1)
                 field = cls._fields[fname]
-                if isinstance(field, fields.Function) and field.searcher:
+                if (fname != 'active' and isinstance(field, fields.Function)
+                        and field.searcher):
                     new_leaf = getattr(cls, field.searcher)(fname, domain)
                     return new_leaf
                 else:
