@@ -327,6 +327,10 @@ class MemoryCache(BaseCache):
                 for sub_reset in grouped_slice(reset, 125):
                     database.notify(transaction.connection, cls._channel,
                         json.dumps(list(sub_reset), separators=(',', ':')))
+                for name in reset:
+                    if name in cls._instances:
+                        inst = cls._instances[name]
+                        inst._clear(dbname)
         else:
             connection = database.get_connection(
                 readonly=False, autocommit=True)
