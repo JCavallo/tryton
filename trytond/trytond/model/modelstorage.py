@@ -1800,11 +1800,11 @@ class ModelStorage(Model):
                 vals[field] = []
                 for defaults2 in defaults[field]:
                     vals2 = obj._clean_defaults(defaults2)
-                    if vals2:
+                    if vals2 is not None:
                         vals[field].append(('create', [vals2]))
             elif fld_def._type in ('many2many',):
                 vals2 = defaults[field]
-                if vals2:
+                if vals2 is not None:
                     vals[field] = [('add', vals2)]
             elif fld_def._type in ('boolean',):
                 vals[field] = bool(defaults[field])
