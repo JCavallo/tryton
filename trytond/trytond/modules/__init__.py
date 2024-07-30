@@ -293,6 +293,10 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
             # It may deadlock on the ir_cache SELECT if the table schema has
             # been modified
             Cache._reset.clear()
+            # The log model may have changed between when the log object was
+            # created and now (if there was an override of the model), so we
+            # cannot save any logs
+            transaction._clear_log_records()
             transaction.commit()
             # Remove unknown models and fields
             Model = pool.get('ir.model')
