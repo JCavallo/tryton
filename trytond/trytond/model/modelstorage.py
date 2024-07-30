@@ -353,6 +353,10 @@ class ModelStorage(Model):
         return 0
 
     @classmethod
+    def _must_log(cls):
+        return True
+
+    @classmethod
     def _before_write(cls, *args):
         pool = Pool()
         ModelAccess = pool.get('ir.model.access')
@@ -380,7 +384,7 @@ class ModelStorage(Model):
                 on_write.extend(cls.on_write(records, values))
                 args.append(records)
                 args.append(cls.preprocess_values('write', values))
-                if (check_access or log) and values:
+                if cls._must_log() and values:
                     cls.log(records, 'write', ','.join(sorted(values.keys())))
                 field_names.update(values.keys())
                 all_records.extend(records)
@@ -453,7 +457,7 @@ class ModelStorage(Model):
         Trigger = pool.get('ir.trigger')
         transaction = Transaction()
         check_access = transaction.user and transaction.check_access
-        log = transaction.context.get('_log', False)
+        _must_log = cls._must_log()
 
         ModelAccess.check(cls.__name__, 'delete')
         cls.__check_xml_record(records, None)
@@ -461,7 +465,7 @@ class ModelStorage(Model):
             cls.check_modification('delete', records, external=check_access)
             if ModelData.has_model(cls.__name__):
                 ModelData.clean(records)
-            if check_access or log:
+            if _must_log:
                 cls.log(records, 'delete')
             on_delete = cls.on_delete(records)
             cls.on_modification('delete', records)
