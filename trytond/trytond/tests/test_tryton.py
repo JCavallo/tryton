@@ -135,6 +135,7 @@ def restore_db_cache(name):
             result = _sqlite_copy(cache_file, restore=True)
         elif backend.name == 'postgresql':
             result = _pg_restore(cache_file)
+            backend.Database._extensions.clear()
     if result:
         Pool(DB_NAME).init()
     return result
