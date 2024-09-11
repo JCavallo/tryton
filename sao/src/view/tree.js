@@ -1212,7 +1212,7 @@
                 }
             }).done(() => {
                 if (!this.record && this.rows.length) {
-                    this.rows[0].select_row({});
+                    this.rows[0].select_row(new Event({}));
                 }
                 Sao.common.debounce(this.update_with_selection.bind(this), 250)();
             });
