@@ -328,7 +328,7 @@ class Affix(object):
                 value = record[self.icon].get_client(record) or ''
             else:
                 value = self.icon
-            common.ICONFACTORY.register_icon(value)
+            common.ICONFACTORY._get_icon(value)
             pixbuf = self.treeview.render_icon(stock_id=value,
                 size=gtk.ICON_SIZE_BUTTON, detail=None)
             cell.set_property('pixbuf', pixbuf)

@@ -839,7 +839,7 @@ class Form(TabContent):
                 return lambda z: n(*args)
 
             # Fix for #8825
-            common.IconFactory.register_icon(icon)
+            common.IconFactory._get_icon(icon)
             qbutton = Gtk.ToolButton()
             qbutton.set_icon_widget(
                 common.IconFactory.get_image(
