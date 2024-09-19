@@ -394,22 +394,6 @@ class TreeXMLViewParser(XMLViewParser):
         if 'optional' in attributes and name != self.exclude_field:
             self.view.optionals[column.name].append(column)
 
-        if 'sum' in attributes:
-            highlight_sum_ = attributes.get('highlight_sum', '0')
-
-            text = attributes['sum'] + _(':')
-            label, sum_ = Gtk.Label(label=text), Gtk.Label()
-
-            hbox = Gtk.HBox()
-            hbox.pack_start(label, expand=True, fill=False, padding=2)
-            hbox.pack_start(sum_, expand=True, fill=False, padding=2)
-            hbox.show_all()
-            self.view.sum_box.pack_start(
-                hbox, expand=False, fill=False, padding=0)
-
-            self.view.sum_widgets.append(
-                (attributes['name'], sum_, highlight_sum_))
-
     def _parse_button(self, node, attributes):
         button = Button(self.view, attributes)
         self.view.state_widgets.append(button)
@@ -508,7 +492,8 @@ class TreeXMLViewParser(XMLViewParser):
             sum_.set_justify(Gtk.Justification.RIGHT)
             sum_.show()
             vbox.pack_start(sum_, expand=False, fill=True, padding=0)
-            self.view.sum_widgets.append((attributes['name'], sum_))
+            bold_sum = attributes.get('highlight_sum') == '1'
+            self.view.sum_widgets.append((attributes['name'], sum_, bold_sum))
             vbox.show()
             widget = vbox
         else:
