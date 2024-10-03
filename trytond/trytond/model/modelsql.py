@@ -1250,6 +1250,8 @@ class ModelSQL(ModelStorage):
                         else:
                             for fname in field_list:
                                 row[fname] = cache[row['id']][fname]
+                    if not sub_ids:
+                        continue
                     getter_results = field.get(
                         sub_ids, cls, field_list, values=sub_values)
                     for fname in field_list:
