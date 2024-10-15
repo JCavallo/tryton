@@ -1170,8 +1170,14 @@ div.infobar {
 #processing {
     padding-top:   300px;
     padding-bottom: 100%;
-    background-color: rgba(@color-black, 0.6);
     cursor: wait;
+    .label-info {
+        display: none;
+    }
+}
+
+#processing.spinning {
+    background-color: rgba(@color-black, 0.6);
     .label-info {
         display: inline-block;
         width: 80px;
