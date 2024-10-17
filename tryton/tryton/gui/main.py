@@ -450,8 +450,7 @@ class Main(Gtk.Application):
         self.global_search_entry.connect('changed', changed)
         self.global_search_entry.connect('activate', activate)
 
-    # ABD: Add possibility to choose the business date
-    def set_title(self, value='', date=''):
+    def set_title(self, value=''):
         if CONFIG['login.profile']:
             login_info = CONFIG['login.profile']
         else:
@@ -463,7 +462,7 @@ class Main(Gtk.Application):
         if value:
             titles.append(value)
         titles.append(CONFIG['client.title'])
-        self.header.set_title(' - '.join(titles) + ' (' + date + ')')
+        self.header.set_title(' - '.join(titles))
         self.header.set_subtitle(login_info)
         try:
             style_context = self.header.get_style_context()
@@ -539,7 +538,7 @@ class Main(Gtk.Application):
         page = self.notebook.get_current_page()
         self.notebook.set_current_page(page - 1)
 
-    def get_preferences(self, date=''):
+    def get_preferences(self):
         RPCContextReload()
         try:
             prefs = RPCExecute('model', 'res.user', 'get_preferences', False)
@@ -572,8 +571,7 @@ class Main(Gtk.Application):
         self.sig_win_menu(prefs=prefs)
         for action_id in prefs.get('actions', []):
             Action.execute(action_id, {})
-        connexion_date = date.strftime('%d/%m/%Y') if date else ''
-        self.set_title(prefs.get('status_bar', ''), connexion_date)
+        self.set_title(prefs.get('status_bar', ''))
         # AKE: change bg color based on preferences
         color_bg = prefs.get('color_bg', None
             ) or os.environ.get('TRYTON_CLIENT_BG_COLOR', None)
