@@ -82,7 +82,6 @@ class ConfigManager(object):
             'login.host': demo_server,
             'login.db': demo_database,
             'login.expanded': False,
-            'login.date': False,
             'tip.autostart': False,
             'tip.position': 0,
             'form.toolbar': True,

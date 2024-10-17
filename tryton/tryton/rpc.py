@@ -140,7 +140,6 @@ def login(parameters):
         CONNECTION.close()
     CONNECTION = ServerPool(
         hostname, port, database, session=session, cache=not CONFIG['dev'])
-    _CLIENT_DATE = date
     device_cookie.renew()
     Bus.listen(CONNECTION, bus_url_host)
 
