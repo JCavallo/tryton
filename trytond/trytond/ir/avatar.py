@@ -16,7 +16,7 @@ except ImportError:
 import trytond.config as config
 from trytond.i18n import gettext
 from trytond.model import ModelSQL, Unique, fields
-from trytond.model.exceptions import ValidationError
+from trytond.model.exceptions import SQLConstraintError, ValidationError
 from trytond.pool import Pool
 from trytond.transaction import Transaction
 from trytond.wsgi import Base64Converter
@@ -110,12 +110,19 @@ class Avatar(ImageMixin, ResourceMixin, ModelSQL):
         if not self.image:
             return None
         if PIL:
-            with Transaction().new_transaction():
-                cache = self._store_cache(size, self._resize(size))
-                # Save cache only if record is already committed
-                if self.__class__.search([('id', '=', self.id)]):
-                    cache.save()
-                return cache.image
+            resized = self._resize(size)
+            try:
+                with Transaction().new_transaction():
+                    cache = self._store_cache(size, resized)
+                    # Save cache only if record is already committed
+                    if self.__class__.search([('id', '=', self.id)]):
+                        cache.save()
+                    return cache.image
+            except SQLConstraintError:
+                # If the resized version is required multiple times in the same
+                # transaction, we may end up trying to store it multiple time,
+                # which will cause this error
+                return resized
         else:
             return self.image
 
