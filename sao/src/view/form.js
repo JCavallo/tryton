@@ -3398,7 +3398,7 @@ function eval_pyson(value){
                 this.entry.val('');
                 this.but_primary.parent().hide();
                 this.but_secondary.parent().hide();
-                return;
+                return Promise.resolve();
             }
             this.set_text(field.get_client(record));
             var primary, tooltip1, secondary, tooltip2;
