@@ -2088,6 +2088,10 @@
             }
             return value;
         },
+        set: function(record, value) {
+            value = this.apply_factor(record, value, 1);
+            Sao.field.Float._super.set.call(this, record, value);
+        },
         set_client: function(record, value, force_change, factor=1) {
             value = this.apply_factor(record, this.convert(value), factor);
             Sao.field.Float._super.set_client.call(this, record, value,
