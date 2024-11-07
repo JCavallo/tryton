@@ -512,6 +512,10 @@ class FloatField(Field):
             value = self.convert(value)
         return value
 
+    def set(self, record, value):
+        value = self.apply_factor(record, value, factor=1)
+        super().set(record, value)
+
     def set_client(self, record, value, force_change=False, factor=1):
         value = self.apply_factor(record, self.convert(value), factor)
         super().set_client(record, value,
