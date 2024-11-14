@@ -276,6 +276,44 @@ class FieldMany2OneTestCase(TestCase):
         self.assertEqual(record.many2one.value, 42)
 
     @with_transaction()
+    def _test_search_where(self, subquery_threshold=1_000):
+        from trytond.model.fields import many2one
+
+        pool = Pool()
+        Target = pool.get('test.many2one_target')
+        Many2One = pool.get('test.many2one')
+        target1, target2 = Target.create([
+                {'value': 1},
+                {'value': 2},
+                ])
+        many2one1, many2one2 = Many2One.create([
+                {'many2one': target1},
+                {'many2one': target2},
+                ])
+
+        previous = many2one._subquery_threshold
+        many2one._subquery_threshold = subquery_threshold
+        self.addCleanup(setattr, many2one, '_subquery_threshold', previous)
+
+        many2ones = Many2One.search([
+                ('many2one', 'where', [('value', '=', 1)]),
+                ])
+        self.assertListEqual(many2ones, [many2one1])
+        return Many2One.search([
+                ('many2one', 'where', [('value', '=', 1)]),
+                ], query=True)
+
+    def test_search_where_exists(self):
+        "Test search on many2one using where uses EXISTS"
+        query = self._test_search_where(0)
+        self.assertIn('EXISTS', str(query))
+
+    def test_search_where_in(self):
+        "Test search on many2one using where uses IN"
+        query = self._test_search_where()
+        self.assertIn('IN', str(query))
+
+    @with_transaction()
     def test_context_attribute(self):
         "Test context on many2one attribute"
         pool = Pool()
