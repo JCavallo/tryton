@@ -1570,7 +1570,7 @@ class ModelSQLTranslationTestCase(TranslationTestCase):
         translation, = Translation.search([
                 ('type', '=', 'model'),
                 ('name', '=', 'test.modelsql.name_translated,string'),
-                ('res_id', '=', -1),
+                ('res_id', '=', None),
                 ])
         self.assertEqual(translation.src, "NameTranslated")
         self.assertEqual(translation.value, "NameTranslated")
@@ -1593,7 +1593,7 @@ class ModelSQLTranslationTestCase(TranslationTestCase):
         translation, = Translation.search([
                 ('type', '=', 'help'),
                 ('name', '=', 'test.modelsql.name_translated,name'),
-                ('res_id', '=', -1),
+                ('res_id', '=', None),
                 ])
         self.assertEqual(translation.src, "Translated help")
         self.assertEqual(translation.value, "Translated help")
