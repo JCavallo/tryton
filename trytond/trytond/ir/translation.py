@@ -563,7 +563,7 @@ class Translation(
                         ('lang', '=', lang),
                         ('type', '=', ttype),
                         ('name', 'in', [get_name(r) for r in records]),
-                        ('res_id', '=', -1),
+                        ('res_id', '=', Null),
                         ]):
                 name2translations[translation.name].append(translation)
 
