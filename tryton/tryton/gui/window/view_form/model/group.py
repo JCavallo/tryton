@@ -340,15 +340,17 @@ class Group(list):
                 self.record_deleted.remove(record_del)
         self.current_idx = position
         record.modified_fields.setdefault('id')
-        if modified:
+        if modified and self.parent:
             # Set parent field to trigger on_change
-            if self.parent and self.parent_name in self.fields:
+            if self.parent_name in self.fields:
                 field = self.fields[self.parent_name]
                 if isinstance(field, (M2OField, ReferenceField)):
                     value = self.parent.id, ''
                     if isinstance(field, ReferenceField):
                         value = self.parent.model_name, value
                     field.set_client(record, value)
+            else:
+                self.record_modified()
         return record
 
     def set_sequence(self, field='sequence', position=-1):

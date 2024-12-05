@@ -191,9 +191,9 @@
                 }
             }
             record.modified_fields.id = true;
-            if (modified) {
+            if (modified && this.parent) {
                 // Set parent field to trigger on_change
-                if (this.parent && this.model.fields[this.parent_name]) {
+                if (this.model.fields[this.parent_name]) {
                     var field = this.model.fields[this.parent_name];
                     if ((field instanceof Sao.field.Many2One) ||
                             field instanceof Sao.field.Reference) {
@@ -203,6 +203,8 @@
                         }
                         field.set_client(record, value);
                     }
+                } else {
+                    this.record_modified();
                 }
             }
             return record;
