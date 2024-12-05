@@ -4056,6 +4056,12 @@ function eval_pyson(value){
                     this._completion_match_selected.bind(this),
                     this._completion_action_activated.bind(this),
                     this.read_access, this.create_access);
+                this.wid_completion.dropdown.on('hide.bs.dropdown', () => {
+                    Sao.common.set_overflow(this.el, 'hide');
+                });
+                this.wid_completion.dropdown.on('show.bs.dropdown', () => {
+                    Sao.common.set_overflow(this.el, 'show');
+                });
                 this.entry.completion = this.wid_completion;
             }
 
