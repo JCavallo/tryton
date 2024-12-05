@@ -109,14 +109,17 @@ def run(options):
             if not password and not options.reset_password:
                 while True:
                     password = getpass(
-                        '"admin" password for "%s": ' % db_name)
-                    password2 = getpass('"admin" password confirmation: ')
+                        f'"{options.login}" password for "{db_name}": ')
+                    password2 = getpass(
+                        f'"{options.login}" password confirmation: ')
                     if password != password2:
-                        sys.stderr.write('"admin" password confirmation '
-                            'doesn\'t match "admin" password.\n')
+                        sys.stderr.write(
+                            f'"{options.login}" password confirmation '
+                            f'doesn\'t match "{options.login}" password.\n')
                         continue
                     if not password:
-                        sys.stderr.write('"admin" password is required.\n')
+                        sys.stderr.write(
+                            f'"{options.login}" password is required.\n')
                         continue
                     break
 
@@ -133,17 +136,35 @@ def run(options):
                         configuration.series = __series__
 
                     with inactive_records():
-                        admin, = User.search([('login', '=', 'admin')])
+                        users = User.search([('login', '=', options.login)])
+                        if not users:
+                            sys.stderr.write(
+                                f'User with login "{options.login}"'
+                                ' not found.\n')
+                            break
+                        user, = users
+
+                        if not user.active:
+                            activate = input(
+                                f'Warning: User "{options.login}" is '
+                                'inactive. Proceeding will activate the user. '
+                                'Continue? (Y/n): ').strip().lower() or 'y'
+                            if activate == 'y':
+                                user.active = True
+                                sys.stderr.write(
+                                    f'User "{options.login}" activated.\n')
+                            else:
+                                sys.stderr.write('Activation cancelled\n')
 
                     if email is not None:
-                        admin.email = email
+                        user.email = email
                     if init[db_name] or options.password:
                         configuration.language = main_lang
                         if not options.reset_password:
-                            admin.password = password
-                    admin.save()
+                            user.password = password
+                    user.save()
                     if options.reset_password:
-                        User.reset_password([admin])
+                        User.reset_password([user])
                     if options.hostname is not None:
                         configuration.hostname = options.hostname or None
                     if options.export_translations:
