@@ -498,7 +498,8 @@ class Record:
         else:
             return self.group.local_context
 
-    def set_default(self, val, modified=True, validate=True):
+    def set_default(
+            self, val, modified=True, validate=True):
         fieldnames = []
         for fieldname, value in list(val.items()):
             if fieldname in {'_write', '_delete', '_timestamp'}:
