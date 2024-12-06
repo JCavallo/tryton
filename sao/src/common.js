@@ -3853,7 +3853,7 @@
             height = 'none';
         }
         el.closest('.treeview')
-            .css('overflow', overflow)
+            .css('overflow-y', overflow)
             .css('max-height', height);
         el.closest('.modal-body').css('overflow', overflow);
         el.closest('.navbar-collapse.in').css('overflow-y', overflow);
