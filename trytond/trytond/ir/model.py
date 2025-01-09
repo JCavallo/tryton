@@ -60,7 +60,7 @@ class Model(
     module = fields.Char('Module', readonly=True)
     global_search_p = fields.Boolean('Global Search')
     fields = fields.One2Many('ir.model.field', 'model_ref', "Fields")
-    _get_names_cache = Cache('ir.model.get_names')
+    _get_names_cache = Cache('ir.model.get_names', context=False)
 
     @classmethod
     def __setup__(cls):
@@ -166,10 +166,12 @@ class Model(
             and model._on_change_notify_depends}
 
     @classmethod
+    @without_check_access
     def get_name_items(cls, classes=None):
         "Return a list of couple mapping models to names"
         pool = Pool()
-        key = 'items', str(classes)
+        key = ('items', str(classes),
+            Transaction().context.get('language', None))
         items = cls._get_names_cache.get(key)
         if items is None:
             models = cls.search([])
@@ -189,9 +191,10 @@ class Model(
         return items
 
     @classmethod
+    @without_check_access
     def get_names(cls, classes=None):
         "Return a dictionary mapping models to names"
-        key = 'dict', str(classes)
+        key = 'dict', str(classes), Transaction().context.get('language', None)
         dict_ = cls._get_names_cache.get(key)
         if dict_ is None:
             dict_ = dict(cls.get_name_items())
