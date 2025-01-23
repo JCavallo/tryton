@@ -2583,7 +2583,9 @@
                     if (!value) {
                         value = field.get_client(record) || '';
                     }
-                    cell.text(value);
+                    if (cell.text() != value) {
+                        cell.text(value);
+                    }
                 }
             };
             let prm = jQuery.when();
@@ -2678,7 +2680,9 @@
         },
         update_text: function(cell, record) {
             var text = this.get_textual_value(record);
-            cell.text(text).attr('title', text);
+            if (text != cell.text()) {
+                cell.text(text).attr('title', text);
+            }
         },
         render: function(record, cell) {
             if (!cell) {
@@ -2876,7 +2880,9 @@
             if (!this.tree.editable &&
                     (this.field.name + ':string' in record._values)) {
                 var text_value = this.get_textual_value(record);
-                cell.text(text_value).attr('title', text_value);
+                if (cell.text() != text_value) {
+                    cell.text(text_value).attr('title', text_value);
+                }
             } else {
                 this.update_selection(record, () => {
                     var value = this.field.get(record);
@@ -2897,7 +2903,9 @@
                         prm = jQuery.when(text);
                     }
                     prm.done(text_value => {
-                        cell.text(text_value).attr('title', text_value);
+                        if (cell.text() != text_value) {
+                            cell.text(text_value).attr('title', text_value);
+                        }
                     });
                 });
             }
@@ -2939,11 +2947,15 @@
             if (!this.tree.editable &&
                     (this.field_name + ':string' in record._values)) {
                 var text_value = this.get_textual_value(record);
-                cell.text(text_value).attr('title', text_value);
+                if (cell.text() != text_value) {
+                    cell.text(text_value).attr('title', text_value);
+                }
             } else {
                 this.update_selection(record, () => {
                     var text_value = this.get_textual_value(record);
-                    cell.text(text_value).attr('title', text_value);
+                    if (cell.text() != text_value) {
+                        cell.text(text_value).attr('title', text_value);
+                    }
                 });
             }
         },
@@ -3001,7 +3013,9 @@
             cell.unbind('click');
             this.update_selection(record, () => {
                 var text = this.get_textual_value(record);
-                cell.text(text).attr('title', text);
+                if (cell.text() != text) {
+                    cell.text(text).attr('title', text);
+                }
                 cell.click(event => {
                     event.stopPropagation();
                     var value = this.field.get(record);
@@ -3084,7 +3098,10 @@
         },
         update_text: function(cell, record) {
             var text = this.get_textual_value(record);
-            cell.children('span').text(text).attr('title', text);
+            let span = cell.children('span')
+            if (span.text() != text) {
+                span.text(text).attr('title', text);
+            }
             var button = cell.children('button');
             if (!button.length) {
                 button = jQuery('<button/>', {
@@ -3220,8 +3237,10 @@
             var value = this.field.get(record) || 0;
             var progressbar = cell.find('.progress-bar');
             progressbar.attr('aria-valuenow', value * 100);
-            progressbar.css('width', value * 100 + '%');
-            progressbar.text(text).attr('title', text);
+            if (progressbar.text() != text) {
+                progressbar.css('width', value * 100 + '%');
+                progressbar.text(text).attr('title', text);
+            }
         }
     });
 
