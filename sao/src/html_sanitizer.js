@@ -32,10 +32,10 @@ SOFTWARE.
     };
 
     var attribute_whitelist = {
-        align: true,
-        color: true,
-        face: true,
-        size: true,
+        align: "align",
+        color: "color",
+        face: "font-family",
+        size: "font-size",
     };
 
     Sao.HtmlSanitizer = {};
@@ -79,11 +79,16 @@ SOFTWARE.
 
                 new_node = iframedoc.createElement(node.tagName);
 
+                var styles = "";
                 for (var i = 0; i < node.attributes.length; i++) {
                     var attr = node.attributes[i];
                     if (attribute_whitelist[attr.name]) {
-                        new_node.setAttribute(attr.name, attr.value);
+                        styles +=
+                            `${attribute_whitelist[attr.name]}: ${attr.value};`;
                     }
+                }
+                if (styles !== "") {
+                    new_node.setAttribute("style", styles);
                 }
                 for (i = 0; i < node.childNodes.length; i++) {
                     var sub_copy = make_sanitized_copy(node.childNodes[i]);
