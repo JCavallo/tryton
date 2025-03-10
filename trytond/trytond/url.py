@@ -7,6 +7,7 @@ import urllib.parse
 
 from trytond.config import config
 from trytond.transaction import Transaction
+from trytond.analyzer import ANALYZING
 
 __all__ = ['URLMixin', 'is_secure', 'host', 'http_host']
 
@@ -76,7 +77,10 @@ class URLAccessor(object):
             raise NotImplementedError
 
         url_part['name'] = cls.__name__
-        url_part['database'] = Transaction().database.name
+        if ANALYZING:
+            url_part['database'] = 'TEMP NOT RELEVANT IN SETUP'
+        else:
+            url_part['database'] = Transaction().database.name
 
         local_part = urllib.parse.quote(
             '%(database)s/%(type)s/%(name)s' % url_part)

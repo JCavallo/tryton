@@ -6,7 +6,7 @@ from collections import OrderedDict, defaultdict
 from threading import RLock, local
 from weakref import WeakSet
 
-from trytond.modules import load_modules, register_classes
+from trytond.modules import load_modules, register_classes, raw_load_modules
 from trytond.server_context import ServerContext
 from trytond.transaction import Transaction
 
@@ -69,10 +69,16 @@ class Pool(object):
     _registered_notifications = {}
     _notification_callbacks = {}
     pool_types = {'model', 'report', 'wizard'}
+    _current = None
 
-    def __new__(cls, database_name=None):
+    def __new__(cls, database_name=None, module_list=None):
         if database_name is None:
-            database_name = Transaction().database.name
+            if cls._current is not None:
+                database_name = cls._current
+            elif not module_list:
+                database_name = Transaction().database.name
+            else:
+                database_name = tuple(sorted(module_list))
         instances = cls._local.__dict__.setdefault('instances', {})
         if (instance := instances.get(database_name)) is None:
             instances[database_name] = instance = super().__new__(cls)
@@ -83,9 +89,14 @@ class Pool(object):
                 cls._pool_instances.add(instance)
         return instance
 
-    def __init__(self, database_name=None):
+    def __init__(self, database_name=None, module_list=None):
         if database_name is None:
-            database_name = Transaction().database.name
+            if self._current is not None:
+                database_name = self._current
+            elif not module_list:
+                database_name = Transaction().database.name
+            else:
+                database_name = tuple(sorted(module_list))
         self.database_name = database_name
 
     @classmethod
@@ -228,6 +239,10 @@ class Pool(object):
             self._final_init_calls[self.database_name] = []
             self._final_migrations[self.database_name] = []
             self._notification_callbacks[self.database_name] = {}
+            if isinstance(self.database_name, tuple):
+                Pool._current = self.database_name
+                raw_load_modules(self.database_name, self)
+                return
             try:
                 with ServerContext().set_context(disable_auto_cache=True):
                     restart = not load_modules(

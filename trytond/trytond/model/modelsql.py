@@ -25,6 +25,7 @@ from trytond.tools import cursor_dict, grouped_slice, reduce_ids
 from trytond.tools.domain_inversion import simplify
 from trytond.transaction import (
     Transaction, inactive_records, record_cache_size, without_check_access)
+from trytond.analyzer import ANALYZING
 
 from . import fields
 from .descriptors import dualmethod
@@ -221,7 +222,7 @@ class Index:
         def expression(self):
             expression = self._expression
             database = Transaction().database
-            if database.has_unaccent_indexable():
+            if not ANALYZING and database.has_unaccent_indexable():
                 expression = database.unaccent(expression)
             return expression
 
@@ -408,6 +409,58 @@ class ModelSQL(ModelStorage):
                             Column(history_table, '__id'),
                             history_table.id]),
                     })
+
+    @classmethod
+    def __post_setup__(cls):
+        super().__post_setup__()
+
+        # Define Range index to optimise with reduce_ids
+        for field in cls._fields.values():
+            field_names = set()
+            if isinstance(field, fields.One2Many):
+                Target = field.get_target()
+                if field.field:
+                    field_names.add(field.field)
+            elif isinstance(field, fields.Many2Many):
+                Target = field.get_relation()
+                if field.origin:
+                    field_names.add(field.origin)
+                if field.target:
+                    field_names.add(field.target)
+            else:
+                continue
+            field_names.discard('id')
+            for field_name in field_names:
+                target_field = getattr(Target, field_name)
+                if (issubclass(Target, ModelSQL)
+                        and not callable(Target.table_query)
+                        and not hasattr(target_field, 'set')
+                        and not ANALYZING):
+                    target = Target.__table__()
+                    column = Column(target, field_name)
+                    if not target_field.required and Target != cls:
+                        where = column != Null
+                    else:
+                        where = None
+                    if target_field._type == 'reference':
+                        Target._sql_indexes.update({
+                                Index(
+                                    target,
+                                    (column, Index.Equality()),
+                                    where=where),
+                                Index(
+                                    target,
+                                    (column, Index.Similarity(begin=True)),
+                                    (target_field.sql_id(column, Target),
+                                        Index.Range()),
+                                    where=where),
+                                })
+                    else:
+                        Target._sql_indexes.add(
+                            Index(
+                                target,
+                                (column, Index.Range()),
+                                where=where))
 
     @classmethod
     def __table__(cls):
