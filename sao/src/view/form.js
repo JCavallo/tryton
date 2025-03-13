@@ -479,7 +479,9 @@ function hide_x2m_body(widget) {
             if (button.attributes.type != 'client_action') {
                 button.el.prop('disabled', true);  // state will be reset at display
             }
-            this.screen.button(button.attributes);
+            this.screen.button(button.attributes).fail(() => {
+                button.set_state(this.record);
+            });
         },
         on_scan_code: function(code) {
             var record = this.record;
