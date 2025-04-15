@@ -2,7 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import sys
 
-from werkzeug.exceptions import Forbidden, Unauthorized
+from werkzeug.exceptions import Forbidden, Unauthorized, BadRequest
 
 from trytond.tools import resolve
 from trytond.config import config
@@ -102,7 +102,7 @@ def error_wrap(func):
         try:
             return func(*args, **kwargs)
         except (UserError, UserWarning, ConcurrencyException, Forbidden,
-                Unauthorized, DatabaseTimeoutError):
+                Unauthorized, DatabaseTimeoutError, BadRequest):
             # Those errors are supposed to make their way to the end user
             raise
         except Exception as e:

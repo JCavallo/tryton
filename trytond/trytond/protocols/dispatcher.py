@@ -229,7 +229,9 @@ def _dispatch(request, pool, *args, **kwargs):
     if method in obj.__rpc__:
         rpc = obj.__rpc__[method]
     else:
-        abort(HTTPStatus.FORBIDDEN)
+        abort(
+            HTTPStatus.BAD_REQUEST,
+            description=f"Method {method} is not available on {obj.__name__}")
 
     if request.authorization.type == 'session':
         session = request.authorization.get('session')
