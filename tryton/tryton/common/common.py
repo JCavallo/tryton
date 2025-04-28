@@ -579,15 +579,18 @@ def file_selection(title, filename='',
     return result
 
 
-_slugify_strip_re = re.compile(r'[^\w\s-]')
 _slugify_hyphenate_re = re.compile(r'[-\s]+')
 
 
 def slugify(value):
-    if not isinstance(value, str):
-        value = str(value)
+    # remove control chars
+    value = ''.join(c for c in value
+        if not unicodedata.category(c).startswith('C'))
     value = unicodedata.normalize('NFKD', value)
-    value = str(_slugify_strip_re.sub('', value).strip())
+    value = value.translate({
+            ord(os.sep): '_',
+            ord(os.extsep): '_',
+            }).strip()
     return _slugify_hyphenate_re.sub('-', value)
 
 
@@ -596,7 +599,11 @@ def _slugify_filename(filename):
         name, ext = filename
     else:
         name, ext = os.path.splitext(filename)
-    return ''.join([slugify(name), os.extsep, slugify(ext)])
+    if ext:
+        ext = ext[len(os.extsep):]
+        return ''.join([slugify(name), os.extsep, slugify(ext)])
+    else:
+        return slugify(name)
 
 
 def file_write(filename, data):
