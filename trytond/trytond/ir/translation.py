@@ -1225,7 +1225,7 @@ class TranslationSet(Wizard):
 
     def _translate_view(self, element):
         strings = []
-        for attr in {'string', 'sum', 'confirm', 'help', 'empty_string'}:
+        for attr in {'string', 'confirm', 'help', 'empty_string'}:
             if element.get(attr):
                 string = element.get(attr)
                 if string:
