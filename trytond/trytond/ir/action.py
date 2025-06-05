@@ -135,7 +135,7 @@ class Action(DeactivableMixin, ModelSQL, ModelView):
                 'views', 'domains', 'res_model', 'limit',
                 'context_model', 'context_domain',
                 'pyson_domain', 'pyson_context', 'pyson_order',
-                'pyson_search_value']
+                'pyson_search_value', 'window_name_field']
         elif type_ == 'ir.action.wizard':
             columns += ['wiz_name', 'window']
         elif type_ == 'ir.action.url':
@@ -793,6 +793,7 @@ class ActionActWindow(
     pyson_order = fields.Function(fields.Char('PySON Order'), 'get_pyson')
     pyson_search_value = fields.Function(fields.Char(
         'PySON Search Criteria'), 'get_pyson')
+    window_name_field = fields.Char("Window Name Field")
 
     @classmethod
     def __setup__(cls):
