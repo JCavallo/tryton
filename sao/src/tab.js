@@ -364,6 +364,9 @@
         _close_allowed: function() {
             return jQuery.when();
         },
+        refresh_name: function() {
+            // Overriden in Sao.Tab.Form
+        },
         set_name: function(name) {
             this.name_short_el.text(name.split(' / ').pop());
             this.name_long_el.text(name);
@@ -1699,6 +1702,23 @@
                 }
                 this.update_sidebar();
             }
+            this.refresh_name();
+        },
+        refresh_name: function() {
+            let view_type = this.screen.current_view.view_type;
+            let tab_name;
+            if ((view_type == 'form') &&
+                    this.screen.current_record &&
+                    this.attributes.window_name_field) {
+                let name_field = this.screen.current_record.load(
+                    this.attributes.window_name_field,
+                    false, false);
+                tab_name = name_field.get_client(this.screen.current_record);
+            }
+            if (!tab_name) {
+                tab_name = this.attributes.name || "";
+            }
+            this.set_name(tab_name);
         },
         record_modified: function() {
             this.set_buttons_sensitive();
@@ -1707,6 +1727,7 @@
         record_saved: function() {
             this.set_buttons_sensitive();
             this.refresh_resources();
+            this.refresh_name();
         },
         action: function() {
             window.setTimeout(() => {
@@ -1784,6 +1805,13 @@
         },
         get current_view_type() {
             return this.screen.current_view.view_type;
+        },
+        set_name: function(name) {
+            if (name != this.attributes.name) {
+                name = `${this.attributes.name}: ${name}`;
+            };
+
+            Sao.Tab.Form._super.set_name.call(this, name);
         },
     });
 
