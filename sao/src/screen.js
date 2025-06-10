@@ -961,6 +961,9 @@
             let win_name_field;
             let missing_name_fields = []
             for (let window_ of this.windows) {
+                if (!(window_ instanceof Sao.Tab.Form)) {
+                    continue;
+                }
                 win_name_field = window_.attributes.window_name_field;
                 if (!win_name_field) {
                     continue;
