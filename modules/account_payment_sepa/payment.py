@@ -268,6 +268,12 @@ class Group(metaclass=PoolMeta):
         # process methods
         return ['sepa']
 
+    @classmethod
+    def sepa_like_methods(cls):
+        # Allow SEPA message generation for variants of the SEPA
+        # process methods
+        return ['sepa']
+
     @dualmethod
     @ModelView.button
     def sepa_generate_message(cls, groups):
