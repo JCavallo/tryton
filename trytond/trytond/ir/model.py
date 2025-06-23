@@ -374,7 +374,9 @@ class ModelField(
         model_fields = {f['name']: f for f in cursor_dict(cursor)}
 
         for field_name, field in model._fields.items():
-            if hasattr(field, 'get_target'):
+            if (hasattr(field, 'get_target')
+                    and (field._type != 'many2one'
+                        or (field._type == 'many2one' and field.model_name))):
                 Relation = field.get_target()
                 relation = Relation.__name__
                 Model.register(Relation, module_name)
