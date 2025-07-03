@@ -1088,16 +1088,18 @@
             return this.modified_save().then(() => {
                 var prm = this.screen.display_previous();
                 this.info_bar.clear();
-                this.set_buttons_sensitive();
-                return prm;
+                return prm.done(() => {
+                    this.set_buttons_sensitive();
+                });
             });
         },
         next: function() {
             return this.modified_save().then(() => {
                 var prm = this.screen.display_next();
                 this.info_bar.clear();
-                this.set_buttons_sensitive();
-                return prm;
+                return prm.done(() => {
+                    this.set_buttons_sensitive();
+                });
             });
         },
         search: function() {
