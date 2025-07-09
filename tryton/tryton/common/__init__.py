@@ -12,7 +12,8 @@ from .common import (
     get_toplevel_window, hex2rgb, highlight_rgb, humanize, idle_add, mailto,
     message, node_attributes, open_documentation, process_exception,
     resize_pixbuf, selection, setup_window, slugify, sur, sur_3b,
-    timezoned_date, to_xml, untimezoned_date, url_open, userwarning, warning)
+    get_monitor_size, timezoned_date, to_xml, untimezoned_date, url_open,
+    userwarning, warning)
 from .domain_inversion import (
     concat, domain_inversion, eval_domain, extract_reference_models,
     filter_leaf, inverse_leaf, localize_domain, merge,
