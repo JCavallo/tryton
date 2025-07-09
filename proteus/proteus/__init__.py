@@ -662,7 +662,7 @@ class ModelList(list):
         self.append(new_record)
         return new_record
 
-    def find(self, condition=None, offset=0, limit=None, order=None):
+    def find(self, condition=None, offset=0, limit=None, order=None, count=None):
         'Returns records matching condition taking into account list domain'
         from .pyson import PYSONDecoder
         decoder = PYSONDecoder(_EvalEnvironment(self.parent))
@@ -678,7 +678,7 @@ class ModelList(list):
         order = order if order else decoder.decode(self.search_order)
         config = Relation._config
         with config.reset_context(), config.set_context(context):
-            return Relation.find(new_domain, offset, limit, order)
+            return Relation.find(new_domain, offset, limit, order, count)
 
     def set_sequence(self, field='sequence'):
         changed = False
@@ -844,10 +844,14 @@ class Model(object):
         self.__id = int(value)
 
     @classmethod
-    def find(cls, condition=None, offset=0, limit=None, order=None):
+    def find(cls, condition=None, offset=0, limit=None, order=None, count=None):
         'Return records matching condition'
         if condition is None:
             condition = []
+        if count:
+            return cls._proxy.search_count(condition, offset, limit,
+                cls._config.context)
+
         ids = cls._proxy.search(condition, offset, limit, order,
             cls._config.context)
         return [cls(id) for id in ids]
