@@ -621,7 +621,7 @@
         load_searches: function() {
             this.searches = {};
             return Sao.rpc({
-                'method': 'model.ir.ui.view_search.get',
+                'method': 'model.ir.ui.view_search.get_search',
                 'params': [{}]
             }, Sao.Session.current_session).then(searches => {
                 this.searches = searches;
