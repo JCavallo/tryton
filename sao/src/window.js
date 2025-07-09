@@ -167,7 +167,7 @@
                 .done(() => {
                     if (kwargs.new_ &&
                         (this.screen.current_view.view_type == view_type)) {
-                        this.screen.new_(undefined, kwargs.rec_name);
+                        this.screen.new_(undefined, kwargs.defaults);
                     }
                 });
             var dialog = new Sao.Dialog('', 'window-form', 'lg', false);
@@ -180,20 +180,19 @@
                 }
             });
 
-            var readonly = (this.screen.attributes.readonly ||
-                    this.screen.group.readonly);
+            var readonly = this.screen.group.readonly;
 
             this.but_ok = null;
             this.but_new = null;
 
             this._initial_value = null;
             this.view_type = view_type;
-            if (view_type == 'form') {
-                var button_text;
+            if ((view_type == 'form') && !readonly) {
+                let label;
                 if (kwargs.new_) {
-                    button_text = Sao.i18n.gettext('Delete');
+                    label = Sao.i18n.gettext('Delete');
                 } else {
-                    button_text = Sao.i18n.gettext('Cancel');
+                    label = Sao.i18n.gettext("Discard changes");
                     var record = this.screen.current_record;
                     this._initial_value = record.get_on_change_value();
                     if (record.group.parent &&
@@ -208,37 +207,49 @@
                 dialog.footer.append(jQuery('<button/>', {
                     'class': 'btn btn-link',
                     'type': 'button',
-                    'title': button_text,
-                }).text(button_text).click(() => {
+                    'title': label,
+                }).text(label).click(() => {
                     this.response('RESPONSE_CANCEL');
                 }));
             }
 
             if (kwargs.new_ && this.many) {
+                let label;
+                if (this.save_current && !readonly) {
+                    label = Sao.i18n.gettext("Save and New");
+                } else {
+                    label = Sao.i18n.gettext("Add and New");
+                }
                 dialog.footer.append(jQuery('<button/>', {
                     'class': 'btn btn-default',
                     'type': 'button',
-                    'title': Sao.i18n.gettext("New"),
-                }).text(Sao.i18n.gettext('New')).click(() => {
+                    'title': label,
+                }).text(label).click(() => {
                     this.response('RESPONSE_ACCEPT');
                 }));
             }
 
-            if (this.save_current) {
+            if (this.save_current && !readonly) {
+                let label = Sao.i18n.gettext("Save");
                 this.but_ok = jQuery('<button/>', {
                     'class': 'btn btn-primary',
                     'type': 'submit',
-                    'title': Sao.i18n.gettext("Save"),
-                }).text(Sao.i18n.gettext('Save')).appendTo(dialog.footer);
-                if (!kwargs.new_) {
-                    this.but_ok.addClass('disabled');
-                }
+                    'title': label,
+                }).text(label).appendTo(dialog.footer);
             } else {
+                let label;
+                if (readonly || (view_type == 'tree')) {
+                    label = Sao.i18n.gettext("Close");
+                } else if (kwargs.new_) {
+                    label = Sao.i18n.gettext("Add");
+                } else {
+                    label = Sao.i18n.gettext("Apply changes");
+                }
                 this.but_ok = jQuery('<button/>', {
                     'class': 'btn btn-primary',
                     'type': 'submit',
-                    'title': Sao.i18n.gettext("OK"),
-                }).text(Sao.i18n.gettext('OK')).appendTo(dialog.footer);
+                    'title': label,
+                }).text(label).appendTo(dialog.footer);
             }
             dialog.content.submit(e => {
                 e.preventDefault();
@@ -402,14 +413,13 @@
             });
         },
         record_message: function(position, size) {
-            this.set_buttons_sensitive();
             if (this.view_type != 'tree') {
                 return;
             }
             var name = '_';
             var access = Sao.common.MODELACCESS.get(this.screen.model_name);
             var deletable = this.screen.deletable;
-            var readonly = this.screen.group.readonly || this.screen.readonly;
+            var readonly = this.screen.group.readonly;
             if (position >= 1) {
                 name = position;
                 if (this.domain) {
@@ -417,10 +427,12 @@
                 }
                 this.but_next.prop('disabled', position >= size);
                 this.but_previous.prop('disabled', position <= 1);
-                if (access.delete && !readonly && deletable) {
-                    this.but_del.prop('disabled', false);
-                    this.but_undel.prop('disabled', false);
-                }
+                this.but_del.prop(
+                    'disabled',
+                    readonly ||
+                    !access.delete ||
+                    !deletable);
+                this.but_undel.prop('disabled', readonly);
             } else {
                 this.but_del.prop('disabled', true);
                 this.but_undel.prop('disabled', true);
@@ -434,13 +446,7 @@
             this.label.text(message).attr('title', message);
         },
         record_modified: function() {
-            this.set_buttons_sensitive();
             this.info_bar.refresh();
-        },
-        set_buttons_sensitive: function() {
-            if (this.but_ok.hasClass('disabled') && this.screen.modified()) {
-                this.but_ok.removeClass('disabled');
-            }
         },
         add: function() {
             var domain = jQuery.extend([], this.domain);
@@ -454,7 +460,7 @@
                     for (const record of result) {
                         ids.push(record[0]);
                     }
-                    this.screen.group.load(ids, null, true);
+                    this.screen.group.load(ids, true, -1, null);
                     prm = this.screen.display();
                 }
                 prm.done(() => {
@@ -463,7 +469,7 @@
                 this.entry.val('');
             };
             var parser = new Sao.common.DomainParser();
-            var win = new Sao.Window.Search(model_name, callback, {
+            new Sao.Window.Search(model_name, callback, {
                 sel_multi: true,
                 context: this.context,
                 domain: domain,
@@ -588,7 +594,7 @@
                     record.modified_fields.id = added;
                 }
             } else {
-                result = response_id != 'RESPONSE_CANCEL';
+                result = (response_id != 'RESPONSE_CANCEL') && !readonly;
             }
             (cancel_prm || jQuery.when()).then(() => {
                 if (this.callback) {
@@ -776,7 +782,8 @@
             record.model.execute(
                 'read', [[record.id],
                     ['create_uid.rec_name', 'create_date',
-                        'write_uid.rec_name', 'write_date']], context
+                        'write_uid.rec_name', 'write_date',
+                        'xml_id']], context
             ).then(([log]) => {
                 var row, cell, label, input;
 
@@ -810,6 +817,39 @@
                 }).val(record.id).appendTo(cell);
                 input.css('text-align', 'end');
                 input.uniqueId();
+
+                if (log.xml_id) {
+                    const [module, xml_id] = log.xml_id.split('.', 2);
+
+                    row = jQuery('<tr/>').appendTo(body);
+                    cell = jQuery('<td/>').css('text-align', 'end').appendTo(row);
+                    label = jQuery('<label/>', {
+                        'class': 'form-label',
+                        'text': Sao.i18n.gettext("Module:"),
+                    }).appendTo(cell);
+                    label.uniqueId();
+                    cell = jQuery('<td/>').appendTo(row);
+                    input = jQuery('<input/>', {
+                        'readonly': true,
+                        'class': 'form-control input-sm',
+                        'aria-labelledby': label.attr('id'),
+                    }).val(module).appendTo(cell);
+                    input.uniqueId();
+
+                    cell = jQuery('<td/>').css('text-align', 'end').appendTo(row);
+                    label = jQuery('<label/>', {
+                        'class': 'form-label',
+                        'text': Sao.i18n.gettext("XML ID:"),
+                    }).appendTo(cell);
+                    label.uniqueId();
+                    cell = jQuery('<td/>').appendTo(row);
+                    input = jQuery('<input/>', {
+                        'readonly': true,
+                        'class': 'form-control input-sm',
+                        'aria-labelledby': label.attr('id'),
+                    }).val(xml_id).appendTo(cell);
+                    input.uniqueId();
+                }
 
                 [['create_uid.', Sao.i18n.gettext("Created by:"),
                     'create_date', Sao.i18n.gettext("Created at:")],
@@ -893,8 +933,14 @@
             this.title = title;
             this.exclude_field = kwargs.exclude_field || null;
             var dialog = new Sao.Dialog(Sao.i18n.gettext(
-                'Search %1', this.title), '', 'lg');
+                'Search %1', this.title), '', 'lg', false);
             this.el = dialog.modal;
+            this.el.on('keydown', e => {
+                if (e.which == Sao.common.ESC_KEYCODE) {
+                    e.preventDefault();
+                    this.response('RESPONSE_CANCEL');
+                }
+            });
 
             jQuery('<button/>', {
                 'class': 'btn btn-link',
@@ -969,7 +1015,8 @@
             if (response_id == 'RESPONSE_OK') {
                 records = this.screen.current_view.selected_records;
             } else if (response_id == 'RESPONSE_APPLY') {
-                this.screen.search_filter();
+                this.screen.search_filter(
+                    this.screen.screen_container.get_text());
                 return;
             } else if (response_id == 'RESPONSE_ACCEPT') {
                 var view_ids = jQuery.extend([], this.view_ids);
@@ -1095,7 +1142,7 @@
     });
 
     Sao.Window.Revision = Sao.class_(Object, {
-        init: function(revisions, callback) {
+        init: function(revisions, revision, callback) {
             this.callback = callback;
             var dialog = new Sao.Dialog(
                     Sao.i18n.gettext('Revision'), '', 'lg');
@@ -1136,14 +1183,17 @@
                 value: null,
                 text: ''
             }));
-            for (let revision of revisions) {
-                var name = revision[2];
-                revision = revision[0];
+            for (let rev of revisions) {
+                var name = rev[2];
+                rev = rev[0];
                 this.select.append(jQuery('<option/>', {
-                    value: revision.valueOf(),
+                    value: rev.valueOf(),
                     text: Sao.common.format_datetime(
-                        date_format + ' ' + time_format, revision) + ' ' + name,
+                        date_format + ' ' + time_format, rev) + ' ' + name,
                 }));
+            }
+            if (revision) {
+                this.select.val(revision.valueOf());
             }
             this.el.modal('show');
             this.el.on('hidden.bs.modal', function(event) {
@@ -1214,7 +1264,7 @@
                 'class': 'col-md-2'
             }).appendTo(row_fields);
 
-            var button_add = jQuery('<button/>', {
+            jQuery('<button/>', {
                 'class': 'btn btn-default btn-block',
                 'type': 'button',
                 'title': Sao.i18n.gettext("Add"),
@@ -1275,7 +1325,7 @@
             var row_csv_param = jQuery('<div/>', {
             }).appendTo(this.dialog.body);
 
-            var csv_param_label = jQuery('<label/>', {
+            jQuery('<label/>', {
                 'text': Sao.i18n.gettext('CSV Parameters')
             }).append(jQuery('<span/>', {
                 'class': 'caret',
@@ -1329,7 +1379,7 @@
                 'id': 'input-quotechar',
                 'size': '1',
                 'maxlength': '1',
-                'value': '\"',
+                'value': '"',
             });
 
             jQuery('<div/>', {
@@ -1457,18 +1507,21 @@
         },
         sig_sel_add: function(el_field) {
             el_field = jQuery(el_field);
-            var field = el_field.attr('field');
-            var node = jQuery('<li/>', {
+            this._add_node(el_field.attr('field'), el_field.attr('name'));
+        },
+        _add_node: function(field, name) {
+            jQuery('<li/>', {
                 'field': field,
                 'class': 'draggable-handle',
-            }).text(el_field.attr('name')).prepend(
+            }).text(name).prepend(
                 Sao.common.ICONFACTORY.get_icon_img('tryton-drag')
-            ).click(function(e) {
-                if (e.ctrlKey || e.metaKey) {
+            ).click(function(evt) {
+                const node = jQuery(evt.target);
+                if (evt.ctrlKey || evt.metaKey) {
                     node.toggleClass('bg-primary');
                 } else {
-                    jQuery(e.target).addClass('bg-primary')
-                        .siblings().removeClass('bg-primary');
+                    node.addClass('bg-primary');
+                    node.siblings().removeClass('bg-primary');
                 }
             }).appendTo(this.fields_selected);
         },
@@ -1604,17 +1657,11 @@
             }
             else {
                 Sao.common.warning.run(
-                    Sao.i18n.gettext(
-                        'Error processing the file at field %1.', word),
-                        Sao.i18n.gettext('Error'));
+                    Sao.i18n.gettext('Unknown column header "%1"', word),
+                    Sao.i18n.gettext('Error'));
                 return false;
             }
-            var node = jQuery('<li/>', {
-                'field': field
-            }).text(name).click(() => {
-                node.addClass('bg-primary')
-                    .siblings().removeClass('bg-primary');
-            }).appendTo(this.fields_selected);
+            this._add_node(field, name);
             return true;
         },
         _traverse: function(fields, prefix, parents, i) {
@@ -1948,14 +1995,19 @@
         },
         fill_predefwin: function() {
             Sao.rpc({
-                'method': 'model.ir.export.search_read',
+                'method': 'model.ir.export.get',
                 'params': [
-                    [['resource', '=', this.screen.model_name]], 0, null, null,
-                    ['name', 'export_fields.name'], {}],
+                    this.screen.model_name,
+                    ['name', 'header', 'records', 'export_fields.name'],
+                    this.context,
+                ],
             }, this.session).done(exports => {
                 for (const export_ of exports) {
-                    this.predef_exports[export_.id] = export_['export_fields.']
-                        .map(field => field.name);
+                    this.predef_exports[export_.id] = {
+                        'fields': export_['export_fields.'].map(
+                            field => field.name),
+                        'values': export_,
+                    };
                     this.add_to_predef(export_.id, export_.name);
                     this.predef_exports_list.children('li').first().focus();
                 }
@@ -1993,37 +2045,35 @@
 
             const save = name => {
                 var prm;
+                var values = {
+                    'header': this.el_add_field_names.is(':checked'),
+                    'records': (
+                        JSON.parse(this.selected_records.val()) ?
+                        'selected' : 'listed'),
+                };
                 if (!pref_id) {
+                    values.name = name;
+                    values.resource = this.screen.model_name;
+                    values.export_fields = fields.map(f => ({'name': f}));
                     prm = Sao.rpc({
-                        method: 'model.ir.export.create',
-                        params: [[{
-                            name: name,
-                            resource: this.screen.model_name,
-                            header: this.el_add_field_names.is(':checked'),
-                            export_fields: [['create', fields.map(function(f) {
-                                return {name: f};
-                            })]],
-                        }], this.context],
-                    }, this.session).then(function(new_ids) {
-                        return new_ids[0];
-                    });
+                        method: 'model.ir.export.set',
+                        params: [values, this.context],
+                    }, this.session);
                 } else {
                     prm = Sao.rpc({
                         method: 'model.ir.export.update',
-                        params: [[pref_id], fields, this.context],
-                    }, this.session).then(function() {
-                        return pref_id;
-                    });
+                        params: [pref_id, values, fields, this.context],
+                    }, this.session).then(() =>  pref_id);
                 }
                 return prm.then(pref_id => {
                     this.session.cache.clear(
                         'model.' + this.screen.model_name + '.view_toolbar_get');
-                    this.predef_exports[pref_id] = fields;
+                    this.predef_exports[pref_id] = {
+                        'fields': fields,
+                        'values': values,
+                    };
                     if (selection.length === 0) {
                         this.add_to_predef(pref_id, name);
-                    }
-                    else {
-                        selection.attr('export_id', pref_id);
                     }
                 });
             };
@@ -2051,8 +2101,8 @@
             }
             var export_id = jQuery(selection).attr('export_id');
             Sao.rpc({
-                'method': 'model.ir.export.delete',
-                'params': [[export_id], {}]
+                'method': 'model.ir.export.unset',
+                'params': [export_id, this.context]
             }, this.session).then(() => {
                 this.session.cache.clear(
                     'model.' + this.screen.model_name + '.view_toolbar_get');
@@ -2062,7 +2112,8 @@
         },
         sel_predef: function(export_id) {
             this.fields_selected.empty();
-            for (const name of this.predef_exports[export_id]) {
+            const export_ = this.predef_exports[export_id];
+            for (const name of export_.fields) {
                 if (!(name in this.fields)) {
                     var fields = this.fields_model;
                     var prefix = '';
@@ -2074,6 +2125,9 @@
                 }
                 this.sel_field(name);
             }
+            this.el_add_field_names.prop('checked', export_.values.header);
+            this.selected_records.val(
+                JSON.stringify(export_.values.records == 'selected'));
         },
         _traverse: function(fields, prefix, parents, i) {
             var field, item;
@@ -2256,7 +2310,7 @@
         line.forEach(function(val, i) {
             if (locale_format) {
                 if (val.isDateTime) {
-                    val = val.format(
+                    val = val.local().format(
                         Sao.common.date_format() + ' ' +
                         Sao.common.moment_format('%X'));
                 } else if (val.isDate) {
@@ -2271,6 +2325,8 @@
                             'maximumFractionDigits': 20,
                         });
                 }
+            } else if (val.isDateTime) {
+                val = val.utc();
             } else if (val.isTimeDelta) {
                 val = val.asSeconds();
             } else if (typeof(val) == 'boolean') {
@@ -2570,6 +2626,139 @@
                     this.destroy();
                 });
             } else {
+                this.destroy();
+            }
+        },
+        destroy: function() {
+            this.el.modal('hide');
+        },
+    });
+
+    Sao.Window.CodeScanner = Sao.class_(Object, {
+        init: function(callback, loop=false) {
+            this.callback = callback;
+            this.loop = loop;
+            this.submitting = false;
+            this.dialog = new Sao.Dialog(
+                Sao.i18n.gettext("Code Scanner"), 'code-scanner', 'md');
+            this.el = this.dialog.modal;
+            this.input = jQuery('<input/>', {
+                'type': 'text',
+                'class': 'form-control input-sm mousetrap',
+                'aria-label': Sao.i18n.gettext("Code"),
+                'placeholder': Sao.i18n.gettext("Code"),
+            }).appendTo(jQuery('<div/>', {
+                'class': 'col-sm-12',
+            }).appendTo(this.dialog.body));
+
+            var sound_btn = jQuery('<button/>', {
+                'class': 'btn btn-default pull-right',
+                'type': 'button',
+                'title': Sao.i18n.gettext("Toggle Sound"),
+            }).prependTo(this.dialog.header);
+            var sound_icon = jQuery('<img/>', {
+                'class': 'icon',
+            }).appendTo(sound_btn);
+
+            var sound_set_state = function(state) {
+                var prm;
+                if (state) {
+                    sound_btn.addClass('active');
+                    sound_btn.attr('aria-pressed', state);
+                    prm = Sao.common.ICONFACTORY.get_icon_url('tryton-sound-on')
+                        .done(url => {
+                            sound_icon.attr('src', url);
+                        });
+                } else {
+                    sound_btn.removeClass('active');
+                    sound_btn.attr('aria-pressed', state);
+                    prm = Sao.common.ICONFACTORY.get_icon_url('tryton-sound-off')
+                        .done(url => {
+                            sound_icon.attr('src', url);
+                        });
+                }
+                localStorage.setItem('sao_code_scanner_sound', state);
+                return prm;
+            };
+            var sound_state = JSON.parse(
+                localStorage.getItem('sao_code_scanner_sound'));
+            if (sound_state === null) {
+                sound_state = true;
+            }
+            var sound_prm = sound_set_state(sound_state);
+            sound_btn.click(
+                () => sound_set_state(!sound_btn.hasClass('active')));
+
+            jQuery('<button/>', {
+                'class': 'btn btn-link',
+                'type': 'button',
+                'title': Sao.i18n.gettext("Close"),
+            }).text(' ' + Sao.i18n.gettext("Close")).prepend(
+                Sao.common.ICONFACTORY.get_icon_img('tryton-close')
+            ).click(() => {
+                this.response('RESPONSE_CLOSE');
+            }).appendTo(this.dialog.footer);
+
+            jQuery('<button/>', {
+                'class': 'btn btn-primary',
+                'type': 'submit',
+                'title': Sao.i18n.gettext("OK"),
+            }).text(' ' + Sao.i18n.gettext("OK")).prepend(
+                Sao.common.ICONFACTORY.get_icon_img('tryton-ok')
+            ).appendTo(this.dialog.footer);
+            this.dialog.content.submit(e => {
+                e.preventDefault();
+                this.response('RESPONSE_OK');
+            });
+
+            this.el.on('shown.bs.modal', () => {
+                this.input.on('blur', this._keep_focus);
+                this.input.focus();
+            });
+            this.el.on('hidden.bs.modal', function() {
+                jQuery(this).remove();
+            });
+            // show modal after sound icons have been set
+            // because they can trigger a renew session modal
+            sound_prm.then(() => this.el.modal('show'));
+        },
+        _play_sound: function(sound) {
+            if (JSON.parse(localStorage.getItem('sao_code_scanner_sound'))) {
+                Sao.common.play_sound(sound);
+            }
+        },
+        _keep_focus: function() {
+            setTimeout(() => this.focus(), 1);
+        },
+        response: function(response_id) {
+            if (this.submitting) return;
+            if (response_id == 'RESPONSE_OK') {
+                var code = this.input.val();
+                this.input.val('');  // clear input to prevent multiple calls
+                if (code) {
+                    this.submitting = true;
+                    this.input.off('blur');
+                    return this.callback(code)
+                        .always(() => this.submitting = false)
+                        .then((modified) => {
+                            this._play_sound('success');
+                            if (!this.loop || !modified) {
+                                this.destroy();
+                            }
+                            this.input.on('blur', this._keep_focus);
+                            this.input.focus();
+                        }, (error) => {
+                            this._play_sound('danger');
+                            if (error[0] == 'UserError') {
+                                Sao.common.warning.run(error[1][1], error[1][0]);
+                            } else {
+                                Sao.common.error.run(error[0], error[1]);
+                            }
+                            this.destroy();
+                        });
+                }
+            }
+            if (!this.loop || response_id != 'RESPONSE_OK') {
                 this.destroy();
             }
         },

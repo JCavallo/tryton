@@ -43,6 +43,9 @@ msgstr "مدیریت..."
 msgid "Logout"
 msgstr "خروج"
 
+msgid "Close"
+msgstr "بسته"
+
 msgid "Action"
 msgstr "اقدام"
 
@@ -109,9 +112,6 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-msgid "Close"
-msgstr "بسته"
-
 msgid "Documentation..."
 msgstr ""
 
@@ -127,7 +127,7 @@ msgstr "کلید های میانبر برگه"
 msgid "Unable to reach the server."
 msgstr "امکان دسترسی به سرور وجود ندارد."
 
-msgid "Too many requests. Try again later."
+msgid "Error: \"%1\". Try again later."
 msgstr ""
 
 msgid "Login"
@@ -143,7 +143,21 @@ msgstr "نام کاربری"
 msgid "Login with"
 msgstr "ورود"
 
+msgid "Too many requests. Try again later."
+msgstr ""
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid "Reset forgotten password"
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -197,28 +211,14 @@ msgstr "t"
 msgid "False"
 msgstr "غلط"
 
-msgid "Message: "
-msgstr "پیام : "
-
-msgid "Warning: "
-msgstr "هشدار: "
-
-msgid "Always ignore this warning."
-msgstr "همیشه این هشدار را نادیده بگیرید."
-
 msgid "Do you want to proceed?"
 msgstr "آیا می خواهید پردازش شود؟"
 
 msgid "No"
 msgstr "خیر"
 
-msgid "Confirmation: "
-msgstr "تأییدیه : "
-
-msgid "Concurrency Exception"
-msgstr "همزمانی استثنا"
-
-msgid "Write Concurrency Warning: "
+#, fuzzy
+msgid "Concurrency Warning"
 msgstr "نوشتن همزمانی هشدار: "
 
 msgid "This record has been modified while you were editing it."
@@ -249,6 +249,9 @@ msgstr "نوشتن بهرحال"
 msgid "Application Error"
 msgstr "خطای برنامه"
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "گزارش باگ"
 
@@ -260,6 +263,10 @@ msgid "Search..."
 msgstr "جستجو..."
 
 msgid "Create..."
+msgstr "ایجاد..."
+
+#, fuzzy
+msgid "Create \"%1\"..."
 msgstr "ایجاد..."
 
 msgid "Download"
@@ -295,6 +302,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "ویرایش"
+
+#, fuzzy
+msgid "Relation"
+msgstr "مربوط"
+
+#, fuzzy
+msgid "Report"
+msgstr "گزارش باگ"
 
 msgid "Switch view"
 msgstr "تعویض نمایه"
@@ -467,11 +486,18 @@ msgstr "\"%1\" با توجه به دامنه آن معتبر نیست"
 msgid "The values of \"%1\" are not valid."
 msgstr "مقادیر \"%1\" معتبر نیستند"
 
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
+msgstr "مقادیر \"%1\" معتبر نیستند"
+
 msgid "Pre-validation"
 msgstr "پیش-اعتبارسنجی"
 
 msgid ":"
 msgstr ":"
+
+msgid "Scan"
+msgstr ""
 
 msgid "Translate"
 msgstr "ترجمه"
@@ -543,17 +569,21 @@ msgstr ""
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+#, fuzzy
+msgid "Copy Selected Rows"
+msgstr "پرونده بعدی"
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr "بیشتر"
 
-msgid "#ERROR"
-msgstr ""
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr "امروز"
@@ -579,6 +609,19 @@ msgstr "انتخاب اقدام شما"
 msgid "No action defined."
 msgstr "اقدامی تعریف نشده."
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+#, fuzzy
+msgid "Add and New"
+msgstr "اضافه کردن نام های فیلد"
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr "پیوست ها(1%)"
 
@@ -595,6 +638,12 @@ msgstr "مدل : "
 
 msgid "ID:"
 msgstr "شناسه :"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 #, fuzzy
 msgid "Created by:"
@@ -655,8 +704,8 @@ msgstr "شما باید ابتدا فایل ورودی را انتخاب کنی�
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
-msgstr "خطای پردازش فایل واقع در فیلد : \"%1\"."
+msgid "Unknown column header \"%1\""
+msgstr ""
 
 msgid "Error"
 msgstr "خطا"
@@ -764,8 +813,20 @@ msgstr ""
 msgid "Remove File"
 msgstr "حذف"
 
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
+
 msgid "Wizard"
 msgstr "دستیار نصب"
 
 msgid "Translate view"
 msgstr ""
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "همیشه این هشدار را نادیده بگیرید."

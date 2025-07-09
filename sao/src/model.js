@@ -5,12 +5,10 @@
 
     function get_x2m_sub_fields(f_attrs, prefix) {
         if (f_attrs.loading == 'eager' && f_attrs.views) {
-            var sub_fields = {};
-            for (const v of Object.values(f_attrs.views || {})) {
-                for (const [key, val] of Object.entries(v.fields || {})) {
-                    sub_fields[key] = val;
-                }
-            }
+            // There's only one key but we don't know its value
+            const [[, view],] = Object.entries(f_attrs.views);
+
+            const sub_fields = view.fields || {};
             const x2m_sub_fields = [];
 
             for (const [s_field, f_def] of Object.entries(sub_fields)) {
@@ -113,7 +111,7 @@
                 this.__readonly = value;
             }
         });
-        array.load = function(ids, records_data=null, modified=false, position=-1) {
+        array.load = function(ids, modified=false, position=-1, preloaded=null) {
             if (position == -1) {
                 position = this.length;
             }
@@ -126,8 +124,8 @@
                     this.splice(position, 0, new_record);
                     position += 1;
                 }
-                if (records_data && (id in records_data)) {
-                    new_record.set(records_data[id], false, false);
+                if (preloaded && (id in preloaded)) {
+                    new_record.set(preloaded[id], false, false);
                 }
                 new_records.push(new_record);
             }
@@ -161,11 +159,11 @@
                 }
             }
         };
-        array.new_ = function(default_, id, rec_name) {
+        array.new_ = function(default_, id, defaults=null) {
             var record = new Sao.Record(this.model, id);
             record.group = this;
             if (default_) {
-                record.default_get(rec_name);
+                record.default_get(defaults);
             }
             return record;
         };
@@ -180,22 +178,22 @@
             if (this.indexOf(record) < 0) {
                 this.splice(position, 0, record);
             }
-            for (var record_rm in this.record_removed) {
+            for (var record_rm of this.record_removed) {
                 if (record_rm.id == record.id) {
                     this.record_removed.splice(
                             this.record_removed.indexOf(record_rm), 1);
                 }
             }
-            for (var record_del in this.record_deleted) {
+            for (var record_del of this.record_deleted) {
                 if (record_del.id == record.id) {
                     this.record_deleted.splice(
                             this.record_deleted.indexOf(record_del), 1);
                 }
             }
             record.modified_fields.id = true;
-            if (modified) {
+            if (modified && this.parent) {
                 // Set parent field to trigger on_change
-                if (this.parent && this.model.fields[this.parent_name]) {
+                if (this.model.fields[this.parent_name]) {
                     var field = this.model.fields[this.parent_name];
                     if ((field instanceof Sao.field.Many2One) ||
                             field instanceof Sao.field.Reference) {
@@ -205,13 +203,14 @@
                         }
                         field.set_client(record, value);
                     }
+                } else {
+                    this.record_modified();
                 }
             }
             return record;
         };
         array.remove = function(
             record, remove, force_remove=false, modified=true) {
-            var idx = this.indexOf(record);
             if (record.id >= 0) {
                 if (remove) {
                     if (~this.record_deleted.indexOf(record)) {
@@ -442,8 +441,8 @@
             }
             jQuery.extend(context, this._context);
             if (this.parent_datetime_field) {
-                context._datetime = this.parent.get_eval()
-                [this.parent_datetime_field];
+                context._datetime = this.parent.get_eval()[
+                    this.parent_datetime_field];
             }
             return context;
         };
@@ -455,6 +454,7 @@
             var head = domain[0];
             var tail = domain.slice(1);
             if (~['AND', 'OR'].indexOf(head)) {
+                // pass
             } else if (inversion.is_leaf(head)) {
                 var field = head[0];
                 if ((field in this.model.fields) &&
@@ -506,7 +506,7 @@
         array.set_sequence = function(field, position) {
             var changed = false;
             var prev = null;
-            var record, index, update, value, cmp;
+            var index, update, value, cmp;
             if (position === 0) {
                 cmp = function(a, b) { return a > b; };
             } else {
@@ -655,11 +655,10 @@
             }
         },
         is_loaded: function(name) {
-            return ((this.id < 0) || (name in this._loaded) || this.exception);
+            return ((this.id < 0) || (name in this._loaded));
         },
         load: function(name, async=true, process_exception=true) {
             var fname;
-            var prm;
             if (this.destroyed || this.is_loaded(name)) {
                 if (async) {
                     return jQuery.when();
@@ -692,6 +691,7 @@
                 views = this.model.fields[name].views;
             }
             var fields = {};
+            var views_operator;
             if (loading == 'eager') {
                 for (fname in this.model.fields) {
                     field = this.model.fields[fname];
@@ -699,36 +699,39 @@
                         fields[fname] = field;
                     }
                 }
+                views_operator = views.isSubsetOf.bind(views);
             } else {
                 fields = this.model.fields;
+                views_operator = function(view) {
+                    return Boolean(this.intersection(view).size);
+                }.bind(views);
             }
             var fnames = [];
             for (fname in fields) {
                 field = fields[fname];
                 if (!(fname in this._loaded) &&
                     (!views.size ||
-                        Sao.common.intersect(
-                            Array.from(views).sort(),
-                            Array.from(field.views).sort()))) {
+                        views_operator(new Set(field.views)))) {
                     fnames.push(fname);
                 }
             }
-            var related_limit = null;
+            var related_read_limit = null;
             var fnames_to_fetch = fnames.slice();
             var rec_named_fields = ['many2one', 'one2one', 'reference'];
+            const selection_fields = ['selection', 'multiselection'];
             for (const fname of fnames) {
                 var fdescription = this.model.fields[fname].description;
                 if (~rec_named_fields.indexOf(fdescription.type))
                     fnames_to_fetch.push(fname + '.rec_name');
-                else if ((fdescription.type == 'selection') &&
-                        ((fdescription.loading || 'lazy') == 'eager')) {
+                else if (~selection_fields.indexOf(fdescription.type) &&
+                    ((fdescription.loading || 'lazy') == 'eager')) {
                     fnames_to_fetch.push(fname + ':string');
                 } else if (
                     ['many2many', 'one2many'].includes(fdescription.type)) {
                     var sub_fields = get_x2m_sub_fields(fdescription, fname);
                     fnames_to_fetch = [ ...fnames_to_fetch, ...sub_fields];
                     if (sub_fields.length > 0) {
-                        related_limit = 80;
+                        related_read_limit = Sao.config.display_size;
                     }
                 }
             }
@@ -740,8 +743,8 @@
             fnames_to_fetch.push('_delete');
 
             var context = jQuery.extend({}, this.get_context());
-            if (related_limit) {
-                context.related_limit = related_limit;
+            if (related_read_limit) {
+                context.related_read_limit = related_read_limit;
             }
             if (loading == 'eager') {
                 var limit = Math.trunc(Sao.config.limit /
@@ -797,9 +800,6 @@
             }
 
             for (fname in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(fname)) {
-                    continue;
-                }
                 if ((this.model.fields[fname].description.type == 'binary') &&
                         ~fnames_to_fetch.indexOf(fname, fnames_to_fetch)) {
                     context[this.model.name + '.' + fname] = 'size';
@@ -814,9 +814,6 @@
                     id2value[e.id] = e;
                 }
                 for (var id in id2record) {
-                    if (!id2record.hasOwnProperty(id)) {
-                        continue;
-                    }
                     var record = id2record[id];
                     if (!record.exception) {
                         record.exception = exception;
@@ -824,9 +821,6 @@
                     var value = id2value[id];
                     if (record && value) {
                         for (var key in this.modified_fields) {
-                            if (!this.modified_fields.hasOwnProperty(key)) {
-                                continue;
-                            }
                             delete value[key];
                         }
                         record.set(value, false);
@@ -841,7 +835,9 @@
                         id: id
                     };
                     for (const fname of fnames_to_fetch) {
-                        default_values[fname] = null;
+                        if (fname != 'id') {
+                            default_values[fname] = null;
+                        }
                     }
                     failed_values.push(default_values);
                 }
@@ -865,13 +861,9 @@
         },
         set: function(values, modified=true, validate=true) {
             var name, value;
-            var rec_named_fields = ['many2one', 'one2one', 'reference'];
             var later = {};
             var fieldnames = [];
             for (name in values) {
-                if (!values.hasOwnProperty(name)) {
-                    continue;
-                }
                 value = values[name];
                 if (name == '_timestamp') {
                     // Always keep the older timestamp
@@ -900,10 +892,14 @@
                         (field instanceof Sao.field.Reference)) {
                     related = name + '.';
                     this._values[related] = values[related] || {};
-                } else if ((field instanceof Sao.field.Selection) &&
-                        (name + ':string' in values)){
+                } else if ((field instanceof Sao.field.Selection) ||
+                    (field instanceof Sao.field.MultiSelection)) {
                     related = name + ':string';
-                    this._values[related] = values[related];
+                    if (name + ':string' in values) {
+                        this._values[related] = values[related];
+                    } else {
+                        delete this._values[related];
+                    }
                 }
                 this.model.fields[name].set(this, value);
                 this._loaded[name] = true;
@@ -911,8 +907,9 @@
             }
             for (name in later) {
                 value = later[name];
-                this.model.fields[name].set(this, value, values[`${name}.`]);
+                this.model.fields[name].set(this, value, false, values[`${name}.`]);
                 this._loaded[name] = true;
+                fieldnames.push(name);
             }
             if (validate) {
                 this.validate(fieldnames, true, false, false);
@@ -924,9 +921,6 @@
         get: function() {
             var value = {};
             for (var name in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(name)) {
-                    continue;
-                }
                 var field = this.model.fields[name];
                 if (field.description.readonly &&
                         !((field instanceof Sao.field.One2Many) &&
@@ -975,11 +969,13 @@
         field_set_client: function(name, value, force_change) {
             this.model.fields[name].set_client(this, value, force_change);
         },
-        default_get: function(rec_name) {
+        default_get: function(defaults=null) {
             if (!jQuery.isEmptyObject(this.model.fields)) {
                 var context = this.get_context();
-                if (context.default_rec_name === undefined) {
-                    context.default_rec_name = rec_name;
+                if (defaults) {
+                    for (const name in defaults) {
+                        Sao.setdefault(context, `default_${name}` ,defaults[name]);
+                    }
                 }
                 var prm = this.model.execute('default_get',
                         [Object.keys(this.model.fields)], context);
@@ -1011,9 +1007,6 @@
                     (fname == '_delete') ||
                     (fname == '_timestamp')) {
                     this[fname] = values[fname];
-                    continue;
-                }
-                if (!values.hasOwnProperty(fname)) {
                     continue;
                 }
                 var value = values[fname];
@@ -1055,9 +1048,6 @@
             var timestamps = {};
             timestamps[this.model.name + ',' + this.id] = this._timestamp;
             for (var fname in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(fname)) {
-                    continue;
-                }
                 if (!(fname in this._loaded)) {
                     continue;
                 }
@@ -1069,7 +1059,7 @@
         get_eval: function() {
             var value = {};
             for (var key in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(key) && this.id >= 0)
+                if (!(key in this._loaded) && this.id >= 0)
                     continue;
                 value[key] = this.model.fields[key].get_eval(this);
             }
@@ -1118,15 +1108,18 @@
             if (!jQuery.isEmptyObject(values)) {
                 var changes;
                 try {
-                    if (fieldnames.length == 1) {
+                    if ((fieldnames.length == 1) ||
+                        (values.id === undefined)) {
                         changes = [];
-                        changes.push(this.model.execute(
-                            'on_change_' + fieldnames[0],
-                            [values], this.get_context(), false));
+                        for (const fieldname of fieldnames) {
+                            changes.push(this.model.execute(
+                                'on_change_' + fieldname,
+                                [values], this.get_context(), false));
+                        }
                     } else {
-                        changes = this.model.execute(
+                        changes = [this.model.execute(
                             'on_change',
-                            [values, fieldnames], this.get_context(), false);
+                            [values, fieldnames], this.get_context(), false)];
                     }
                 } catch (e) {
                     return;
@@ -1150,9 +1143,6 @@
             var later = {};
             var fieldname, on_change_with;
             for (fieldname in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(fieldname)) {
-                    continue;
-                }
                 on_change_with = this.model.fields[fieldname]
                     .description.on_change_with;
                 if (jQuery.isEmptyObject(on_change_with)) {
@@ -1174,7 +1164,8 @@
                 }
                 fieldnames[fieldname] = true;
                 values = jQuery.extend(values,
-                        this._get_on_change_args(on_change_with));
+                    this._get_on_change_args(
+                        on_change_with.concat([fieldname])));
                 if ((this.model.fields[fieldname] instanceof
                             Sao.field.Many2One) ||
                         (this.model.fields[fieldname] instanceof
@@ -1182,38 +1173,61 @@
                     delete this._values[fieldname + '.'];
                 }
             }
-            var result;
+            var changed;
             fieldnames = Object.keys(fieldnames);
             if (fieldnames.length) {
                 try {
-                    if (fieldnames.length == 1) {
-                        fieldname = fieldnames[0];
-                        result = {};
-                        result[fieldname] = this.model.execute(
-                            'on_change_with_' + fieldname,
-                            [values], this.get_context(), false);
+                    if ((fieldnames.length == 1) ||
+                        (values.id === undefined)) {
+                        changed = {};
+                        for (const fieldname of fieldnames) {
+                            changed = jQuery.extend(
+                                changed,
+                                this.model.execute(
+                                    'on_change_with_' + fieldname,
+                                    [values], this.get_context(), false));
+                        }
                     } else {
-                        result = this.model.execute(
+                        changed = this.model.execute(
                             'on_change_with',
                             [values, fieldnames], this.get_context(), false);
                     }
                 } catch (e) {
                     return;
                 }
-                this.set_on_change(result);
+                this.set_on_change(changed);
             }
-            for (fieldname in later) {
-                on_change_with = this.model.fields[fieldname]
-                    .description.on_change_with;
-                values = this._get_on_change_args(on_change_with);
+            if (!jQuery.isEmptyObject(later)) {
+                values = {};
+                for (const fieldname in later) {
+                    on_change_with = this.model.fields[fieldname]
+                        .description.on_change_with;
+                    values = jQuery.extend(
+                        values,
+                        this._get_on_change_args(
+                            on_change_with.concat([fieldname])));
+                }
+                fieldnames = Object.keys(later);
                 try {
-                    result = this.model.execute(
-                        'on_change_with_' + fieldname,
-                        [values], this.get_context(), false);
+                    if ((fieldnames.length == 1) ||
+                        (values.id === undefined)) {
+                        changed = {};
+                        for (const fieldname of fieldnames) {
+                            changed = jQuery.extend(
+                                changed,
+                                this.model.execute(
+                                    'on_change_with_' + fieldname,
+                                    [values], this.get_context(), false));
+                        }
+                    } else {
+                        changed = this.model.execute(
+                            'on_change_with',
+                            [values, fieldnames], this.get_context(), false);
+                    }
                 } catch (e) {
                     return;
                 }
-                this.load(fieldname, false).set_on_change(this, result);
+                this.set_on_change(changed);
             }
         },
         set_on_change: function(values) {
@@ -1258,6 +1272,17 @@
             }
             this.autocompletion[fieldname] = result;
         },
+        on_scan_code: function(code, depends) {
+            depends = this.expr_eval(depends);
+            var values = this._get_on_change_args(depends);
+            return this.model.execute(
+                'on_scan_code', [values, code], this.get_context(),
+                true, false).then((changes) => {
+                    this.set_on_change(changes);
+                    this.set_modified();
+                    return !jQuery.isEmptyObject(changes);
+                });
+        },
         reset: function(value) {
             this.cancel();
             this.set(value, true);
@@ -1300,9 +1325,6 @@
                     if (sync && this.id >= 0 && !(fname in this._loaded)) {
                         continue;
                     }
-                    if (!this.model.fields.hasOwnProperty(fname)) {
-                        continue;
-                    }
                     var field = this.model.fields[fname];
                     if (fields && !~fields.indexOf(fname)) {
                         continue;
@@ -1336,16 +1358,12 @@
         },
         cancel: function() {
             this._loaded = {};
+            this._values = {};
             this.modified_fields = {};
             this._timestamp = null;
             this.button_clicks = {};
             this.links_counts = {};
-        },
-        unload: function() {
-            this.cancel();
             this.exception = false;
-            this.destroyed = false;
-            this._values = {};
         },
         _check_load: function(fields) {
             if (!this.get_loaded(fields)) {
@@ -1460,9 +1478,6 @@
         },
         set_field_context: function() {
             for (var name in this.model.fields) {
-                if (!this.model.fields.hasOwnProperty(name)) {
-                    continue;
-                }
                 var field = this.model.fields[name];
                 var value = this._values[name];
                 if (!(value instanceof Array)) {
@@ -1518,7 +1533,8 @@
         destroy: function() {
             var vals = Object.values(this._values);
             for (const val of vals) {
-                if (val && val.hasOwnProperty('destroy')) {
+                if (val &&
+                    Object.prototype.hasOwnProperty.call(val, 'destroy')) {
                     val.destroy();
                 }
             }
@@ -1560,7 +1576,6 @@
             case 'numeric':
                 return Sao.field.Numeric;
             case 'integer':
-            case 'biginteger':
                 return Sao.field.Integer;
             case 'boolean':
                 return Sao.field.Boolean;
@@ -1585,6 +1600,7 @@
 
     Sao.field.Field = Sao.class_(Object, {
         _default: null,
+        _single_value: true,
         init: function(description) {
             this.description = description;
             this.name = description.name;
@@ -1746,24 +1762,33 @@
                         pre_validate));
             if (!softvalidation) {
                 if (!this.check_required(record)) {
+                    Sao.Logger.debug(
+                        `validate:required: ${record.model.name}->${this.name}`
+                    );
                     invalid = 'required';
                 }
             }
             if (typeof domain == 'boolean') {
                 if (!domain) {
+                    Sao.Logger.debug(
+                        `validate:domain: ${record.model.name}->${this.name}`
+                    );
                     invalid = 'domain';
                 }
             } else if (Sao.common.compare(domain, [['id', '=', null]])) {
+                Sao.Logger.debug(
+                    `validate:domain: ${record.model.name}->${this.name}`
+                );
                 invalid = 'domain';
             } else {
-                let [screen_domain, _] = this.get_domains(
-                    record, pre_validate);
-                var uniques = inversion.unique_value(domain);
+                let [screen_domain] = this.get_domains(record, pre_validate);
+                var uniques = inversion.unique_value(
+                    domain, this._single_value);
                 var unique = uniques[0];
                 var leftpart = uniques[1];
                 var value = uniques[2];
                 let unique_from_screen = inversion.unique_value(
-                    screen_domain)[0];
+                    screen_domain, this._single_value)[0];
                 if (this._is_empty(record) &&
                     !is_required &&
                     !is_invisible &&
@@ -1809,6 +1834,10 @@
                 }
                 if (!inversion.eval_domain(domain,
                             Sao.common.EvalEnvironment(record))) {
+                    Sao.Logger.debug(
+                        `validate:domain: ${record.model.name}->${this.name}`
+                        + ` (${domain})`
+                    );
                     invalid = domain;
                 }
             }
@@ -1840,11 +1869,18 @@
     });
 
     Sao.field.Selection = Sao.class_(Sao.field.Field, {
-        _default: null
+        _default: null,
+        set_client: function(record, value, force_change) {
+            // delete before trigger the display
+            delete record._values[this.name + ':string'];
+            Sao.field.Selection._super.set_client.call(
+                this, record, value, force_change);
+        }
     });
 
-    Sao.field.MultiSelection = Sao.class_(Sao.field.Field, {
+    Sao.field.MultiSelection = Sao.class_(Sao.field.Selection, {
         _default: null,
+        _single_value: false,
         get: function(record) {
             var value = Sao.field.MultiSelection._super.get.call(this, record);
             if (jQuery.isEmptyObject(value)) {
@@ -2111,12 +2147,23 @@
         },
         apply_factor: function(record, value, factor) {
             if (value !== null) {
+                let initial_precision = (value.toString().split('.')[1] || '').length;
+                initial_precision += Math.ceil(Math.log10(factor));
                 value /= factor;
                 var digits = this.digits(record);
                 if (digits) {
                     // Round to avoid float precision error
                     // after the division by factor
                     value = value.toFixed(digits[1]);
+                } else {
+                    // The intial precision is the one used by value (before
+                    // applying the factor), per the ecmascript specification
+                    // it's the shortest representation of said value.
+                    // Once the factor is applied the number might become even
+                    // more inexact thus we should rely on the initial
+                    // precision + the effect factor will have
+                    // https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-tostring
+                    value = value.toFixed(initial_precision);
                 }
                 value = this.convert(value);
             }
@@ -2165,6 +2212,9 @@
 
     Sao.field.Integer = Sao.class_(Sao.field.Float, {
         convert: function(value) {
+            if (!value && (value !== 0)) {
+                return null;
+            }
             value = parseInt(value, 10);
             if (isNaN(value)) {
                 value = this._default;
@@ -2239,6 +2289,10 @@
                     rec_name = '';
                 }
             }
+            if ((value < 0) && (this.name != record.group.parent_name)) {
+                value = null;
+                rec_name = '';
+            }
             Sao.setdefault(
                 record._values, this.name + '.', {}).rec_name = rec_name;
             Sao.field.Many2One._super.set_client.call(this, record, value,
@@ -2284,10 +2338,10 @@
             Sao.field.One2Many._super.init.call(this, description);
         },
         _default: null,
-        _set_value: function(record, value, data, default_, modified) {
+        _single_value: false,
+        _set_value: function(record, value, default_, modified, data) {
             this._set_default_value(record);
             var group = record._values[this.name];
-            var prm = jQuery.when();
             if (jQuery.isEmptyObject(value)) {
                 value = [];
             }
@@ -2327,9 +2381,7 @@
                     .map(v => v.fields)
                     .reduce((acc, elem) => {
                         for (const field in elem) {
-                            if (elem.hasOwnProperty(field)) {
-                                acc[field] = elem[field];
-                            }
+                            acc[field] = elem[field];
                         }
                         return acc;
                     }, {});
@@ -2339,15 +2391,17 @@
                         fields[n] = attr_fields[n];
                     }
                 }
+
                 var to_fetch = Array.from(field_names).filter(k => !(k in attr_fields));
-                if (to_fetch.length > 0) {
+                if (to_fetch.length) {
                     var args = {
                         'method': 'model.' + this.description.relation +
                             '.fields_get',
                         'params': [to_fetch, context]
                     };
                     try {
-                        var rpc_fields = Sao.rpc(args, record.model.session, false);
+                        var rpc_fields = Sao.rpc(
+                            args, record.model.session, false);
                         for (const [key, value] of Object.entries(rpc_fields)) {
                             fields[key] = value;
                         }
@@ -2369,11 +2423,11 @@
                 for (const record_to_remove of records_to_remove) {
                     group.remove(record_to_remove, true, false, false);
                 }
-                var records_data = {};
+                var preloaded = {};
                 for (const d of (data || [])) {
-                    records_data[d.id] = d;
+                    preloaded[d.id] = d;
                 }
-                group.load(value, records_data, modified || default_);
+                group.load(value, modified || default_, -1, preloaded);
             } else {
                 for (const vals of value) {
                     var new_record;
@@ -2400,7 +2454,7 @@
                 }
             }
         },
-        set: function(record, value, data=null, _default=false) {
+        set: function(record, value, _default=false, data=null) {
             var group = record._values[this.name];
             var model;
             if (group !== undefined) {
@@ -2416,7 +2470,7 @@
 
             group = record._values[this.name];
             group.parent = null;
-            this._set_value(record, value, data, _default);
+            this._set_value(record, value, _default, undefined, data);
             group.parent = record;
         },
         get: function(record) {
@@ -2504,7 +2558,7 @@
         },
         set_default: function(record, value) {
             record.modified_fields[this.name] = true;
-            return this.set(record, value, null, true);
+            return this.set(record, value, true);
         },
         set_on_change: function(record, value) {
             var fields, new_fields;
@@ -2616,7 +2670,11 @@
                         }
                         const record2 = group.get(vals.id);
                         if (record2) {
-                            record2.set_on_change(vals);
+                            let to_update = Object.fromEntries(
+                                Object.entries(vals).filter(
+                                    ([k, v]) => !Object.hasOwn(vals_to_set, k)
+                                ));
+                            record2.set_on_change(to_update);
                         }
                     }
                 }
@@ -2632,8 +2690,7 @@
             if (record.model.name == this.description.relation) {
                 model = record.model;
             }
-            var context = record.expr_eval(this.description.context || {});
-            var group = Sao.Group(model, context, []);
+            var group = Sao.Group(model, {}, []);
             group.set_parent(record);
             group.parent_name = this.description.relation_field;
             group.child_name = this.name;
@@ -2918,10 +2975,11 @@
             return data;
         },
         get_data: function(record) {
-            var data = record._values[this.name] || [];
+            var data = record._values[this.name];
             var prm = jQuery.when(data);
             if (!(data instanceof Uint8Array) &&
-                (typeof(data) != 'string')) {
+                (typeof(data) != 'string') &&
+                (data !== null)) {
                 if (record.id < 0) {
                     return prm;
                 }
@@ -2939,6 +2997,7 @@
 
     Sao.field.Dict = Sao.class_(Sao.field.Field, {
         _default: {},
+        _single_value: false,
         init: function(description) {
             Sao.field.Dict._super.init.call(this, description);
             this.schema_model = new Sao.Model(description.schema_model);
@@ -2962,12 +3021,11 @@
             Sao.field.Dict._super.set.call(this, record, value);
         },
         get: function(record) {
-            return (Sao.field.Dict._super.get.call(this, record) ||
-                    this._default);
+            return jQuery.extend(
+                {}, Sao.field.Dict._super.get.call(this, record));
         },
         get_client: function(record) {
-            return (Sao.field.Dict._super.get_client.call(this, record) ||
-                    this._default);
+            return Sao.field.Dict._super.get_client.call(this, record);
         },
         validation_domains: function(record, pre_validate) {
             return this.get_domains(record, pre_validate)[0];
@@ -2989,7 +3047,6 @@
             return '%X';
         },
         add_keys: function(keys, record) {
-            var schema_model = this.description.schema_model;
             var context = this.get_context(record);
             var domain = this.get_domain(record);
             var batchlen = Math.min(10, Sao.config.limit);

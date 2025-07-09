@@ -35,6 +35,10 @@
                     (a.valueOf() != b.valueOf())) {
                     return false;
                 }
+            } else if (moment.isDuration(a) && moment.isDuration(b)) {
+                if (a.valueOf() != b.valueOf()) {
+                    return false;
+                }
             } else if ((a instanceof Number) || (b instanceof Number)) {
                 if (Number(a) !== Number(b)) {
                     return false;
@@ -76,12 +80,14 @@
 
     Sao.common.scrollIntoViewIfNeeded = function(element) {
         element = element[0];
-        var rect = element.getBoundingClientRect();
-        if (rect.bottom > window.innerHeight) {
-            element.scrollIntoView(false);
-        }
-        if (rect.top < 0) {
-            element.scrollIntoView();
+        if (element) {
+            var rect = element.getBoundingClientRect();
+            if (rect.bottom > window.innerHeight) {
+                element.scrollIntoView(false);
+            }
+            if (rect.top < 0) {
+                element.scrollIntoView();
+            }
         }
     };
 
@@ -222,16 +228,8 @@
     ];
 
     Sao.common.date_format = function(format) {
-        if (jQuery.isEmptyObject(format)) {
-            format = '%x';
-            if (Sao.Session.current_session) {
-                var context = Sao.Session.current_session.context;
-                if (context.locale && context.locale.date) {
-                    format = context.locale.date;
-                }
-            }
-        }
-        return Sao.common.moment_format(format);
+        return Sao.common.moment_format(
+            format || Sao.i18n.locale.date || '%x');
     };
 
     Sao.common.format_time = function(format, date) {
@@ -245,21 +243,29 @@
     };
 
     Sao.common.parse_time = function(format, value) {
-        if (!value) {
-            return null;
-        }
-        var getNumber = function(pattern) {
-            var i = format.indexOf(pattern);
-            if (~i) {
-                var number = parseInt(value.slice(i, i + pattern.length), 10);
-                if (!isNaN(number)) {
-                    return number;
-                }
+        var date = moment(value, Sao.common.moment_format(format));
+        if (date.isValid()) {
+            date = Sao.Time(
+                date.hour(), date.minute(), date.second(), date.millisecond());
+        } else {
+            if (!value) {
+                date= null;
+            } else {
+                var getNumber = function(pattern) {
+                    var i = format.indexOf(pattern);
+                    if (~i) {
+                        var number = parseInt(value.slice(i, i + pattern.length), 10);
+                        if (!isNaN(number)) {
+                            return number;
+                        }
+                    }
+                    return undefined;
+                };
+                date = Sao.Time(getNumber('%H'), getNumber('%M'), getNumber('%S'),
+                        getNumber('%f'), value);
             }
-            return undefined;
-        };
-        return Sao.Time(getNumber('%H'), getNumber('%M'), getNumber('%S'),
-                getNumber('%f'), value);
+        }
+        return date;
     };
 
     Sao.common.format_date = function(date_format, date) {
@@ -275,6 +281,9 @@
     Sao.common.parse_date = function(date_format, value) {
         if (!value) {
             return null;
+        }
+        if (value && value.length <= 5) {
+            return Sao.Date(undefined, undefined, undefined, false, value);
         }
         var date = moment(value, Sao.common.moment_format(date_format));
         if (date.isValid()) {
@@ -501,10 +510,14 @@
             if (!refresh) {
                 this._access = {};
             }
-            this._models = Sao.rpc({
-                'method': 'model.ir.model.list_models',
-                'params': [{}]
-            }, Sao.Session.current_session, false);
+            try {
+                this._models = Sao.rpc({
+                    'method': 'model.ir.model.list_models',
+                    'params': [{}]
+                }, Sao.Session.current_session, false);
+            } catch(e) {
+                Sao.Logger.error("Unable to get model list.");
+            }
         },
         get: function(model) {
             if (this._access[model] !== undefined) {
@@ -518,10 +531,23 @@
             var to_load = this._models.slice(
                 Math.max(0, idx - Math.floor(this.batchnum / 2)),
                 idx + Math.floor(this.batchnum / 2));
-            var access = Sao.rpc({
-                'method': 'model.ir.model.access.get_access',
-                'params': [to_load, {}]
-            }, Sao.Session.current_session, false);
+            var access;
+            try {
+                access = Sao.rpc({
+                    'method': 'model.ir.model.access.get_access',
+                    'params': [to_load, {}]
+                }, Sao.Session.current_session, false);
+            } catch(e) {
+                Sao.Logger.error(`Unable to get access for ${model}.`);
+                access = {
+                    model: {
+                        'read': true,
+                        'write': false,
+                        'create': false,
+                        'delete': false,
+                    },
+                };
+            }
             this._access = jQuery.extend(this._access, access);
             return this._access[model];
         }
@@ -595,7 +621,7 @@
         load_searches: function() {
             this.searches = {};
             return Sao.rpc({
-                'method': 'model.ir.ui.view_search.get_search',
+                'method': 'model.ir.ui.view_search.get',
                 'params': [{}]
             }, Sao.Session.current_session).then(searches => {
                 this.searches = searches;
@@ -606,14 +632,9 @@
         },
         add: function(model, name, domain) {
             return Sao.rpc({
-                'method': 'model.ir.ui.view_search.create',
-                'params': [[{
-                    'model': model,
-                    'name': name,
-                    'domain': this.encoder.encode(domain)
-                }], {}]
-            }, Sao.Session.current_session).then(ids => {
-                var id = ids[0];
+                'method': 'model.ir.ui.view_search.set',
+                'params': [name, model, this.encoder.encode(domain), {}],
+            }, Sao.Session.current_session).then(id => {
                 if (this.searches[model] === undefined) {
                     this.searches[model] = [];
                 }
@@ -622,8 +643,8 @@
         },
         remove: function(model, id) {
             return Sao.rpc({
-                'method': 'model.ir.ui.view_search.delete',
-                'params': [[id], {}]
+                'method': 'model.ir.ui.view_search.unset',
+                'params': [id, {}]
             }, Sao.Session.current_session).then(() => {
                 for (var i = 0; i < this.searches[model].length; i++) {
                     var domain = this.searches[model][i];
@@ -693,7 +714,7 @@
                 }
             });
         environment.get = function(item, default_) {
-            if (this.hasOwnProperty(item))
+            if (Object.prototype.hasOwnProperty.call(this, item))
                 return this[item];
             return default_;
         };
@@ -722,7 +743,6 @@
         }
         var key = JSON.stringify(value);
         var selection = this.attributes.selection || [];
-        var help = this.attributes.help_selection || {};
         var prm;
         let prepare_selection = selection => {
             selection = jQuery.extend([], selection);
@@ -830,14 +850,21 @@
                     }
                 });
                 prm.fail(() => {
+                    var selection = [];
+                    if (this.nullable_widget) {
+                        selection.push([null, '']);
+                    }
                     this._last_domain = null;
-                    this.selection = [];
+                    this.selection = selection;
                     if (callback) {
                         callback(this.selection, this.help);
                     }
                 });
             }
         };
+        if (this._selection_prm.state() == 'rejected') {
+            this._selection_prm = jQuery.when();
+        }
         this._selection_prm.done(_update_selection);
     };
     Sao.common.selection_mixin.filter_selection = function(
@@ -876,6 +903,9 @@
     Sao.common.selection_mixin.get_inactive_selection = function(value) {
         if (!this.attributes.relation) {
             return jQuery.when([]);
+        }
+        if (value === null) {
+            return jQuery.when([null, '']);
         }
         for (var i = 0, len = this.inactive_selection.length; i < len; i++) {
             if (value == this.inactive_selection[i][0]) {
@@ -949,9 +979,7 @@
             } else {
                 this.el.show();
             }
-            this.el.prop(
-                'disabled',
-                (record? record.readonly : false) || Boolean(states.readonly));
+            this.el.prop('disabled', Boolean(states.readonly));
             this.set_icon(states.icon || this.attributes.icon);
 
             if (this.attributes.rule) {
@@ -1032,7 +1060,8 @@
         read_token: function() {
             var quoted = false;
             var escapedstate = ' ';
-            while (true) {
+            const always = true;
+            while (always) {
                 var nextchar = this.instream.read(1);
                 if (this.state === null) {
                     this.token = '';  // past en of file
@@ -1176,13 +1205,12 @@
             try {
                 var lex = new Sao.common.udlex(input);
                 var tokens = [];
-                while (true) {
+                do {
                     var token = lex.next();
-                    if (token === null) {
-                        break;
+                    if (token !== null) {
+                        tokens.push(token);
                     }
-                    tokens.push(token);
-                }
+                } while (token !== null);
                 tokens = this.group_operator(tokens);
                 tokens = this.parenthesize(tokens);
                 tokens = this.group(tokens);
@@ -1199,7 +1227,7 @@
         },
         stringable: function(domain) {
             const stringable_ = clause => {
-                if (!clause) {
+                if (!clause || jQuery.isEmptyObject(clause)) {
                     return true;
                 }
                 var is_array = function(e) {
@@ -1258,7 +1286,6 @@
                         ~['AND', 'OR'].indexOf(clause[0])) {
                     return '(' + this.string(clause) + ')';
                 }
-                var escaped;
                 var name = clause[0];
                 var operator = clause[1];
                 var value = clause[2];
@@ -1401,7 +1428,7 @@
         },
         complete: function(clause) {
             var results = [];
-            var name, operator, value, target;
+            var name, operator, value;
             if (clause.length == 1) {
                 name = clause[0];
             } else if (clause.length == 3) {
@@ -1412,7 +1439,6 @@
                 name = clause[0];
                 operator = clause[1];
                 value = clause[2];
-                target = clause[3];
                 if (name.endsWith('.rec_name')) {
                     name = name.substring(0, name.length - 9);
                 }
@@ -1588,6 +1614,7 @@
                 'multiselection': complete_selection,
                 'reference': complete_reference,
                 'datetime': complete_datetime,
+                'timestamp': complete_datetime,
                 'date': complete_date,
                 'time': complete_time
             };
@@ -1599,7 +1626,6 @@
         },
         group_operator: function(tokens) {
             var cur = tokens[0];
-            var nex = null;
             var result = [];
             for (const nex of tokens.slice(1)) {
                 if ((nex == '=') && cur &&
@@ -1823,7 +1849,6 @@
                                 this.likify(clause[0])]));
                 } else if ((clause.length == 3) &&
                     (clause[0].toLowerCase() in this.strings)) {
-                    var name = clause[0];
                     var operator = clause[1];
                     var value = clause[2];
                     var field = this.strings[clause[0].toLowerCase()];
@@ -1865,8 +1890,10 @@
                             operator = '=';
                         }
                     }
-                    if (~['integer', 'float', 'numeric', 'datetime', 'date',
-                            'time'].indexOf(field.type)) {
+                    if (~[
+                        'integer', 'float', 'numeric',
+                        'datetime', 'timestamp', 'date',
+                        'time'].indexOf(field.type)) {
                         if ((typeof value == 'string') && value.contains('..')) {
                             var values = value.split('..', 2);
                             var lvalue = this.convert_value(field, values[0], this.context);
@@ -2095,6 +2122,7 @@
                     }
                 }
             };
+            converts.timestamp = converts.datetime;
             var func = converts[field.type];
             if (func) {
                 return func();
@@ -2211,6 +2239,7 @@
                     }
                 }
             };
+            converts.timestamp = converts.datetime;
             if (value instanceof Array) {
                 return value.map(v => this.format_value(field, v)).join(';');
             } else {
@@ -2328,14 +2357,14 @@
                     ((value instanceof Array) && ~value.indexOf(null)))) {
                 return;
             }
-            if ((context_field && context_field._isAMomentObject) && !value) {
+            if (moment.isMoment(context_field) && !value) {
                 if (context_field.isDateTime) {
                     value = Sao.DateTime.min;
                 } else {
                     value = Sao.Date.min;
                 }
             }
-            if ((value && value._isAMomentObject) && !context_field) {
+            if (moment.isMoment(value) && !context_field) {
                 if (value.isDateTime) {
                     context_field = Sao.DateTime.min;
                 } else {
@@ -2443,6 +2472,59 @@
                     e => this.localize_domain(e, field_name, strip_target));
             }
         },
+
+        _sort_key: function(domain) {
+            if (!domain.length) {
+                return [0, domain];
+            } else if (this.is_leaf(domain)) {
+                return [1, domain];
+            } else if (~['AND', 'OR'].indexOf(domain)) {
+                return [0, domain];
+            } else {
+                var content = domain.map(this._sort_key.bind(this));
+                var nestedness = Math.max(...content.map(e => e[0]));
+                return [nestedness + 1, content];
+            }
+        },
+
+        _domain_compare: function(d1, d2) {
+            if ((d1 instanceof Array) && (d2 instanceof Array)) {
+                var elem_comparison;
+                var min_len = Math.min(d1.length, d2.length);
+                for (var i = 0; i < min_len; i++) {
+                    elem_comparison = this._domain_compare(d1[i], d2[i]);
+                    if (elem_comparison != 0) {
+                        return elem_comparison;
+                    }
+                }
+                if (d1.length == d2.length) {
+                    return 0;
+                } else {
+                    return d1.length < d2.length ? -1 : 1;
+                }
+            } else if (d1 == d2) {
+                return 0;
+            } else {
+                return d1 < d2 ? -1 : 1;
+            }
+        },
+
+        sort: function(domain) {
+            if (!domain.length) {
+                return [];
+            } else if (this.is_leaf(domain)) {
+                return domain;
+            } else if (~['AND', 'OR'].indexOf(domain)) {
+                return domain;
+            } else {
+                var sorted_elements = domain.map(this.sort.bind(this));
+                sorted_elements.sort(
+                    (d1, d2) => this._domain_compare(this._sort_key(d1), this._sort_key(d2))
+                );
+                return sorted_elements;
+            }
+        },
+
         prepare_reference_domain: function(domain, reference) {
 
             var value2reference = function(value) {
@@ -2656,6 +2738,25 @@
                 return this.simplify_nested(this.simplify_duplicate(domain));
             }
         },
+        simplify_AND: function(domain) {
+            if (this.is_leaf(domain)) {
+                return domain;
+            } else if (domain == 'OR') {
+                return domain;
+            } else {
+                var simplified = [];
+                for (const e of domain) {
+                    if (e == 'AND') {
+                        continue;
+                    }
+                    simplified.push(this.simplify_AND(e));
+                }
+                return simplified;
+            }
+        },
+        canonicalize: function(domain) {
+            return this.simplify_AND(this.sort(this.simplify(domain)));
+        },
         merge: function(domain, domoperator) {
             if (jQuery.isEmptyObject(domain) ||
                     ~['AND', 'OR'].indexOf(domain)) {
@@ -2687,22 +2788,22 @@
             }
             return this.simplify(this.merge(result));
         },
-        unique_value: function(domain) {
+        unique_value: function(domain, single_value=true) {
             if ((domain instanceof Array) &&
                     (domain.length == 1)) {
                 let [name, operator, value, ...model] = domain[0];
-                if (operator == '=' ||
-                    (operator == 'in' && value.length == 1)) {
+                const count = name.split('.').length - 1;
+                if (
+                    (operator == '=' ||
+                        (single_value && operator == 'in' && value.length == 1)) &&
+                    (!count ||
+                        ((count === 1) && model.length && name.endsWith('.id')))) {
                     value = operator == '=' ? value : value[0];
-                    var count = 0;
                     if (model.length && name.endsWith('.id')) {
-                        count = 1;
                         model = model[0];
                         value = [model, value];
                     }
-                    if ((name.split('.').length - 1) == count) {
-                        return [true, name, value];
-                    }
+                    return [true, name, value];
                 }
             }
             return [false, null, null];
@@ -2951,7 +3052,7 @@
 
     Sao.common.guess_mimetype = function(filename) {
         for (var ext in Sao.common.mimetypes) {
-            var re = new RegExp('.*\.' + ext + '$', 'i');
+            var re = new RegExp('.*.' + ext + '$', 'i');
             if (re.test(filename)) {
                 return Sao.common.mimetypes[ext];
             }
@@ -2962,11 +3063,16 @@
     Sao.common.LOCAL_ICONS = [
         'tryton-add',
         'tryton-archive',
+        'tryton-arrow-down',
+        'tryton-arrow-left',
+        'tryton-arrow-right',
+        'tryton-arrow-up',
         'tryton-attach',
         'tryton-back',
+        'tryton-barcode-scanner',
         'tryton-bookmark-border',
-        'tryton-bookmark',
         'tryton-bookmarks',
+        'tryton-bookmark',
         'tryton-cancel',
         'tryton-clear',
         'tryton-close',
@@ -2974,6 +3080,8 @@
         'tryton-create',
         'tryton-date',
         'tryton-delete',
+        'tryton-download',
+        'tryton-drag',
         'tryton-email',
         'tryton-error',
         'tryton-exit',
@@ -3006,105 +3114,97 @@
         'tryton-save',
         'tryton-search',
         'tryton-send',
+        'tryton-sound-off',
+        'tryton-sound-on',
         'tryton-star-border',
         'tryton-star',
         'tryton-switch',
         'tryton-translate',
         'tryton-unarchive',
         'tryton-undo',
+        'tryton-unfold-less',
+        'tryton-unfold-more',
         'tryton-warning',
     ];
 
     Sao.common.IconFactory = Sao.class_(Object, {
         batchnum: 10,
-        name2id: {},
-        loaded_icons: {},
-        tryton_icons: [],
-        register_prm: jQuery.when(),
-        load_icons: function(refresh) {
-            refresh = refresh || false;
+        _name2id: {},
+        _icons: {},
+        load_icons: function(refresh=false) {
+            const icon_model = new Sao.Model('ir.ui.icon');
+            var icons;
+            try {
+                icons = icon_model.execute('list_icons', [], {}, false);
+            } catch (e) {
+                icons = [];
+            }
+            const name2id = {};
+            for (const icon of icons) {
+                name2id[icon[1]] = icon[0];
+            }
+            this._name2id = name2id;
             if (!refresh) {
-                for (var icon_name in this.load_icons) {
-                    if (!this.load_icons.hasOwnProperty(icon_name)) {
-                        continue;
-                    }
-                    window.URL.revokeObjectURL(this.load_icons[icon_name]);
+                for (const icon_name in this._icons) {
+                    window.URL.revokeObjectURL(this._icons[icon_name]);
                 }
+                this._icons = {};
             }
-
-            var icon_model = new Sao.Model('ir.ui.icon');
-            return icon_model.execute('list_icons', [], {})
-            .then(icons => {
-                if (!refresh) {
-                    this.name2id = {};
-                    this.loaded_icons = {};
-                }
-                this.tryton_icons = [];
-
-                var icon_id, icon_name;
-                for (var i=0, len=icons.length; i < len; i++) {
-                    icon_id = icons[i][0];
-                    icon_name = icons[i][1];
-                    if (refresh && (icon_name in this.loaded_icons)) {
-                        continue;
-                    }
-                    this.tryton_icons.push([icon_id, icon_name]);
-                    this.name2id[icon_name] = icon_id;
-                }
-            });
+            return name2id;
         },
-        register_icon: function(icon_name) {
-            if (!icon_name) {
-                return jQuery.when();
-            } else if ((icon_name in this.loaded_icons) ||
-                    ~Sao.common.LOCAL_ICONS.indexOf(icon_name)) {
-                return jQuery.when();
+        _get_icon: function(icon_name) {
+            var url = this._icons[icon_name];
+            if (url !== undefined) {
+                return jQuery.when(url);
             }
-            if (this.register_prm.state() == 'pending') {
-                return this.register_prm.then(
-                    () => this.register_icon(icon_name));
+            if (~Sao.common.LOCAL_ICONS.indexOf(icon_name)) {
+                return jQuery.get('images/' + icon_name + '.svg', null, null, 'text')
+                    .then(icon => {
+                        var img_url = this._convert(icon);
+                        this._icons[icon_name] = img_url;
+                        return img_url;
+                    })
+                    .fail(() => {
+                        Sao.Logger.error("Unknown icon %s", icon_name);
+                        this._icons[icon_name] = null;
+                    });
             }
-            var loaded_prm;
-            if (!(icon_name in this.name2id)) {
-                loaded_prm = this.load_icons(true);
-            } else {
-                loaded_prm = jQuery.when();
+            var name2id = this._name2id;
+            if (!(icon_name in name2id)) {
+                name2id = this.load_icons(true);
+                if (!(icon_name in name2id)) {
+                    Sao.Logger.error("Unknown icon %s", icon_name);
+                    this._icons[icon_name] = null;
+                    return jQuery.when();
+                }
             }
+            var ids = [];
+            for (const name in name2id) {
+                if ((!(name in this._icons)) || (name == icon_name)) {
+                    ids.push(name2id[name]);
+                }
+            }
+            const idx = ids.indexOf(name2id[icon_name]);
+            const from = Math.max(Math.round(idx - this.batchnum / 2), 0);
+            const to = Math.round(idx + this.batchnum / 2);
+            ids = ids.slice(from, to);
 
             var icon_model = new Sao.Model('ir.ui.icon');
-            this.register_prm = loaded_prm.then(() => {
-                const find_array = array => {
-                    var idx, l;
-                    for (idx=0, l=this.tryton_icons.length; idx < l; idx++) {
-                        var icon = this.tryton_icons[idx];
-                        if (Sao.common.compare(icon, array)) {
-                            break;
-                        }
-                    }
-                    return idx;
-                };
-                var idx = find_array([this.name2id[icon_name], icon_name]);
-                var from = Math.round(idx - this.batchnum / 2);
-                from = (from < 0) ? 0 : from;
-                var to = Math.round(idx + this.batchnum / 2);
-                var ids = [];
-                for (const e of this.tryton_icons.slice(from, to)) {
-                    ids.push(e[0]);
+            var icons;
+            try {
+                icons = icon_model.execute(
+                    'read', [ids, ['name', 'icon']], {}, false);
+            } catch(e) {
+                icons = [];
+            }
+            for (const icon of icons) {
+                const icon_url = this._convert(icon.icon);
+                this._icons[icon.name] = icon_url;
+                if (icon.name == icon_name) {
+                    url = icon_url;
                 }
-
-                var read_prm = icon_model.execute('read',
-                    [ids, ['name', 'icon']], {});
-                return read_prm.then(icons => {
-                    for (const icon of icons) {
-                        var img_url = this._convert(icon.icon);
-                        this.loaded_icons[icon.name] = img_url;
-                        delete this.name2id[icon.name];
-                        this.tryton_icons.splice(
-                            find_array([icon.id, icon.name]), 1);
-                    }
-                });
-            });
-            return this.register_prm;
+            }
+            return jQuery.when(url);
         },
         _convert: function(data) {
             var xml = jQuery.parseXML(data);
@@ -3118,21 +3218,7 @@
             if (!icon_name) {
                 return jQuery.when('');
             }
-            return this.register_icon(icon_name).then(() => {
-                if (icon_name in this.loaded_icons) {
-                    return this.loaded_icons[icon_name];
-                } else {
-                    return jQuery.get('images/' + icon_name + '.svg', null, null, 'text')
-                        .then(icon => {
-                            var img_url = this._convert(icon);
-                            this.loaded_icons[icon_name] = img_url;
-                            return img_url;
-                        })
-                        .fail(() => {
-                            Sao.error("Unknown icon %s", icon_name);
-                        });
-                }
-            });
+            return this._get_icon(icon_name);
         },
         get_icon_img: function(icon_name, attrs) {
             attrs = attrs || {};
@@ -3152,11 +3238,12 @@
     Sao.common.ICONFACTORY = new Sao.common.IconFactory();
 
     Sao.common.UniqueDialog = Sao.class_(Object, {
+        size: undefined,
         init: function() {
             this.running = false;
         },
         build_dialog: function() {
-            var dialog = new Sao.Dialog('', this.class_, undefined, false);
+            var dialog = new Sao.Dialog('', this.class_, this.size, false);
             return dialog;
         },
         run: function() {
@@ -3196,21 +3283,27 @@
 
     Sao.common.MessageDialog = Sao.class_(Sao.common.UniqueDialog, {
         class_: 'message-dialog',
-        build_dialog: function(message, icon, prm) {
+        build_dialog: function(message, icon, additional_info, prm) {
             var dialog = Sao.common.MessageDialog._super.build_dialog.call(
                 this);
             dialog.header.remove();
             dialog.body.append(jQuery('<div/>', {
                 'class': 'alert alert-info',
                 role: 'alert'
-            }).append(Sao.common.ICONFACTORY.get_icon_img(icon, {
-                'aria-hidden': true,
-            })).append(jQuery('<span/>', {
-                'class': 'sr-only'
-            }).text(Sao.i18n.gettext('Message: '))
-            ).append(jQuery('<span/>')
+            }).append(jQuery('<span/>')
                 .text(message)
                 .css('white-space', 'pre-wrap')));
+            if (additional_info) {
+                let show_more = jQuery('<span/>').text(
+                    Sao.i18n.gettext("Show / Hide more"));
+                let more_info = jQuery('<div/>').html(additional_info);
+                dialog.body.append(show_more);
+                dialog.body.append(more_info);
+                more_info.hide();
+                show_more.click(() => {
+                    more_info.toggle();
+                });
+            }
             jQuery('<button/>', {
                 'class': 'btn btn-primary',
                 'type': 'button',
@@ -3221,27 +3314,23 @@
             }).appendTo(dialog.footer);
             return dialog;
         },
-        run: function(message, icon) {
+        run: function(message, icon, additional_info) {
             return Sao.common.MessageDialog._super.run.call(
-                    this, message, icon || 'tryton-info');
+                    this, message, icon || 'tryton-info', additional_info);
         }
     });
     Sao.common.message = new Sao.common.MessageDialog();
 
     Sao.common.WarningDialog = Sao.class_(Sao.common.UniqueDialog, {
         class_: 'warning-dialog',
+        size: 'md',
         build_dialog: function(message, title, prm) {
             var dialog = Sao.common.WarningDialog._super.build_dialog.call(
                 this);
             var content = jQuery('<div/>', {
                 'class': 'alert alert-warning',
                 role: 'alert'
-            }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-warning', {
-                'aria-hidden': true,
-            })).append(jQuery('<span/>', {
-                'class': 'sr-only'
-            }).text(Sao.i18n.gettext('Warning: '))
-            ).append(jQuery('<h4/>')
+            }).append(jQuery('<h4/>')
                 .text(title)
                 .css('white-space', 'pre-wrap'));
             if (message) {
@@ -3265,6 +3354,7 @@
 
     Sao.common.UserWarningDialog = Sao.class_(Sao.common.WarningDialog, {
         class_: 'user-warning-dialog',
+        size: 'md',
         build_dialog: function(message, title, prm) {
             var dialog = Sao.common.UserWarningDialog._super.build_dialog.call(
                 this, message, title, prm);
@@ -3315,12 +3405,7 @@
             dialog.body.append(jQuery('<div/>', {
                 'class': 'alert alert-info',
                 role: 'alert'
-            }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-info', {
-                'aria-hidden': true,
-            })).append(jQuery('<span/>', {
-                'class': 'sr-only'
-            }).text(Sao.i18n.gettext('Confirmation: '))
-            ).append(jQuery('<span/>')
+            }).append(jQuery('<span/>')
                 .text(message)
                 .css('white-space', 'pre-wrap')));
             return dialog;
@@ -3431,22 +3516,16 @@
 
     Sao.common.ConcurrencyDialog = Sao.class_(Sao.common.UniqueDialog, {
         class_: 'ask-dialog',
+        size: 'md',
         build_dialog: function(model, record_id, context, prm) {
             var dialog = Sao.common.ConcurrencyDialog._super.build_dialog.call(
                 this);
-            dialog.modal.find('.modal-dialog'
-                ).removeClass('modal-sm').addClass('modal-lg');
-            dialog.add_title(Sao.i18n.gettext('Concurrency Exception'));
+            dialog.add_title(Sao.i18n.gettext("Concurrency Warning"));
             dialog.body.append(jQuery('<div/>', {
                 'class': 'alert alert-info',
                 role: 'alert'
             }).append(jQuery('<p/>')
-                .append(Sao.common.ICONFACTORY.get_icon_img('tryton-info', {
-                    'aria-hidden': true,
-                })).append(jQuery('<span/>', {
-                    'class': 'sr-only'
-                }).text(Sao.i18n.gettext('Write Concurrency Warning: '))
-                ).text(Sao.i18n.gettext('This record has been modified ' +
+                .text(Sao.i18n.gettext('This record has been modified ' +
                 'while you were editing it.')))
                 .append(jQuery('<p/>').text(Sao.i18n.gettext('Choose:')))
                 .append(jQuery('<ul/>')
@@ -3504,30 +3583,38 @@
 
     Sao.common.ErrorDialog = Sao.class_(Sao.common.UniqueDialog, {
         class_: 'error-dialog',
+        size: 'md',
         build_dialog: function(title, details, prm) {
             var dialog = Sao.common.ConcurrencyDialog._super.build_dialog.call(
                 this);
-            dialog.modal.find('.modal-dialog'
-                ).removeClass('modal-sm').addClass('modal-lg');
             dialog.add_title(Sao.i18n.gettext('Application Error'));
-            dialog.body.append(jQuery('<div/>', {
+            const alert_ = jQuery('<div/>', {
                 'class': 'alert alert-danger',
                 role: 'alert'
-            }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-error', {
-                'aria-hidden': true,
-            })).append(jQuery('<span/>', {
-                'class': 'sr-only'
-            }).text(Sao.i18n.gettext('Warning: '))
-            ).append(jQuery('<p/>')
-                .append(jQuery('<pre/>')
-                    .text(details)))
-                .append(jQuery('<p/>')
-                    .append(jQuery('<a/>', {
-                        'class': 'btn btn-link',
-                        href: Sao.config.bug_url,
-                        target: '_blank',
-                        rel: 'noreferrer noopener',
-                    }).text(Sao.i18n.gettext('Report Bug')))));
+            }).appendTo(dialog.body);
+            alert_.append(jQuery('<h4/>')
+                .text(title)
+                .css('white-space', 'pre-wrap'));
+            alert_.append(jQuery('<p/>').append(jQuery('<a/>', {
+                'class': 'btn btn-default',
+                role: 'button',
+                'data-toggle': 'collapse',
+                'data-target': '#error-detail',
+                'aria-expanded': false,
+                'aria-controls': '#error-detail',
+            }).text(Sao.i18n.gettext("Details"))));
+            alert_.append(jQuery('<p/>', {
+                'class': 'collapse',
+                id: 'error-detail',
+            }).append(jQuery('<pre/>', {
+                'class': 'pre-scrollable',
+            }).text(details)));
+            jQuery('<a/>', {
+                'class': 'btn btn-link',
+                href: Sao.config.bug_url,
+                target: '_blank',
+                rel: 'noreferrer noopener',
+            }).text(Sao.i18n.gettext('Report Bug')).appendTo(dialog.footer);
             jQuery('<button/>', {
                 'class': 'btn btn-primary',
                 'type': 'button',
@@ -3543,7 +3630,7 @@
 
     Sao.common.Processing = Sao.class_(Object, {
         queries: 0,
-        timeout: 3000,
+        timeout: 200,
         init: function() {
             this.el = jQuery('<div/>', {
                 'id': 'processing',
@@ -3568,6 +3655,11 @@
             return window.setTimeout(() => {
                 this.queries += 1;
                 this.el.show();
+                window.setTimeout(() => {
+                    if (this.el.is(':visible')) {
+                        this.el.addClass('spinning');
+                    }
+                }, 1000);
             }, this.timeout);
         },
         hide: function(timeoutID) {
@@ -3577,6 +3669,7 @@
             }
             if (this.queries <= 0) {
                 this.queries = 0;
+                this.el.removeClass('spinning');
                 this.el.hide();
             }
         }
@@ -3598,7 +3691,7 @@
             height = 'none';
         }
         el.closest('.treeview')
-            .css('overflow', overflow)
+            .css('overflow-y', overflow)
             .css('max-height', height);
         el.closest('.modal-body').css('overflow', overflow);
         el.closest('.navbar-collapse.in').css('overflow-y', overflow);
@@ -3673,9 +3766,16 @@
                 Sao.common.set_overflow(this.input, 'show');
             });
         },
-        set_actions: function(actions, action_activated) {
+        set_actions: function(action_activated, search=true, create=true) {
             if (action_activated !== undefined) {
                 this.action_activated = action_activated;
+            }
+            var actions = [];
+            if (search) {
+                actions.push(['search', Sao.i18n.gettext('Search...')]);
+            }
+            if (create) {
+                actions.push(['create', Sao.i18n.gettext('Create...')]);
             }
             this.menu.find('li.action').remove();
             if (jQuery.isEmptyObject(actions)) {
@@ -3719,7 +3819,7 @@
             }
             var prm;
             if (this.source instanceof Array) {
-                prm = jQuery.when(source.filter(function(value) {
+                prm = jQuery.when(this.source.filter(function(value) {
                     return value.toLowerCase().startsWith(text.toLowerCase());
                 }));
             } else {
@@ -3766,22 +3866,17 @@
     });
 
     Sao.common.get_completion = function(el, source,
-            match_selected, action_activated, search, create) {
+            match_selected, action_activated, search=true, create=true) {
         var format = function(content) {
-            return content.rec_name;
+            return content.name;
         };
         var completion = new Sao.common.InputCompletion(
                 el, source, match_selected, format);
         if (action_activated) {
-            var actions = [];
-            if (search || search == undefined) {
-                actions.push(['search', Sao.i18n.gettext('Search...')]);
-            }
-            if (create || create == undefined) {
-                actions.push(['create', Sao.i18n.gettext('Create...')]);
-            }
-            completion.set_actions(actions, action_activated);
+            completion.set_actions(action_activated, search, create);
         }
+        completion._allow_create = create;
+        return completion;
     };
 
     Sao.common.update_completion = function(
@@ -3794,17 +3889,28 @@
             domain = field.get_domain(record);
         }
         var context = field.get_search_context(record);
-        var likify = new Sao.common.DomainParser().likify;
-        domain = [['rec_name', 'ilike', likify(search_text)], domain];
 
         var order = field.get_search_order(record);
         var sao_model = new Sao.Model(model);
-        return sao_model.execute('search_read',
-                [domain, 0, Sao.config.limit, order, ['rec_name']], context,
-                undefined, false).fail(function() {
-                    Sao.Logger.warning(
-                        "Unable to search for completion of %s", model);
+        return sao_model.execute(
+            'autocomplete',
+            [search_text, domain, Sao.config.limit, order], context)
+        .then(
+            function(result) {
+                return result.filter((value) => {
+                    return value.id || entry.completion._allow_create;
+                }).map((value) => {
+                    if (value.id === null) {
+                        value.name = Sao.i18n.gettext(
+                            'Create "%1"...', value.name);
+                    }
+                    return value;
                 });
+            },
+            function() {
+                Sao.Logger.warn(
+                    "Unable to search for completion of %s", model);
+            });
     };
 
     Sao.common.Paned = Sao.class_(Object, {
@@ -3939,7 +4045,7 @@
                 'target': '_blank'
                 }).appendTo(dialog.body)
                 .click(close);
-        var button = jQuery('<button/>', {
+        jQuery('<button/>', {
             'class': 'btn btn-default',
             'type': 'button',
             'title': Sao.i18n.gettext("Close"),
@@ -4172,7 +4278,7 @@
                 'class': 'btn-group',
                 'role': 'group'
             }).appendTo(toolbar);
-            var button = jQuery('<button/>', {
+            jQuery('<button/>', {
                 'class': 'btn btn-default dropdown-toggle',
                 'type': 'button',
                 'data-toggle': 'dropdown',
@@ -4267,19 +4373,181 @@
                 type = 'image/svg+xml';
             }
         } catch (e) {
+            // continue
         }
         var blob = new Blob([data], {type: type});
         return window.URL.createObjectURL(blob);
     };
 
+    Sao.common.play_sound = function(sound='success') {
+        var snd = new Audio('sounds/' + sound + '.wav');
+        snd.volume = localStorage.getItem('sao_sound_volume') || 0.5;
+        snd.play();
+    };
+
     Sao.common.clone = function(obj) {
         var copy = obj.constructor();
         for (var attr in obj) {
-            if (obj.hasOwnProperty(attr)) {
+            if (Object.hasOwn(obj, attr)) {
                 copy[attr] = obj[attr];
             }
         }
         return copy;
+    };
+
+    Sao.common.list_modified = function(screen, depth = 0) {
+        if (!screen.modified) {
+            return;
+        }
+
+        if (screen.current_record && screen.current_record.modified) {
+            console.log(`${' '.repeat(depth)} ${screen.model_name}: current_record`);
+        } else if (screen.current_view && screen.current_view.modified) {
+            for (let [name, widgets] of Object.entries(screen.current_view.widgets)) {
+                for (let widget of widgets) {
+                    if (widget.modified) {
+                        console.log(`${' '.repeat(depth * 2)} ${screen.model_name}: ${name}`);
+                        if (widget.screen) {
+                            Sao.common.list_modified(widget.screen, depth + 1);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
+    Sao.common.PopupMenu = {
+        initialize: (evt) => {
+            let menu = jQuery('#popup-menu');
+            menu.empty();
+            let ul = jQuery('<ul/>', {
+                'class': 'dropdown-menu contextual',
+            }).appendTo(menu);
+
+            jQuery(document).one('click', () => {
+                menu.css('display', 'none');
+            });
+            menu.css({
+                'top': evt.pageY,
+                'left': evt.pageX,
+                'display': 'block',
+            });
+
+            return ul;
+        },
+        populate: (menu, model_name, field_name, context, records, edit_entry) => {
+            var model = new Sao.Model(model_name);
+            var toolbar = model.execute(
+                'view_toolbar_get', [], context, false);
+
+            const popLocation = (e) => {
+                var menu = e.data;
+                if ((menu.offset().left + menu.width()) > window.innerWidth) {
+                    menu.css('left', (-1 * menu.width()) + 'px');
+                }
+            };
+            const open_records = (records) => {
+                return (evt) => {
+                    if (field_name) {
+                        for (const record of records) {
+                            record.load(field_name, false);
+                        }
+                    }
+
+                    var ids = records.map(
+                        (r) => {
+                            if (field_name) {
+                                return r.get_eval()[field_name];
+                            } else {
+                                return r.id;
+                            }
+                        });
+
+                    Sao.Tab.create({
+                        'model': model_name,
+                        'mode': ['form'],
+                        'context': context,
+                        'res_id': ids,
+                    });
+                };
+            };
+            const execute_action = (action, records) => {
+                return (evt) => {
+                    if (field_name) {
+                        for (const record of records) {
+                            record.load(field_name, false);
+                        }
+                    }
+
+                    var ids = records.map(
+                        (r) => {
+                            if (field_name) {
+                                return r.get_eval()[field_name];
+                            } else {
+                                return r.id;
+                            }
+                        });
+                    var data = {
+                        model: model_name,
+                        id: ids[0],
+                        ids: ids,
+                    };
+                    Sao.Action.execute(
+                        jQuery.extend({}, action), data,
+                        jQuery.extend({}, context));
+                };
+            };
+
+            if (field_name || edit_entry) {
+                jQuery('<li/>', {
+                    'role': 'presentation',
+                }).append(jQuery('<a/>', {
+                    'role': 'menuitem',
+                    'href': '#',
+                    'tabindex': -1
+                }).text(Sao.i18n.gettext("Edit...")).click(
+                    open_records(records))
+                ).appendTo(menu);
+            }
+
+            for (const [action_type, action_name] of [
+                    ['action', Sao.i18n.gettext("Action")],
+                    ['relate', Sao.i18n.gettext("Relation")],
+                    ['print', Sao.i18n.gettext("Report")],
+            ]) {
+                if (!(toolbar[action_type] || []).length) {
+                    continue;
+                }
+                if (menu.children().length) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                        'class': 'divider',
+                    }).appendTo(menu);
+                }
+                var action_li = jQuery('<li/>', {
+                    'role': 'presentation',
+                }).append(jQuery('<a/>', {
+                    'class': 'contextual-submenu',
+                    'role': 'menuitem',
+                    'href': '#',
+                    'tabindex': -1
+                }).text(action_name)).appendTo(menu);
+                var action_menu = jQuery('<ul/>', {
+                    'class': 'dropdown-menu contextual contextual-submenu',
+                }).appendTo(action_li);
+                action_li.on('mouseenter', action_menu, popLocation);
+                for (const action of (toolbar[action_type] || [])) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                    }).append(jQuery('<a/>', {
+                        'role': 'menuitem',
+                        'href': '#',
+                        'tabindex': -1,
+                    }).text(action.name).click(execute_action(action, records))
+                    ).appendTo(action_menu);
+                }
+            }
+        },
     };
 
 }());

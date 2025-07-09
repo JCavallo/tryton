@@ -113,7 +113,8 @@ msgstr "Комбінації клавіш вкладки"
 msgid "Unable to reach the server."
 msgstr "Не вдається підключитися до сервера."
 
-msgid "Too many requests. Try again later."
+#, fuzzy
+msgid "Error: \"%1\". Try again later."
 msgstr "Дуже багато запитів. Спробуйте ще раз пізніше."
 
 msgid "Login"
@@ -129,7 +130,18 @@ msgstr "Ім'я користувача"
 msgid "Login with"
 msgstr "Логін"
 
+msgid "Too many requests. Try again later."
+msgstr "Дуже багато запитів. Спробуйте ще раз пізніше."
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -183,12 +195,6 @@ msgstr "п"
 msgid "False"
 msgstr "Неправда"
 
-msgid "Message: "
-msgstr "Повідомлення: "
-
-msgid "Warning: "
-msgstr "Попередження: "
-
 msgid "Always ignore this warning."
 msgstr "Завжди ігнорувати це попередження."
 
@@ -198,13 +204,8 @@ msgstr "Ви бажаєте продовжити?"
 msgid "No"
 msgstr "Ні"
 
-msgid "Confirmation: "
-msgstr "Підтвердження: "
-
-msgid "Concurrency Exception"
-msgstr "Виняток одночасного доступу"
-
-msgid "Write Concurrency Warning: "
+#, fuzzy
+msgid "Concurrency Warning"
 msgstr "Попередження одночасного запису: "
 
 msgid "This record has been modified while you were editing it."
@@ -234,6 +235,9 @@ msgstr "Записати все одно"
 msgid "Application Error"
 msgstr "Помилка програми"
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "Повідомити про помилку"
 
@@ -244,6 +248,10 @@ msgid "Search..."
 msgstr "Пошук..."
 
 msgid "Create..."
+msgstr "Створити..."
+
+#, fuzzy
+msgid "Create \"%1\"..."
 msgstr "Створити..."
 
 msgid "Download"
@@ -446,6 +454,9 @@ msgstr "Попередня перевірка"
 msgid ":"
 msgstr ":"
 
+msgid "Scan"
+msgstr ""
+
 msgid "Translate"
 msgstr "Перекласти"
 
@@ -513,17 +524,21 @@ msgstr "Вибрати мову"
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
-msgstr "Налаштувати"
+#, fuzzy
+msgid "Copy Selected Rows"
+msgstr "Вибрані записи"
+
+msgid "#ERROR"
+msgstr ""
 
 msgid "More"
 msgstr "Додатково"
 
-msgid "#ERROR"
-msgstr ""
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr "Сьогодні"
@@ -549,6 +564,19 @@ msgstr "Виберіть дію"
 msgid "No action defined."
 msgstr "Ніяких дій не визначено."
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+#, fuzzy
+msgid "Add and New"
+msgstr "Додати імена полів"
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr "Вкладення (%1)"
 
@@ -565,6 +593,12 @@ msgstr "Модель: "
 
 msgid "ID:"
 msgstr "ID:"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 msgid "Created by:"
 msgstr "Ким створено:"
@@ -622,8 +656,8 @@ msgstr "Спочатку потрібно вибрати файл імпорту
 msgid "Detection failed"
 msgstr "Помилка визначення"
 
-msgid "Error processing the file at field %1."
-msgstr "Помилка обробки файлу в полі %1."
+msgid "Unknown column header \"%1\""
+msgstr ""
 
 msgid "Error"
 msgstr "Помилка"
@@ -721,6 +755,15 @@ msgstr "Надіслати"
 
 msgid "Remove File"
 msgstr "Видалити файл"
+
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
 
 msgid "Wizard"
 msgstr "Майстер"

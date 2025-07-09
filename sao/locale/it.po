@@ -29,6 +29,9 @@ msgstr "Gestisci..."
 msgid "Logout"
 msgstr "Esci"
 
+msgid "Close"
+msgstr "Chiudi"
+
 msgid "Action"
 msgstr "Azione"
 
@@ -95,9 +98,6 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-msgid "Close"
-msgstr "Chiudi"
-
 msgid "Documentation..."
 msgstr ""
 
@@ -113,7 +113,8 @@ msgstr ""
 msgid "Unable to reach the server."
 msgstr "server non raggiungibile"
 
-msgid "Too many requests. Try again later."
+#, fuzzy
+msgid "Error: \"%1\". Try again later."
 msgstr "Troppe richieste. Riprovare più tardi."
 
 msgid "Login"
@@ -129,7 +130,21 @@ msgstr ""
 msgid "Login with"
 msgstr "Login"
 
+msgid "Too many requests. Try again later."
+msgstr "Troppe richieste. Riprovare più tardi."
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid "Reset forgotten password"
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -183,28 +198,14 @@ msgstr "t"
 msgid "False"
 msgstr "Falso"
 
-msgid "Message: "
-msgstr "messaggio: "
-
-msgid "Warning: "
-msgstr "Attenzione: "
-
-msgid "Always ignore this warning."
-msgstr "ignorare sempre questo avviso"
-
 msgid "Do you want to proceed?"
 msgstr "Continuare?"
 
 msgid "No"
 msgstr "no"
 
-msgid "Confirmation: "
-msgstr "conferma: "
-
-msgid "Concurrency Exception"
-msgstr "eccezione di concorrenza"
-
-msgid "Write Concurrency Warning: "
+#, fuzzy
+msgid "Concurrency Warning"
 msgstr "scrivi avviso di concorrenza: "
 
 msgid "This record has been modified while you were editing it."
@@ -234,6 +235,9 @@ msgstr "Scrivi comunque"
 msgid "Application Error"
 msgstr "Errore dell'applicazione"
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "Segnala l'errore"
 
@@ -244,6 +248,10 @@ msgid "Search..."
 msgstr "Cerca..."
 
 msgid "Create..."
+msgstr "Crea..."
+
+#, fuzzy
+msgid "Create \"%1\"..."
 msgstr "Crea..."
 
 msgid "Download"
@@ -279,6 +287,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Modifica"
+
+#, fuzzy
+msgid "Relation"
+msgstr "collega"
+
+#, fuzzy
+msgid "Report"
+msgstr "Segnala l'errore"
 
 msgid "Switch view"
 msgstr "cambia visualizzazione"
@@ -448,11 +468,18 @@ msgstr "\"%1\" non è valido rispetto al dominio"
 msgid "The values of \"%1\" are not valid."
 msgstr "i valori di \"%1\" non sono validi"
 
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
+msgstr "i valori di \"%1\" non sono validi"
+
 msgid "Pre-validation"
 msgstr "pre-validazione"
 
 msgid ":"
 msgstr ":"
+
+msgid "Scan"
+msgstr ""
 
 msgid "Translate"
 msgstr "Traduci"
@@ -522,18 +549,22 @@ msgstr ""
 msgid "%1%"
 msgstr "%1%"
 
-#, fuzzy
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+#, fuzzy
+msgid "Copy Selected Rows"
+msgstr "Record selezionati"
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr "più"
 
-msgid "#ERROR"
-msgstr ""
+#, fuzzy
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr ""
@@ -559,6 +590,19 @@ msgstr "Seleziona l'azione"
 msgid "No action defined."
 msgstr "Nessuna azione definita."
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+#, fuzzy
+msgid "Add and New"
+msgstr "inserire nomi campo"
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr "allegati (%1)"
 
@@ -575,6 +619,12 @@ msgstr "Modello: "
 
 msgid "ID:"
 msgstr "ID:"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 msgid "Created by:"
 msgstr "Creato da:"
@@ -632,8 +682,8 @@ msgstr "Devi prima selezionare un file da importare."
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
-msgstr "errore nell'elaborazione del file nel campo %1"
+msgid "Unknown column header \"%1\""
+msgstr ""
 
 msgid "Error"
 msgstr "Errore"
@@ -734,8 +784,20 @@ msgstr ""
 msgid "Remove File"
 msgstr "Rimuovi"
 
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
+
 msgid "Wizard"
 msgstr "wizard"
 
 msgid "Translate view"
 msgstr ""
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "ignorare sempre questo avviso"

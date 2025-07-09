@@ -10,8 +10,13 @@
             this.buttons = {};
             this.menu_buttons = {};
             this.id = 'tab-' + Sao.Tab.counter++;
-            this.name = '';
             this.name_el = jQuery('<span/>');
+            this.name_short_el = jQuery('<span/>', {
+                'class': 'hidden-xs hidden-sm hidden-md',
+            }).appendTo(this.name_el);
+            this.name_long_el = jQuery('<span/>', {
+                'class': 'hidden-lg',
+            }).appendTo(this.name_el);
             this.view_prm = jQuery.when();
             this.forced_count = false;
         },
@@ -119,9 +124,11 @@
 
             var toolbar = this.create_toolbar().appendTo(this.el);
             this.title = toolbar.find('.title');
+            this.title_short = toolbar.find('.title-short');
+            this.title_long = toolbar.find('.title-long');
 
             this.main = jQuery('<div/>', {
-                'class': 'panel-body row',
+                'class': 'panel-body',
             }).appendTo(this.el);
             this.content = jQuery('<div/>').appendTo(this.main);
 
@@ -152,7 +159,9 @@
                     this.menu_buttons[item.id] = menuitem;
                     link.click(evt => {
                         evt.preventDefault();
-                        this[item.id]();
+                        if (!menuitem.hasClass('disabled')) {
+                            this[item.id]();
+                        }
                     });
                 } else if (!item && previous) {
                     menuitem = jQuery('<li/>', {
@@ -173,7 +182,7 @@
             }).append(jQuery('<div/>', {
                 'class': 'container-fluid navbar-inverse'
             }).append(jQuery('<div/>', {
-                'class': 'dropdown navbar-header navbar-left flip'
+                'class': 'dropdown navbar-left flip'
             }).append(jQuery('<a/>', {
                 'href': "#",
                 'class': "navbar-brand dropdown-toggle",
@@ -183,7 +192,11 @@
                 'aria-haspopup': true
             }).append(jQuery('<span/>', {
                 'class': 'title'
+            }).append(jQuery('<span/>', {
+                'class': 'title-long hidden-xs hidden-sm hidden-md',
             })).append(jQuery('<span/>', {
+                'class': 'title-short hidden-lg',
+            }))).append(jQuery('<span/>', {
                 'class': 'caret'
             }))).append(jQuery('<ul/>', {
                 'class': 'dropdown-menu',
@@ -198,7 +211,7 @@
             }).append('&times;')).click(() => {
                 this.close();
             }))).append(jQuery('<div/>', {
-                'class': 'btn-toolbar navbar-right flip',
+                'class': 'btn-toolbar navbar-right pull-right flip',
                 'role': 'toolbar'
             })));
             this.set_menu(toolbar.find('ul[role*="menu"]'));
@@ -236,7 +249,7 @@
                     }));
                 this.buttons[item.id] = button;
                 if (item.dropdown) {
-                    var dropdown = jQuery('<div/>', {
+                    jQuery('<div/>', {
                         'class': 'btn-group dropdown',
                         'role': 'group',
                     }).append(button.append(jQuery('<span/>', {
@@ -278,22 +291,34 @@
             if (this.buttons.next) {
                 this.buttons.next.addClass('hidden-xs');
             }
-            toolbar.find('.btn-toolbar > .btn-group').last()
-                .addClass( 'hidden-xs')
+            toolbar.find('.btn-toolbar > .btn-group').slice(-2, -1)
+                .addClass('hidden-xs')
                 .find('.dropdown')
                 .on('show.bs.dropdown', function() {
                     jQuery(this).parents('.btn-group')
-                        .removeClass( 'hidden-xs');
+                        .removeClass('hidden-xs');
                 })
                 .on('hide.bs.dropdown', function() {
                     jQuery(this).parents('.btn-group')
                         .addClass('hidden-xs');
                 });
+            toolbar.find('.btn-toolbar > .btn-group').last()
+                .addClass('hidden-xs hidden-sm')
+                .find('.dropdown')
+                .on('show.bs.dropdown', function() {
+                    jQuery(this).parents('.btn-group')
+                        .removeClass('hidden-xs hidden-sm');
+                })
+                .on('hide.bs.dropdown', function() {
+                    jQuery(this).parents('.btn-group')
+                        .addClass('hidden-xs hidden-sm');
+                });
             return toolbar;
         },
         show: function() {
-            jQuery('#tablist').find('a[href="#' + this.id + '"]')
-                .tab('show')[0].scrollIntoView();
+            Sao.common.scrollIntoViewIfNeeded(
+                jQuery('#tablist').find('a[href="#' + this.id + '"]')
+                .tab('show'));
         },
         close: function() {
             var tabs = jQuery('#tabs');
@@ -324,18 +349,22 @@
             return jQuery.when();
         },
         set_name: function(name) {
-            this.name = name;
-            this.name_el.text(name.split(' / ').pop());
+            this.name_short_el.text(name.split(' / ').pop());
+            this.name_long_el.text(name);
             this.name_el.attr('title', name);
+            this.title_short.text(this.name_short);
+            this.title_long.text(this.name_long);
+        },
+        get name_short() {
+            return this.name_short_el.text();
+        },
+        get name_long() {
+            return this.name_long_el.text();
         },
         get_url: function() {
         },
-        get view_type() {
-            if (this.class_ == 'tab-form') {
-                return this.screen.current_view.view_type;
-            } else if (this.class_ == 'tab-wizard') {
-                return 'form';
-            }
+        get current_view_type() {
+            return 'form';
         },
         compare: function(attributes) {
             return false;
@@ -388,8 +417,8 @@
         }
         for (const other of Sao.Tab.tabs) {
             if (other.compare(attributes)) {
-                tablist.find('a[href="#' + other.id + '"]')
-                    .tab('show')[0].scrollIntoView();
+                Sao.common.scrollIntoViewIfNeeded(
+                    tablist.find('a[href="#' + other.id + '"]').tab('show'));
                 return;
             }
         }
@@ -399,7 +428,7 @@
         } else {
             tab = new Sao.Tab.Board(attributes);
         }
-        tab.view_prm.done(function() {
+        return tab.view_prm.then(function() {
             Sao.Tab.add(tab);
         });
         return tab.view_prm;
@@ -415,8 +444,8 @@
             'data-toggle': 'tab',
             'href': '#' + tab.id
         }).on('show.bs.tab', function() {
-            Sao.set_url(tab.get_url(), tab.name.split(' / ').pop());
-            Sao.Tab.set_view_type(tab);
+            Sao.set_url(tab.get_url(), tab.name_long.split(' / ').pop());
+            Sao.Tab.set_view_type(tab.current_view_type);
         })
         .append(jQuery('<button/>', {
             'class': 'close',
@@ -448,7 +477,7 @@
         tab_link.on('shown.bs.tab', function(evt) {
             tabs.scrollTop(jQuery(evt.target).data('scrollTop') || 0);
         });
-        tab_link.tab('show')[0].scrollIntoView();
+        Sao.common.scrollIntoViewIfNeeded(tab_link.tab('show'));
         tabs.trigger('ready');
     };
 
@@ -479,14 +508,9 @@
         }
     };
 
-    Sao.Tab.set_view_type = function(tab) {
-        if (!tab) {
-            return;
-        }
+    Sao.Tab.set_view_type = function(type) {
         var tabcontent = jQuery('#tabcontent');
-        tabcontent.css(
-            'display',
-            tab.current_view_type == 'form' ? 'block' : 'flex');
+        tabcontent.attr('data-view-type', type);
     };
 
     Sao.Tab.Form = Sao.class_(Sao.Tab, {
@@ -498,9 +522,9 @@
             if (!name) {
                 name = Sao.common.MODELNAME.get(model_name);
             }
-            this.set_name(name);
             if (attributes.res_id) {
-                if (attributes.hasOwnProperty('tab_domain')) {
+                if (Object.prototype.hasOwnProperty.call(
+                    attributes, 'tab_domain')) {
                     delete attributes.tab_domain;
                 }
             }
@@ -510,12 +534,14 @@
             this.screen = screen;
             this.info_bar = new Sao.Window.InfoBar();
             this.create_tabcontent();
+            this.set_name(name);
 
             this.attachment_screen = null;
 
             screen.switch_callback = () => {
                 if (this === Sao.Tab.tabs.get_current()) {
-                    Sao.set_url(this.get_url(), this.name.split(' / ').pop());
+                    Sao.set_url(
+                        this.get_url(), this.name_long.split(' / ').pop());
                 }
             };
 
@@ -526,9 +552,11 @@
                     if (!jQuery.isArray(attributes.res_id)) {
                         attributes.res_id = [attributes.res_id];
                     }
-                    screen.group.load(attributes.res_id);
-                    screen.current_record = screen.group.get(
-                        attributes.res_id);
+                    screen.load(attributes.res_id);
+                    if (attributes.res_id.length) {
+                        screen.current_record = screen.group.get(
+                            attributes.res_id[0]);
+                    }
                     screen.display();
                 } else {
                     if (screen.current_view.view_type == 'form') {
@@ -585,11 +613,11 @@
                 this.buttons[menu_action[0]] = button;
                 dropdown
                     .on('show.bs.dropdown', function() {
-                        jQuery(this).parents('.btn-group').removeClass(
-                            'hidden-xs');
+                        jQuery(this).parents('.btn-group')
+                            .removeClass('hidden-xs hidden-sm');
                     }).on('hide.bs.dropdown', function() {
-                        jQuery(this).parents('.btn-group').addClass(
-                            'hidden-xs');
+                        jQuery(this).parents('.btn-group')
+                            .addClass('hidden-xs hidden-sm');
                     });
                 var menu = dropdown.find('.dropdown-menu');
                 button.click(function() {
@@ -610,7 +638,7 @@
                         }));
                     }
                     buttons.forEach(function(button) {
-                        var item = jQuery('<li/>', {
+                        jQuery('<li/>', {
                             'role': 'presentation',
                             'class': menu_action[0] + '_button'
                         })
@@ -681,7 +709,7 @@
                 });
 
                 toolbars[menu_action[0]].forEach(action => {
-                    var item = jQuery('<li/>', {
+                    jQuery('<li/>', {
                         'role': 'presentation'
                     })
                         .append(jQuery('<a/>', {
@@ -739,7 +767,7 @@
                         }));
                     }
                     toolbars.exports.forEach(export_ => {
-                        var item = jQuery('<li/>', {
+                        jQuery('<li/>', {
                             'role': 'presentation',
                         })
                             .append(jQuery('<a/>', {
@@ -847,7 +875,9 @@
                 return false;
             }
             var compare = Sao.common.compare;
-            return ((this.screen.model_name === attributes.model) &&
+            return (
+                (this.screen.view_index === 0) &&
+                (this.screen.model_name === attributes.model) &&
                 (this.attributes.res_id === attributes.res_id) &&
                 (compare(
                     this.attributes.domain || [], attributes.domain || [])) &&
@@ -1021,20 +1051,23 @@
             return this.modified_save().then(() => {
                 var prm = this.screen.display_previous();
                 this.info_bar.clear();
-                this.set_buttons_sensitive();
-                return prm;
+                return prm.done(() => {
+                    this.set_buttons_sensitive();
+                });
             });
         },
         next: function() {
             return this.modified_save().then(() => {
                 var prm = this.screen.display_next();
                 this.info_bar.clear();
-                this.set_buttons_sensitive();
-                return prm;
+                return prm.done(() => {
+                    this.set_buttons_sensitive();
+                });
             });
         },
         search: function() {
             var search_entry = this.screen.screen_container.search_entry;
+            search_entry.parents('.filter-box').toggleClass('hidden-xs');
             if (search_entry.is(':visible')) {
                 window.setTimeout(function() {
                     search_entry.focus();
@@ -1064,6 +1097,7 @@
                         revision.add(1, 'milliseconds');
                     }
                     if ((this.screen.current_view.view_type == 'form') &&
+                            revision &&
                             (revision < revisions[revisions.length - 1][0])) {
                         revision = revisions[revisions.length - 1][0];
                     }
@@ -1090,27 +1124,37 @@
                 return this.screen.model.execute('history_revisions',
                     [ids], this.screen.context)
                     .then(revisions => {
-                        new Sao.Window.Revision(revisions, set_revision(revisions));
+                        const revision = this.screen.context._datetime;
+                        if (revision) {
+                            // Remove a millisecond as microseconds are truncated
+                            revision.add(-1, 'milliseconds');
+                        }
+                        new Sao.Window.Revision(
+                            revisions, revision, set_revision(revisions));
                     });
             });
         },
         update_revision: function() {
             var revision = this.screen.context._datetime;
-            var label, title;
+            var label_short, label_long, title;
             if (revision) {
                 var date_format = Sao.common.date_format(
                     this.screen.context.date_format);
                 var time_format = '%H:%M:%S.%f';
                 var revision_label = ' @ ' + Sao.common.format_datetime(
                     date_format + ' ' + time_format, revision);
-                label = Sao.common.ellipsize(
-                    this.name, 80 - revision_label.length) + revision_label;
-                title = this.name + revision_label;
+                label_long = Sao.common.ellipsize(
+                    this.name_long, 80 - revision_label.length) + revision_label;
+                label_short = Sao.common.ellipsize(
+                    this.name_short, 80 - revision_label.length) + revision_label;
+                title = this.name_long + revision_label;
             } else {
-                label = Sao.common.ellipsize(this.name, 80);
-                title = this.name;
+                label_long = Sao.common.ellipsize(this.name_long, 80);
+                label_short = Sao.common.ellipsize(this.name_short, 80);
+                title = this.name_long;
             }
-            this.title.text(label);
+            this.title_short.text(label_short);
+            this.title_long.text(label_long);
             this.title.attr('title', title);
             this.set_buttons_sensitive();
         },
@@ -1127,7 +1171,6 @@
                     ['delete_', access.delete],
                     ['copy', access.create],
                     ['import', access.create],
-                    ['action', access.write && !this.screen.readonly],
                 ]);
                 for (const [name, access] of accesses) {
                     if (this.buttons[name]) {
@@ -1140,7 +1183,7 @@
                 }
             } else {
                 for (const name of [
-                    'new_', 'save', 'delete_', 'copy', 'import', 'action']) {
+                    'new_', 'save', 'delete_', 'copy', 'import']) {
                     if (this.buttons[name]) {
                         this.buttons[name].prop('disabled', true);
                     }
@@ -1297,7 +1340,7 @@
                 this.refresh_resources(true);
             });
             for (const file of files) {
-                Sao.common.get_file_data(file, window_.add_data);
+                Sao.common.get_file_data(file, window_.add_data.bind(window_));
             }
             jQuery.when.apply(jQuery, uris).then(function() {
                 function empty(value) {
@@ -1372,8 +1415,8 @@
             preview.record_message = function(position, length) {
                 var text = (position || '_') + '/' + length;
                 label.text(text).attr('title', text);
-                but_prev.prop('disabled', !position || position <= 1);
-                but_next.prop('disabled', !position || position >= length);
+                but_prev.prop('disabled', !screen.has_previous());
+                but_next.prop('disabled', !screen.has_next());
             };
             screen.windows.push(preview);
 
@@ -1404,7 +1447,13 @@
             if (!Sao.common.compare(this.attachment_screen.domain, domain) ||
                 force) {
                 this.attachment_screen.domain = domain;
-                this.attachment_screen.search_filter();
+                this.attachment_screen.search_filter().then(() => {
+                    const group = this.attachment_screen.group;
+                    if (group.length) {
+                        this.attachment_screen.current_record = group[0];
+                        this.attachment_screen.display();
+                    }
+                });
             }
         },
         note: function() {
@@ -1426,7 +1475,7 @@
                     if (!record || (record.id < 0)) {
                         return;
                     }
-                    var title = this.title.text();
+                    var title = this.name_short;
                     this.screen.model.execute(
                         'view_toolbar_get', [], this.screen.context)
                         .then(function(toolbars) {
@@ -1535,6 +1584,8 @@
                     name += '#' + selected;
                 }
             }
+            const view_type = this.screen.current_view.view_type;
+            const has_views = this.screen.number_of_views > 1;
             var buttons = ['print', 'relate', 'email', 'attach'];
             for (const button_id of buttons) {
                 const button = this.buttons[button_id];
@@ -1553,7 +1604,8 @@
                 }
                 set_sensitive(button_id, position && can_be_sensitive);
             }
-            set_sensitive('switch_', this.screen.number_of_views > 1);
+            set_sensitive(
+                'switch_', (position || (view_type == 'form')) && has_views);
             set_sensitive('delete_', this.screen.deletable);
             set_sensitive('previous', this.screen.has_previous());
             set_sensitive('next', this.screen.has_next());
@@ -1609,16 +1661,14 @@
         export: function(){
             this.modified_save().then(() => {
                 new Sao.Window.Export(
-                    this.title.text(), this.screen,
+                    this.name_short, this.screen,
                     this.screen.current_view.get_fields());
             });
         },
         do_export: function(export_) {
             this.modified_save().then(() => {
                 var ids, paths;
-                if (this.screen.current_view &&
-                    (this.screen.current_view.view_type == 'tree') &&
-                    this.screen.current_view.children_field) {
+                if (export_.records == 'listed') {
                     ids = this.screen.listed_records.map(r => r.id);
                     paths = this.screen.listed_paths;
                 } else {
@@ -1662,10 +1712,13 @@
             if (!Sao.common.MODELACCESS.get(this.screen.model_name).create) {
                 return;
             }
-            new Sao.Window.Import(this.title.text(), this.screen);
+            new Sao.Window.Import(this.name_short, this.screen);
         },
         get_url: function() {
             return this.screen.get_url(this.name);
+        },
+        get current_view_type() {
+            return this.screen.current_view.view_type;
         },
         _force_count: function(evt) {
             Sao.Tab.Form._super._force_count.call(this, evt);
@@ -1677,7 +1730,7 @@
     Sao.Tab.Board = Sao.class_(Sao.Tab, {
         class_: 'tab-board',
         init: function(attributes) {
-            var UIView, view_prm;
+            var UIView;
             Sao.Tab.Board._super.init.call(this, attributes);
             this.model = attributes.model;
             this.view_id = (attributes.view_ids.length > 0 ?
@@ -1687,14 +1740,12 @@
             if (!name) {
                 name = Sao.common.MODELNAME.get(this.model);
             }
-            this.name = name;
             this.dialogs = [];
             this.board = null;
             UIView = new Sao.Model('ir.ui.view');
             this.view_prm = UIView.execute(
                 'view_get', [this.view_id], this.context);
             this.view_prm.done(view => {
-                var board;
                 view = jQuery(jQuery.parseXML(view.arch));
                 this.board = new Sao.View.Board(view, this.context);
                 this.board.actions_prms.done(() => {
@@ -1708,8 +1759,7 @@
                 this.content.append(this.board.el);
             });
             this.create_tabcontent();
-            this.set_name(this.name);
-            this.title.text(this.name_el.text());
+            this.set_name(name);
         },
         compare: function(attributes) {
             if (!attributes) {
@@ -1726,12 +1776,7 @@
             this.board.reload();
         },
         record_message: function() {
-            var i, len;
-            var action;
-
-            len = this.board.actions.length;
-            for (i = 0, len=len; i < len; i++) {
-                action = this.board.actions[i];
+            for (const action of this.board.actions) {
                 action.update_domain(this.board.actions);
             }
         },
@@ -1746,13 +1791,10 @@
         init: function(wizard) {
             Sao.Tab.Wizard._super.init.call(this);
             this.wizard = wizard;
-            this.set_name(wizard.name);
             wizard.tab = this;
             this.create_tabcontent();
-            this.title.text(this.name_el.text());
-            this.content.remove();
-            this.content = wizard.form;
-            this.main.css('padding-top', 0).append(wizard.form);
+            this.set_name(wizard.name);
+            this.content.append(wizard.form);
         },
         create_toolbar: function() {
             return jQuery('<span/>');

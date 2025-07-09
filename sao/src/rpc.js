@@ -26,15 +26,21 @@
         }
 
         var timeoutID = Sao.common.processing.show();
+        const id_ = Sao.rpc.id++;
 
         var ajax_success = function(data, status_, query) {
             if (data === null) {
                 Sao.common.warning.run('',
                         Sao.i18n.gettext('Unable to reach the server.'))
                     .always(dfd.reject);
+            } else if (data.id != id_) {
+                Sao.common.warning.run('',
+                    Sao.i18n.gettext(
+                        `Invalid response id (${data.id}) expected ${id_}`))
+                    .always(dfd.reject);
             } else if (data.error && !process_exception) {
                 console.debug(`RPC error calling ${args}: ${data.error[0]}: ${data.error[1]}.`);
-                dfd.reject();
+                dfd.reject(data.error);
             } else if (data.error && process_exception) {
                 var name, msg, description;
                 if (data.error[0] == 'UserWarning') {
@@ -48,12 +54,8 @@
                                 return;
                             }
                             Sao.rpc({
-                                'method': 'model.res.user.warning.create',
-                                'params': [[{
-                                    'user': session.user_id,
-                                    'name': name,
-                                    'always': result == 'always'
-                                }], {}]
+                                'method': 'model.res.user.warning.skip',
+                                'params': [name, result == 'always', {}],
                             }, session).done(function() {
                                 if (async) {
                                     Sao.rpc(args, session).then(
@@ -95,13 +97,6 @@
                         Sao.common.message.run('Concurrency Exception',
                                 'tryton-warning').always(dfd.reject);
                     }
-                } else if (data.error[0] == 'TimeoutException') {
-                    Sao.common.message.run(
-                        Sao.i18n.gettext(
-                            'The server took too much time to answer. ' +
-                            'You may try again later.'),
-                        'tryton-warning'
-                    ).always(dfd.reject);
                 // PKUNK Fix#10127
                 } else if (data.error[0] == "'ir.session'") {
                     return session.do_logout()
@@ -113,7 +108,7 @@
                         );
                 } else {
                     Sao.common.error.run(data.error[0], data.error[1])
-                        .always(dfd.reject);
+                        .always(() => dfd.reject(data.error));
                 }
             } else {
                 result = data.result;
@@ -133,6 +128,11 @@
         };
 
         var ajax_error = function(query, status_, error) {
+            if (!process_exception) {
+                console.debug(`RPC error calling ${args}: ${status_}: ${error}.`);
+                dfd.reject();
+                return;
+            }
             if (query.status == 401) {
                 //Try to relog
                 Sao.Session.renew(session).then(function() {
@@ -146,8 +146,8 @@
             } else {
                 var err_msg = `[${query.status}] ${error}`;
                 Sao.common.message.run(
-                    Sao.i18n.gettext('Error "%1". Try again later.', err_msg),
-                    'tryton-error').always(dfd.reject);
+                    Sao.i18n.gettext('Error: "%1". Try again later.', err_msg),
+                    'tryton-error', query.responseText).always(dfd.reject);
             }
         };
 
@@ -158,7 +158,7 @@
             },
             'contentType': 'application/json',
             'data': JSON.stringify(Sao.rpc.prepareObject({
-                'id': Sao.rpc.id++,
+                'id': id_,
                 'method': args.method,
                 'params': params
             })),

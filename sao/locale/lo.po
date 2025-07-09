@@ -31,6 +31,9 @@ msgstr ""
 msgid "Logout"
 msgstr "ອອກລະບົບ"
 
+msgid "Close"
+msgstr "ອັດ"
+
 msgid "Action"
 msgstr "ດຳເນີນການ"
 
@@ -97,9 +100,6 @@ msgstr ""
 msgid "Help"
 msgstr ""
 
-msgid "Close"
-msgstr "ອັດ"
-
 msgid "Documentation..."
 msgstr ""
 
@@ -115,7 +115,7 @@ msgstr ""
 msgid "Unable to reach the server."
 msgstr "ບໍ່ສາມາດເຂົ້າເຖິງແມ່ຂ່າຍໄດ້"
 
-msgid "Too many requests. Try again later."
+msgid "Error: \"%1\". Try again later."
 msgstr ""
 
 msgid "Login"
@@ -131,7 +131,21 @@ msgstr "ຊື່ຜູ້ໃຊ້"
 msgid "Login with"
 msgstr "ເຂົ້າສູ່ລະບົບ"
 
+msgid "Too many requests. Try again later."
+msgstr ""
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid "Reset forgotten password"
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -185,28 +199,14 @@ msgstr "ຈ"
 msgid "False"
 msgstr "ເທັດ"
 
-msgid "Message: "
-msgstr "ຂໍ້ຄວາມ: "
-
-msgid "Warning: "
-msgstr "ຄຳເຕືອນ: "
-
-msgid "Always ignore this warning."
-msgstr "ບໍ່ສົນກັບຄຳເຕືອນນີ້."
-
 msgid "Do you want to proceed?"
 msgstr "ທ່ານຕ້ອງການດຳເນີນບໍ່?"
 
 msgid "No"
 msgstr "ບໍ່"
 
-msgid "Confirmation: "
-msgstr "ຄຳຢັ້ງຢືນ: "
-
-msgid "Concurrency Exception"
-msgstr "ຍົກເວັ້ນສະກຸນເງິນ"
-
-msgid "Write Concurrency Warning: "
+#, fuzzy
+msgid "Concurrency Warning"
 msgstr "ຂຽນຄຳເຕືອນສະກຸນເງິນ: "
 
 msgid "This record has been modified while you were editing it."
@@ -237,6 +237,9 @@ msgstr "ຂຽນລົງເລີຍ"
 msgid "Application Error"
 msgstr "ໂປຣແກຣມຜິດພາດ"
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "ລາຍງານຂໍ້ຜິດພາດ"
 
@@ -248,6 +251,10 @@ msgid "Search..."
 msgstr "ຄົ້ນຫາ..."
 
 msgid "Create..."
+msgstr "ສ້າງ..."
+
+#, fuzzy
+msgid "Create \"%1\"..."
 msgstr "ສ້າງ..."
 
 msgid "Download"
@@ -283,6 +290,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "ແກ້ໄຂ"
+
+#, fuzzy
+msgid "Relation"
+msgstr "ກ່ຽວພັນກັບ"
+
+#, fuzzy
+msgid "Report"
+msgstr "ລາຍງານຂໍ້ຜິດພາດ"
 
 msgid "Switch view"
 msgstr "ສະຫຼັບໜ້າເບິ່ງ"
@@ -455,11 +474,18 @@ msgstr "\"%1\" ບໍ່ມີຄ່າທີ່ຖຶກຕ້ອງກັບ �
 msgid "The values of \"%1\" are not valid."
 msgstr "ຄ່າ ຂອງ \"%1\" ນີ້ ບໍ່ຖືກຕ້ອງ"
 
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
+msgstr "ຄ່າ ຂອງ \"%1\" ນີ້ ບໍ່ຖືກຕ້ອງ"
+
 msgid "Pre-validation"
 msgstr "ກ່ອນ-ການກວດສອບ"
 
 msgid ":"
 msgstr ":"
+
+msgid "Scan"
+msgstr ""
 
 msgid "Translate"
 msgstr "ແປ"
@@ -529,17 +555,21 @@ msgstr ""
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+#, fuzzy
+msgid "Copy Selected Rows"
+msgstr "ແຖວຂໍ້ມູນຕໍ່ໄປ"
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr "ເພີ່ມຕື່ມ"
 
-msgid "#ERROR"
-msgstr ""
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr ""
@@ -565,6 +595,19 @@ msgstr "ເລືອກການດຳເນີນການ"
 msgid "No action defined."
 msgstr "ບໍ່ມີການດຳເນີນການໃດຖືກກຳນົດໄວ້!"
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+#, fuzzy
+msgid "Add and New"
+msgstr "ເພີ່ມຊື່ຊ່ອງຂໍ້ມູນ"
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr "ຄັດຕິດ(%1)"
 
@@ -581,6 +624,12 @@ msgstr "ແມ່ແບບ: "
 
 msgid "ID:"
 msgstr "ເລກກຳກັບ:"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 #, fuzzy
 msgid "Created by:"
@@ -641,8 +690,8 @@ msgstr "ທ່ານຕ້ອງໄດ້ເລືອກຟາຍລ໌ທີ່
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
-msgstr "ມີຂໍ້ຜິດພາດໃນການປະມວນຜົນຟາຍລ໌ ໃນຊ່ອງຂໍ້ມູນ %1."
+msgid "Unknown column header \"%1\""
+msgstr ""
 
 msgid "Error"
 msgstr "ຜິດພາດ"
@@ -746,8 +795,20 @@ msgstr ""
 msgid "Remove File"
 msgstr "ເອົາອອກ"
 
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
+
 msgid "Wizard"
 msgstr "ນໍາພາສ້າງ"
 
 msgid "Translate view"
 msgstr ""
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "ບໍ່ສົນກັບຄຳເຕືອນນີ້."

@@ -3,6 +3,7 @@
 move_res() {
     local base
     base=$(basename "$1")
+    echo "$1" -> "$base"
     cp -r "$1" dist/ && sed -i "s;$1;$base;g" dist/index.html
 }
 
@@ -15,7 +16,7 @@ pack() {
         && cp -r locale dist/ \
         && cp -r images dist/ \
         && cp -r bower_components/bootstrap/dist/fonts dist/ \
-        && move_res bower_components/Sortable/Sortable.js \
+        && move_res bower_components/Sortable/Sortable.min.js \
         && move_res bower_components/bootstrap/dist/css/bootstrap.min.css \
         && move_res bower_components/bootstrap/dist/css/bootstrap-theme.min.css \
         && move_res bower_components/bootstrap/dist/js/bootstrap.min.js \
@@ -25,8 +26,20 @@ pack() {
         && move_res bower_components/bootstrap-rtl-ondemand/dist/js/respond.min.js \
         && move_res bower_components/c3/c3.min.css \
         && move_res bower_components/c3/c3.min.js \
-        && move_res bower_components/codemirror/lib/codemirror.css \
         && move_res bower_components/codemirror/lib/codemirror.js \
+        && move_res bower_components/codemirror/mode/python/python.js \
+        && move_res bower_components/codemirror/addon/lint/lint.js \
+        && move_res bower_components/codemirror/addon/hint/show-hint.js \
+        && move_res bower_components/codemirror/addon/runmode/runmode.js \
+        && move_res bower_components/codemirror/addon/display/autorefresh.js \
+        && move_res bower_components/codemirror/addon/search/search.js \
+        && move_res bower_components/codemirror/addon/search/searchcursor.js \
+        && move_res bower_components/codemirror/addon/search/jump-to-line.js \
+        && move_res bower_components/codemirror/addon/dialog/dialog.js \
+        && move_res bower_components/codemirror/lib/codemirror.css \
+        && move_res bower_components/codemirror/addon/lint/lint.css \
+        && move_res bower_components/codemirror/addon/hint/show-hint.css \
+        && move_res bower_components/codemirror/addon/dialog/dialog.css \
         && move_res bower_components/d3/d3.min.js \
         && move_res bower_components/fullcalendar/dist/fullcalendar.min.css \
         && move_res bower_components/fullcalendar/dist/fullcalendar.min.js \
@@ -36,15 +49,11 @@ pack() {
         && move_res bower_components/moment/min/locales.min.js \
         && move_res bower_components/moment/min/moment.min.js \
         && move_res bower_components/mousetrap/mousetrap.min.js \
+        && move_res bower_components/mousetrap/plugins/pause/mousetrap-pause.js \
         && move_res bower_components/papaparse/papaparse.min.js \
-        && rm -f dist/tryton-sao.js dist/tryton-sao.css dist/coog-sao.css \
-        && sed -i "s;\.\./bower_components/bootstrap/fonts;fonts;g" dist/tryton-sao.min.css \
+        && sed -i "s;\.\./bower_components/bootstrap/fonts;fonts;g" dist/tryton-sao.css \
         && sed -i "s;dist/tryton-sao.js;tryton-sao.js;g" dist/index.html \
-        && sed -i "s;dist/tryton-sao.min.js;tryton-sao.min.js;g" dist/index.html \
-        && sed -i "s;dist/tryton-sao.css;tryton-sao.css;g" dist/index.html \
-        && sed -i "s;dist/tryton-sao.min.css;tryton-sao.min.css;g" dist/index.html \
-        && sed -i "s;dist/coog-sao.css;coog-sao.css;g" dist/index.html \
-        && sed -i "s;dist/coog-sao.min.css;coog-sao.min.css;g" dist/index.html
+        && sed -i "s;dist/tryton-sao.css;tryton-sao.css;g" dist/index.html
 }
 
 yarn && npm exec grunt && pack

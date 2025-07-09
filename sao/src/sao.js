@@ -1,8 +1,11 @@
 /* This file is part of Tryton.  The COPYRIGHT file at the top level of
    this repository contains the full copyright notices and license terms. */
+
+/* eslint-disable no-redeclare */
 var Sao = {
-    __version__: '6.8.3',
+    __version__: '7.2.7',
 };
+/* eslint-enable no-redeclare */
 
 (function() {
     'use strict';
@@ -104,8 +107,37 @@ var Sao = {
         };
     }
 
+    if (!Set.prototype.intersection) {
+        Set.prototype.intersection = function(other) {
+            if (this === null) {
+                throw new TypeError();
+            }
+            const result = new Set();
+            for (const key of other.keys()) {
+                if (this.has(key)) {
+                    result.add(key)
+                }
+            }
+            return result;
+        }
+    }
+
+    if (!Set.prototype.isSubsetOf) {
+        Set.prototype.isSubsetOf = function(other) {
+            if (this === null) {
+                throw new TypeError();
+            }
+            for (const key of this.keys()) {
+                if (!other.has(key)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    }
+
     Sao.setdefault = function(object, key, value) {
-        if (!object.hasOwnProperty(key)) {
+        if (!Object.prototype.hasOwnProperty.call(object, key)) {
             object[key] = value;
         }
         return object[key];
@@ -115,10 +147,12 @@ var Sao = {
     try {
         document.execCommand('styleWithCSS', false, false);
     } catch (e) {
+        // continue
     }
     try {
         document.execCommand('useCSS', false, true);
     } catch (e) {
+        // continue
     }
 
     // Add .uniqueId to jQuery
@@ -362,6 +396,7 @@ var Sao = {
     Sao.config.bus_timeout = 10 * 60 * 1000;
     Sao.config.image_max_size = Math.pow(10, 6);
     Sao.config.mount_point = '';
+    Sao.config.developer_help = false;
 
     Sao.i18n = i18n();
     Sao.i18n.setlang = function(lang) {
@@ -404,9 +439,6 @@ var Sao = {
     Sao.i18n.set_direction = function(direction) {
         Sao.i18n.rtl = (direction === 'rtl');
         jQuery('html').attr('dir', direction);
-        jQuery('.row-offcanvas')
-            .removeClass('row-offcanvas-left row-offcanvas-right')
-            .addClass(Sao.i18n.rtl ? 'row-offcanvas-right' : 'row-offcanvas-left');
     };
     Sao.i18n.locale = {};
 
@@ -421,7 +453,6 @@ var Sao = {
             }, session).then(function(preferences) {
                 var deferreds = [];
                 deferreds.push(Sao.common.MODELACCESS.load_models());
-                deferreds.push(Sao.common.ICONFACTORY.load_icons());
                 deferreds.push(Sao.common.MODELHISTORY.load_history());
                 deferreds.push(Sao.common.MODELNOTIFICATION.load_names());
                 deferreds.push(Sao.common.VIEW_SEARCH.load_searches());
@@ -803,10 +834,13 @@ var Sao = {
         }
         Sao.last_menu_open = Date.now();
         // ids is not defined to prevent to add suffix
-        return Sao.Action.exec_keyword('tree_open', {
-            'model': screen.model_name,
-            'id': screen.get_id(),
-        }, null, false);
+        const id = screen.get_id();
+        if (id) {
+            return Sao.Action.exec_keyword('tree_open', {
+                'model': screen.model_name,
+                'id': screen.get_id(),
+            }, null, false);
+        }
     };
 
     Sao.menu = function(preferences) {
@@ -849,6 +883,7 @@ var Sao = {
             view.table.removeClass('table table-bordered');
             view.table.addClass('no-responsive');
             view.table.find('thead').hide();
+            view.table.find('colgroup > col.tree-menu').css('width', 0);
             var gs = new Sao.GlobalSearch();
             jQuery('#global-search').empty();
             jQuery('#global-search').append(gs.el);
@@ -1058,7 +1093,7 @@ var Sao = {
             }
             return ir_model.execute('global_search',
                     [text, Sao.config.limit, Sao.main_menu_screen.model_name],
-                    Sao.main_menu_screen.context, undefined, false)
+                    Sao.main_menu_screen.context, true, false)
                 .then(s_results => {
                     var results = [];
                     for (const result of s_results) {
@@ -1234,7 +1269,7 @@ var Sao = {
                     if (definition.id){
                         var current_tab = Sao.Tab.tabs.get_current();
                         if (current_tab) {
-                            var focused = $(':focus');
+                            var focused = jQuery(':focus');
                             focused.blur();
                             current_tab.el.find('a[id="' + definition.id + '"]').click();
                             focused.focus();
@@ -1248,58 +1283,68 @@ var Sao = {
         }
     }
 
+    var _help_dialog = null;
+
     function help_dialog() {
-        var dialog = new Sao.Dialog(
-            Sao.i18n.gettext("Help"), 'help-dialog', 'md', true,
-            Sao.__version__);
-        jQuery('<button>', {
-            'class': 'close',
-            'data-dismiss': 'modal',
-            'aria-label': Sao.i18n.gettext("Close"),
-        }).append(jQuery('<span>', {
-            'aria-hidden': true,
-        }).append('&times;')).prependTo(dialog.header);
-        jQuery('<a/>', {
-            'class': 'btn btn-link',
-            'href': Sao.config.doc_url,
-            'target': '_blank',
-        }).text(Sao.i18n.gettext("Documentation..."))
-            .appendTo(dialog.footer);
-        jQuery('<h4/>')
-            .text(Sao.i18n.gettext("Keyboard shortcuts"))
-            .appendTo(dialog.body);
-        var row = jQuery('<div/>', {
-            'class': 'row'
-        }).appendTo(dialog.body);
-        var global_shortcuts_dl = jQuery('<dl/>', {
-            'class': 'dl-horizontal col-md-6'
-        }).append(jQuery('<h5/>')
-            .text(Sao.i18n.gettext('Global shortcuts')))
-            .appendTo(row);
-        var tab_shortcuts_dl = jQuery('<dl/>', {
-            'class': 'dl-horizontal col-md-6'
-        }).append(jQuery('<h5/>')
-            .text(Sao.i18n.gettext('Tab shortcuts')))
-            .appendTo(row);
+        Mousetrap.pause();
+        var dialog;
+        if (!_help_dialog) {
+            dialog = new Sao.Dialog(
+                Sao.i18n.gettext("Help"), 'help-dialog', 'md', true,
+                Sao.__version__);
+            jQuery('<button>', {
+                'class': 'close',
+                'data-dismiss': 'modal',
+                'aria-label': Sao.i18n.gettext("Close"),
+            }).append(jQuery('<span>', {
+                'aria-hidden': true,
+            }).append('&times;')).prependTo(dialog.header);
+            jQuery('<a/>', {
+                'class': 'btn btn-link',
+                'href': Sao.config.doc_url,
+                'target': '_blank',
+            }).text(Sao.i18n.gettext("Documentation..."))
+                .appendTo(dialog.footer);
+            jQuery('<h4/>')
+                .text(Sao.i18n.gettext("Keyboard shortcuts"))
+                .appendTo(dialog.body);
+            var row = jQuery('<div/>', {
+                'class': 'row'
+            }).appendTo(dialog.body);
+            var global_shortcuts_dl = jQuery('<dl/>', {
+                'class': 'dl-horizontal col-md-6'
+            }).append(jQuery('<h5/>')
+                .text(Sao.i18n.gettext('Global shortcuts')))
+                .appendTo(row);
+            var tab_shortcuts_dl = jQuery('<dl/>', {
+                'class': 'dl-horizontal col-md-6'
+            }).append(jQuery('<h5/>')
+                .text(Sao.i18n.gettext('Tab shortcuts')))
+                .appendTo(row);
 
-        for (const definition of shortcuts_defs()) {
-            var dt = jQuery('<dt/>').text(definition.label);
-            var dd = jQuery('<dd/>').append(jQuery('<kbd>')
-                .text(definition.shortcut));
-            var dest_dl;
-            if (definition.id) {
-                dest_dl = tab_shortcuts_dl;
-            } else {
-                dest_dl = global_shortcuts_dl;
+            for (const definition of shortcuts_defs()) {
+                var dt = jQuery('<dt/>').text(definition.label);
+                var dd = jQuery('<dd/>').append(jQuery('<kbd>')
+                    .text(definition.shortcut));
+                var dest_dl;
+                if (definition.id) {
+                    dest_dl = tab_shortcuts_dl;
+                } else {
+                    dest_dl = global_shortcuts_dl;
+                }
+                dt.appendTo(dest_dl);
+                dd.appendTo(dest_dl);
             }
-            dt.appendTo(dest_dl);
-            dd.appendTo(dest_dl);
+            dialog.modal.on('hidden.bs.modal', function() {
+                jQuery(this).remove();
+            });
+            _help_dialog = dialog;
+        } else {
+            dialog = _help_dialog;
         }
-        dialog.modal.on('hidden.bs.modal', function() {
-            jQuery(this).remove();
-        });
 
-        dialog.modal.modal('show');
+        dialog.modal.modal('toggle');
+        dialog.modal.one('shown.bs.modal hidden.bs.modal', Mousetrap.unpause);
         return false;
     }
 
@@ -1316,7 +1361,7 @@ var Sao = {
     .on('hidden.bs.modal', '.modal', function(event) {
         setModalsAndBackdropsOrder();
         if (jQuery('.modal:visible').length) {
-            $(document.body).addClass('modal-open');
+            jQuery(document.body).addClass('modal-open');
         }
     });
 

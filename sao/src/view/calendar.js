@@ -264,7 +264,6 @@
             var dtstart = this.attributes.dtstart;
             var dtend = this.attributes.dtend;
             var record = event.record;
-            var group = record.group;
             var previous_start = record.field_get(dtstart);
             var previous_end = previous_start;
             if (dtend) {
@@ -299,7 +298,6 @@
         event_resize: function(event, delta, revertFunc, jsEvent, ui, view) {
             var dtend = this.attributes.dtend;
             var record = event.record;
-            var group = record.group;
             var previous_end = record.field_get(dtend);
             var new_end = event.end;
             if (previous_end.isDateTime === true) {
@@ -348,17 +346,26 @@
             if (!this.start && !this.end) {
                 return [['id', '=', -1]];
             }
-            var first_datetime = Sao.DateTime(this.start);
-            var last_datetime = Sao.DateTime(this.end);
+            var start = Sao.DateTime(this.start);
+            var end = Sao.DateTime(this.end);
             var dtstart = this.attributes.dtstart;
             var dtend = this.attributes.dtend || dtstart;
-            return ['OR',
-                    ['AND', [dtstart, '>=', first_datetime],
-                        [dtstart,  '<',  last_datetime]],
-                    ['AND', [dtend, '>=', first_datetime],
-                        [dtend, '<', last_datetime]],
-                    ['AND',  [dtstart, '<', first_datetime],
-                        [dtend, '>', last_datetime]]];
+            var fields = this.screen.model.fields;
+            if (fields[dtstart].description.type == 'date') {
+                start = start.todate();
+            }
+            if (fields[dtend].description.type == 'date') {
+                end = end.todate();
+            }
+            return [
+                [dtstart, '!=', null],
+                [dtend, '!=', null],
+                ['OR',
+                    ['AND', [dtstart, '>=', start], [dtstart,  '<', end]],
+                    ['AND', [dtend, '>=', start], [dtend, '<', end]],
+                    ['AND',  [dtstart, '<', start], [dtend, '>', end]],
+                ],
+            ];
         },
         get_displayed_period: function(){
             var DatesPeriod = [];

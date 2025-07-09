@@ -104,6 +104,7 @@
                 params.model = action.res_model || data.res_model;
                 params.res_id = action.res_id || data.res_id;
                 params.context_model = action.context_model;
+                params.show_filter = action.show_filter;
                 params.context_domain = action.context_domain;
                 if ((action.limit !== undefined) && (action.limit !== null)) {
                     params.limit = action.limit;
@@ -145,7 +146,6 @@
 
     Sao.Action.exec_keyword = function(
         keyword, data, context, warning=true, alwaysask=false) {
-        var actions = [];
         var model_id = data.id;
         var args = {
             'method': 'model.' + 'ir.action.keyword.get_keyword',
@@ -188,10 +188,9 @@
         prm.done(function(result) {
             var report_type = result[0];
             var data = result[1];
-            var print = result[2];
+            // TODO direct print
             var name = result[3];
 
-            // TODO direct print
             var file_name = name + '.' + report_type;
             Sao.common.download_file(data, file_name);
         });

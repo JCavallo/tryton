@@ -32,7 +32,6 @@
             column.tree = this.view;
             this.view.widgets[name].push(column);
 
-            var prefixes = [], suffixes = [];
             if ('symbol' in attributes) {
                 column.suffixes.push(
                     new Sao.View.Tree.Symbol(attributes, 1));
@@ -76,12 +75,11 @@
                 this.view.optionals.push(column);
             }
 
-            if (attributes.sum) {
-                var label = attributes.sum + Sao.i18n.gettext(': ');
+            if (parseInt(attributes.sum || '0', 10)) {
                 var sum = jQuery('<label/>', {
-                    'text': label,
+                    'text': attributes.string,
                 });
-                var aggregate = jQuery('<span/>', {
+                var aggregate = jQuery('<div/>', {
                     'class': 'value',
                 });
                 this.view.sum_widgets.set(column, [sum, aggregate]);
@@ -108,7 +106,10 @@
                 Sao.common.SELECTION_MULTIPLE);
             this.el = jQuery('<div/>', {
                 'class': 'tree-container',
-            });
+            })
+            // Prevent Chrome based browser to compute a min-content
+            // such that only this table has scrollbar if needed
+                .css('display', 'grid');
             this.scrollbar = jQuery('<div/>')
                 .appendTo(jQuery('<div/>', {
                     'class': 'scrollbar responsive',
@@ -166,6 +167,8 @@
             tr.append(th);
             this.thead.append(tr);
 
+            const observer = new MutationObserver(this.column_resize.bind(this));
+
             this.tfoot = null;
             var sum_row;
             if (this.sum_widgets.size) {
@@ -194,6 +197,7 @@
                     });
             }
 
+            var col_idx = 1;
             for (const column of this.columns) {
                 col = jQuery('<col/>', {
                     'class': column.attributes.widget,
@@ -201,7 +205,10 @@
                 th = jQuery('<th/>', {
                     'class': column.attributes.widget,
                 });
-                var resize_div = jQuery('<div/>');
+                th.uniqueId();
+                var resize_div = jQuery('<div/>', {
+                    'data-col': col_idx,
+                });
                 var label = jQuery('<label/>')
                     .text(column.attributes.string)
                     .attr('title', column.attributes.string)
@@ -214,7 +221,10 @@
                         label.addClass('editable');
                     }
                 }
-                if (column.attributes.help) {
+                if ((Sao.config.developer_help) && (
+                        column.attributes.developer_help)) {
+                    label.attr('title', column.attributes.developer_help);
+                } else if (column.attributes.help) {
                     label.attr('title', column.attributes.help);
                 }
                 if (column.sortable) {
@@ -223,16 +233,20 @@
                     });
                     label.append(arrow);
                     column.arrow = arrow;
-                    th.click(column, this.sort_model.bind(this));
+                    label.click(column, this.sort_model.bind(this));
                     label.addClass('sortable');
                 }
                 tr.append(th.append(resize_div));
                 column.header = th;
                 column.col = col;
+                observer.observe(resize_div[0], {
+                    attributeFilter: ["style"],
+                    attributeOldValue: true,
+                    subtree: false,
+                });
 
                 column.footers = [];
                 if (this.sum_widgets.size) {
-                    var field_name = column.attributes.name;
                     var total_cell = jQuery('<th/>', {
                         'class': column.class_,
                     });
@@ -245,55 +259,54 @@
                     sum_row.append(total_cell);
                     column.footers.push(total_cell);
                 }
+
+                col_idx += 1;
             }
             this.tbody = jQuery('<tbody/>');
             this.table.append(this.tbody);
             this.tbody.on('contextmenu', this.contextmenu.bind(this));
 
+            this.colgroup.prepend(jQuery('<col/>', {
+                'class': 'tree-menu',
+            }));
+            this.thead.children().prepend(jQuery('<th/>', {
+                'class': 'tree-menu',
+            }));
+            if (this.tfoot) {
+                this.tfoot.children().prepend(jQuery('<th/>'));
+            }
+
             this.set_drag_and_drop();
 
+            th = this.thead.find('th').first();
             if (this.optionals.length) {
-                if (this.draggable) {
-                    th = this.thead.children().children().first();
-                    th.addClass('optional');
-                } else {
-                    this.colgroup.prepend(jQuery('<col/>', {
-                        'class': 'optional',
-                    }));
-                    th = jQuery('<th/>', {
-                        'class': 'optional',
-                    });
-                    this.thead.children().prepend(th);
-                    if (this.tfoot) {
-                        this.tfoot.children().prepend(jQuery('<th/>'));
-                    }
-                }
-                var menu = jQuery('<ul/>', {
-                    'class': 'dropdown-menu',
-                }).click(function(evt) {
-                    evt.stopImmediatePropagation();
-                });
-                var dropdown = jQuery('<div/>', {
-                    'class': 'dropdown',
-                }).append(jQuery('<a/>', {
-                    'data-toggle': 'dropdown',
-                    'aria-haspopup': true,
-                    'aria-expanded': false,
-                    'title': Sao.i18n.gettext("Customize"),
-                }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-menu'))
-                    .click(menu, this.optional_menu.bind(this))
-                ).append(menu);
-                dropdown.on('hide.bs.dropdown', () => {
-                    this.save_optional(true);
-                    Sao.common.set_overflow(th, 'hide');
-                });
-                dropdown.on('show.bs.dropdown', () => {
-                    Sao.common.set_overflow(th, 'show');
-                });
-                th.append(dropdown);
+                th.addClass('optional');
             }
+            var menu = jQuery('<ul/>', {
+                'class': 'dropdown-menu',
+            }).click(function(evt) {
+                evt.stopImmediatePropagation();
+            });
+            var dropdown = jQuery('<div/>', {
+                'class': 'dropdown',
+            }).append(jQuery('<a/>', {
+                'data-toggle': 'dropdown',
+                'aria-haspopup': true,
+                'aria-expanded': false,
+                'title': Sao.i18n.gettext("Menu"),
+            }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-menu'))
+                .click(menu, this.tree_menu.bind(this))
+            ).append(menu);
+            dropdown.on('hide.bs.dropdown', () => {
+                this.save_optional(true);
+                Sao.common.set_overflow(th, 'hide');
+            });
+            dropdown.on('show.bs.dropdown', () => {
+                Sao.common.set_overflow(th, 'show');
+            });
+            th.append(dropdown);
         },
-        optional_menu: function(evt) {
+        tree_menu: function(evt) {
             const toggle = evt => {
                 var column = evt.data;
                 column.set_visible(jQuery(evt.delegateTarget).prop('checked'));
@@ -316,8 +329,36 @@
                 }).change(optional, toggle))
                     .append(' ' + optional.attributes.string))));
             }
+            if (this.optionals.length) {
+                menu.append(jQuery('<li/>', {
+                    'role': 'separator',
+                    'class': 'divider hidden-xs',
+                }));
+            }
+            menu.append(jQuery('<li/>', {
+                'role': 'presentation',
+                'class': (
+                    this.selected_records.length || !navigator.clipboard?
+                    '' : 'disabled'),
+            }).append(jQuery('<a/>', {
+                'role': 'menuitem',
+                'href': '#',
+                'tabindex': -1,
+            }).text(' ' + Sao.i18n.gettext("Copy Selected Rows"))
+                .prepend(
+                    Sao.common.ICONFACTORY.get_icon_img('tryton-copy', {
+                        'aria-hidden': 'true',
+                    }))
+                .click(evt => {
+                    evt.preventDefault();
+                    this.on_copy();
+                    menu.dropdown('toggle');
+                })));
         },
         save_optional: function(store=true) {
+            if (!this.optionals.length) {
+                return;
+            }
             var fields = {};
             for (const column of this.optionals) {
                 fields[column.attributes.name] = !column.get_visible();
@@ -329,6 +370,134 @@
                     this.view_id, fields], {});
             }
             Sao.Screen.tree_column_optional[this.view_id] = fields;
+        },
+        column_resize: function(mutationList) {
+            if (mutationList.length == 0) {
+                return;
+            }
+            var mutation = mutationList.at(-1);
+            var col_idx = Number(mutation.target.dataset.col) + 1;
+            var width = mutation.target.style.width;
+            const css_width_re = /width: ([^;]*)/i;
+            const width_re = /^([0-9.]+)px$/i;
+            var old_width;
+            if (mutation.oldValue) {
+                old_width = mutation.oldValue.match(css_width_re);
+                old_width = old_width ? old_width[1] : undefined;
+            }
+            // The minimum width for the column
+            var min_width = this.colgroup.find( 'col').eq(col_idx)
+                .css('min-width');
+            if (min_width) {
+                min_width = Number(min_width.match(width_re)[1]);
+            }
+            // The sum of the required sizes of the columns
+            var total_size = 0;
+            // The available size for displaying the columns
+            var displayed_width = this.treeview.width();
+            var last_visible;
+            this.colgroup.find('col').each((idx, element) => {
+                var jqElement = jQuery(element);
+                var matched = jqElement.css('width').match(css_width_re);
+                var size = Math.floor(
+                    matched ? Number(matched[0]) : jqElement.width());
+                total_size += size;
+                if (!jqElement.hasClass('optional') &&
+                    !jqElement.hasClass('selection-state')) {
+                    var width = Math.floor(jqElement.width());
+                    if (width !== 0) {
+                        last_visible = idx;
+                        jqElement.width(width + "px");
+                        jqElement.css('width', width + "px");
+                    }
+                }
+            });
+            if (min_width && (width < min_width)) {
+                width = min_width;
+            }
+            if (old_width && (width != old_width)) {
+                var old_value = old_width.match(width_re);
+                var value = width.match(width_re);
+                old_value = old_value ? Number(old_value[1]) : undefined;
+                if (old_value && min_width && (old_value < min_width)) {
+                    old_value = min_width;
+                }
+                value = value ? Number(value[1]) : undefined;
+
+                if (old_value && value) {
+                    var offset = old_value - value;
+                    var tr_node = jQuery(mutation.target.parentNode.parentNode);
+                    var last_col = this.colgroup.find('col')
+                        .eq(tr_node.data('last_col'));
+                    var last_col_width = last_col.css('width').match(width_re);
+                    last_col_width = last_col_width ? Number(last_col_width[1]) : undefined;
+                    if ((last_col_width || (last_col_width === 0))) {
+                        // In some cases, the size may end up with pixel
+                        // fractions. We do not want this
+                        var delta = last_col_width - Math.floor(last_col_width);
+                        this.colgroup.find('col').eq(col_idx).css('width', width);
+                        total_size -= offset;
+                        if (old_value > value) {
+                            // When reducing the size of a column, we way have
+                            if (displayed_width > total_size + offset) {
+                                // If the total size of columns is less than
+                                // the visible scope of the table, we add to
+                                // the last column so the sum of column sizes
+                                // matches the displayed size
+                                this.colgroup.find('col').eq(tr_node.data('last_col'))
+                                    .css('width', `${last_col_width - delta + offset}px`);
+                                total_size -= offset - delta;
+                            } else if (col_idx == last_visible - 1) {
+                                // if the total size is greater than the
+                                // visible scope, and we reduce the width of
+                                // the second to last column, we also reduce
+                                // the width of the last column, so there is an
+                                // actual way to do so
+                                this.colgroup.find('col').eq(tr_node.data('last_col'))
+                                    .css('width', `${last_col_width - delta - offset}px`);
+                                total_size -= offset + delta;
+                            }
+                        }
+                        // Sync the table size with the total column size
+                        this.table.css('min-width', 'calc(' + Math.max(total_size, displayed_width) + "px)");
+                        Sao.common.debounce(this.save_width, 1000)(this);
+                    }
+                }
+            } else if (!old_width) {
+                jQuery(mutation.target).css('width', width);
+                this.colgroup.find('col').eq(col_idx).css('width', width);
+                this.table.css('min-width', total_size + "px)");
+            } else {
+                jQuery(mutation.target).css('width', width);
+                this.colgroup.find('col').eq(col_idx).css('width', width);
+            }
+        },
+        save_width: function(tree) {
+            var widths = {};
+            for (const column of tree.columns) {
+                if (!column.get_visible() || !column.attributes.name ||
+                    column instanceof Sao.View.Tree.ButtonColumn) {
+                    continue;
+                }
+                var width = column.col.css('width');
+                widths[column.attributes.name] = Number(
+                    width.substr(0, width.length - 2));
+            }
+
+            var model_name = tree.screen.model_name;
+            var TreeWidth = new Sao.Model('ir.ui.view_tree_width');
+            TreeWidth.execute(
+                'set_width',
+                [model_name, widths, window.screen.width],
+                {});
+            if (Object.hasOwn(
+                Sao.Screen.tree_column_width, model_name)) {
+                jQuery.extend(
+                    Sao.Screen.tree_column_width[model_name],
+                    widths);
+            } else {
+                Sao.Screen.tree_column_width[model_name] = widths;
+            }
         },
         reset: function() {
             this.display_size = Sao.config.display_size;
@@ -483,6 +652,35 @@
                 }
             });
         },
+        on_copy: function() {
+            var data = [];
+            this.selected_records.forEach((record) => {
+                var values = [];
+                this.columns.forEach((col) => {
+                    if (!col.get_visible() || !col.attributes.name ||
+                        col instanceof Sao.View.Tree.ButtonColumn) {
+                        return;
+                    }
+                    var text;
+                    if (!record.is_loaded(col.attributes.name)) {
+                        try {
+                            record.load(col.attributes.name, false, false);
+                            text = col.get_textual_value(record);
+                        } catch (e) {
+                            Sao.Logger.error(
+                                "Error loading " +
+                                `${this.attributes.name} for ${record}`);
+                            text = Sao.i18n.gettext('#ERROR');
+                        }
+                    } else {
+                        text = col.get_textual_value(record);
+                    }
+                    values.push('"' + String(text).replace('"', '""') + '"');
+                });
+                data.push(values.join('\t'));
+            });
+            navigator.clipboard.writeText(data.join('\n'));
+        },
         _add_drag_n_drop: function() {
             Sortable.create(this.tbody[0], {
                 handle: '.draggable-handle',
@@ -509,12 +707,7 @@
 
             this.draggable = dnd;
             if (dnd) {
-                this.colgroup.prepend(jQuery('<col/>', {
-                    'class': 'draggable-handle',
-                }));
-                this.thead.children().prepend(jQuery('<th/>', {
-                    'class': 'draggable-handle',
-                }));
+                this.thead.find('th').first().addClass('draggable-handle');
                 this._add_drag_n_drop();
             }
         },
@@ -690,9 +883,8 @@
             return buttons;
         },
         display: function(selected, expanded) {
-            var tbody = this.tbody;
             var current_record = this.record;
-            if (jQuery.isEmptyObject(selected)) {
+            if (jQuery.isEmptyObject(selected) && current_record) {
                 selected = this.get_selected_paths();
                 if (this.selection.prop('checked') &&
                     !this.selection.prop('indeterminate')) {
@@ -701,16 +893,12 @@
                         selected.push([record.id]);
                     }
                 } else {
-                    if (current_record) {
-                        var current_path = current_record.get_path(this.group);
-                        current_path = current_path.map(function(e) {
-                            return e[1];
-                        });
-                        if (!Sao.common.contains(selected, current_path)) {
-                            selected = [current_path];
-                        }
-                    } else if (!current_record) {
-                        selected = [];
+                    var current_path = current_record.get_path(this.group);
+                    current_path = current_path.map(function(e) {
+                        return e[1];
+                    });
+                    if (!Sao.common.contains(selected, current_path)) {
+                        selected = [current_path];
                     }
                 }
             }
@@ -773,10 +961,8 @@
             }
 
             // Set column visibility depending on attributes and domain
-            var visible_columns = 1;  // start at 1 because of the checkbox
-            if (this.optionals.length && !this.draggable) {
-                visible_columns += 1;
-            }
+            // start at 2 because of checkbox and option headers
+            var visible_columns = 2;
             var domain = [];
             if (!jQuery.isEmptyObject(this.screen.domain)) {
                 domain.push(this.screen.domain);
@@ -789,6 +975,8 @@
             domain = inversion.simplify(domain);
             var decoder = new Sao.PYSON.Decoder(this.screen.context);
             var min_width = [];
+            var tree_column_width = (
+                Sao.Screen.tree_column_width[this.screen.model_name] || {});
             var tree_column_optional = (
                 Sao.Screen.tree_column_optional[this.view_id] || {});
             for (const column of this.columns) {
@@ -798,7 +986,8 @@
                     return;
                 }
                 var optional;
-                if (tree_column_optional.hasOwnProperty(name)) {
+                if (Object.prototype.hasOwnProperty.call(
+                    tree_column_optional, name)) {
                     optional = tree_column_optional[name];
                 } else {
                     optional = Boolean(parseInt(
@@ -812,12 +1001,14 @@
                 } else if (name === this.screen.exclude_field) {
                     visible_columns -= 1;
                     column.set_visible(false);
-                } else {
+                } else if (name in this.screen.model.fields) {
+                    const field = this.screen.model.fields[name];
                     var inv_domain = inversion.domain_inversion(domain, name);
                     if (typeof inv_domain != 'boolean') {
                         inv_domain = inversion.simplify(inv_domain);
                     }
-                    var unique = inversion.unique_value(inv_domain)[0];
+                    var unique = inversion.unique_value(
+                        inv_domain, field._single_value)[0];
                     if (unique && jQuery.isEmptyObject(this.children_field)) {
                         visible_columns -= 1;
                         column.set_visible(false);
@@ -834,13 +1025,15 @@
                     !column.col.hasClass('selection-state') &&
                     !column.col.hasClass('favorite')) {
                     var width, c_width;
-                    if (column.attributes.width) {
+                    if (Object.hasOwn(tree_column_width, column.attributes.name)) {
+                        width = c_width = tree_column_width[column.attributes.name];
+                        min_width.push(width);
+                    } else if (column.attributes.width) {
                         width = c_width = column.attributes.width;
                         min_width.push(width + 'px');
                     } else {
                         width = {
                             'integer': 8,
-                            'biginteger': 8,
                             'selection': 9,
                             'reference': 20,
                             'one2many': 5,
@@ -902,6 +1095,7 @@
                 }).map(function(row) {
                     return row.el;
                 }));
+                this.update_selection(); // update after new rows has been added
                 this.update_visible();
                 if ((this.display_size < this.group.length) &&
                     (!this.tbody.children().last().hasClass('more-row'))) {
@@ -974,9 +1168,7 @@
             }
         },
         redraw: function(selected, expanded) {
-            return redraw_async(this.rows, selected, expanded).then(() => {
-                this.update_selection();
-            });
+            return redraw_async(this.rows, selected, expanded);
         },
         switch_: function(path) {
             this.screen.row_activate();
@@ -1000,18 +1192,14 @@
                     to_show.push(i);
                 }
             }
+            // Take into account the selection or optional column
+            var offset = 2;
+
             const make_selector = (col_idx) => {
-                // Take into account the selection or optional column
-                var offset = 1;
-                if (this.draggable) {
-                    offset += 1;
-                } else if (this.optionals.length) {
-                    offset += 1;
-                }
-                // CSS is 1-indexed
                 return `tr td:nth-child(${col_idx + offset + 1})`;
             };
 
+            this.thead.find('tr').data('last_col', to_show.at(-1) + offset);
             if (to_hide.length) {
                 this.tbody.find(to_hide.map(make_selector).join(','))
                     .addClass('invisible').hide();
@@ -1019,6 +1207,9 @@
             if (to_show.length) {
                 this.tbody.find(to_show.map(make_selector).join(','))
                     .removeClass('invisible').show();
+                this.thead.find(
+                        `tr th:nth-child(${to_show[to_show.length - 1] + offset + 1}) div`)
+                    .css('resize', 'none');
             }
         },
         update_sum: function() {
@@ -1092,11 +1283,11 @@
                         sum_ = (sum_ || 0).toLocaleString(
                             Sao.i18n.BC47(Sao.i18n.getlang()));
                     }
-                    aggregate = selected_sum + ' / ' + sum_;
+                    aggregate = selected_sum + '\n' + sum_;
                 }
                 sum_value.text(aggregate);
                 sum_value.parent().attr(
-                    'title', sum_label.text() + ' ' + sum_value.text());
+                    'title', sum_label.text() + '\n' + sum_value.text());
             }
         },
         get selected_records() {
@@ -1233,9 +1424,9 @@
             this.selection.prop('indeterminate', false);
             if (jQuery.isEmptyObject(selected_records)) {
                 this.selection.prop('checked', false);
-            } else if (selected_records.length ==
-                    this.tbody.children().length &&
-                    this.display_size >= this.group.length) {
+            } else if (
+                this.rows.every((row) => row.is_selected()) &&
+                (selected_records.length >= this.tbody.children().length)) {
                 this.selection.prop('checked', true);
             } else {
                 this.selection.prop('indeterminate', true);
@@ -1302,10 +1493,14 @@
             if (!row || !this.children_field || row.is_leaf() || !row.record._values[this.children_field] ) {
                     return this.rows.length;
             }
-            return row.record._values[this.children_field].length;
+            if (row.record.is_loaded(this.children_field)) {
+                return row.record.field_get_client(this.children_field).length;
+            } else {
+                return 0;
+            }
         },
         set_cursor: function(new_, reset_view) {
-            var i, root_group, path, row_path, row, column;
+            var path, row, column;
             var td, prm;
 
             if (!this.record) {
@@ -1333,7 +1528,10 @@
                         if (this.editable && new_) {
                             td.trigger('click');
                         }
-                        td.find(':input,[tabindex=0]').focus();
+                        var child = Sao.common.find_focusable_child(td);
+                        if (child) {
+                            child.focus();
+                        }
                     }
                 }
             };
@@ -1439,130 +1637,10 @@
             // Gruiiik
             var is_m2m = this.tbody.parents('.screen-container')
                 .parent().hasClass('form-many2many-content');
-
-            const populate = (menu, model_name, field_name) => {
-                var model = new Sao.Model(model_name);
-                var toolbar = model.execute(
-                    'view_toolbar_get', [], this.screen.context, false);
-
-                const popLocation = (e) => {
-                    var menu = e.data;
-                    if ((menu.offset().left + menu.width()) > window.innerWidth) {
-                        menu.css('left', (-1 * menu.width()) + 'px');
-                    }
-                };
-                const open_records = (records) => {
-                    return (evt) => {
-                        if (field_name) {
-                            for (const record of records) {
-                                record.load(field_name, false);
-                            }
-                        }
-
-                        var ids = records.map(
-                            (r) => {
-                                if (field_name) {
-                                    return r.get_eval()[field_name];
-                                } else {
-                                    return r.id;
-                                }
-                            });
-
-                        Sao.Tab.create({
-                            'model': model_name,
-                            'mode': ['form'],
-                            'context': this.screen.context,
-                            'res_id': ids,
-                        });
-                    };
-                };
-                const execute_action = (action, records) => {
-                    return (evt) => {
-                        if (field_name) {
-                            for (const record of records) {
-                                record.load(field_name, false);
-                            }
-                        }
-
-                        var ids = records.map(
-                            (r) => {
-                                if (field_name) {
-                                    return r.get_eval()[field_name];
-                                } else {
-                                    return r.id;
-                                }
-                            });
-                        var data = {
-                            model: model_name,
-                            id: ids[0],
-                            ids: ids,
-                        };
-                        Sao.Action.execute(
-                            jQuery.extend({}, action), data,
-                            jQuery.extend({}, this.screen.context));
-                    };
-                };
-
-                if (field_name || is_m2m) {
-                    jQuery('<li/>', {
-                        'role': 'presentation',
-                    }).append(jQuery('<a/>', {
-                        'role': 'menuitem',
-                        'href': '#',
-                        'tabindex': -1
-                    }).text(Sao.i18n.gettext("Edit...")).click(
-                        open_records(this.screen.selected_records))
-                    ).appendTo(menu);
-                }
-
-                for (const [action_type, action_name] of [
-                        ['action', Sao.i18n.gettext("Action")],
-                        ['relate', Sao.i18n.gettext("Relation")],
-                        ['print', Sao.i18n.gettext("Report")],
-                ]) {
-                    if (!(toolbar[action_type] || []).length) {
-                        continue;
-                    }
-                    if (menu.children().length) {
-                        jQuery('<li/>', {
-                            'role': 'presentation',
-                            'class': 'divider',
-                        }).appendTo(menu);
-                    }
-                    var action_li = jQuery('<li/>', {
-                        'role': 'presentation',
-                    }).append(jQuery('<a/>', {
-                        'class': 'contextual-submenu',
-                        'role': 'menuitem',
-                        'href': '#',
-                        'tabindex': -1
-                    }).text(action_name)).appendTo(menu);
-                    var action_menu = jQuery('<ul/>', {
-                        'class': 'dropdown-menu contextual contextual-submenu',
-                    }).appendTo(action_li);
-                    action_li.on('mouseenter', action_menu, popLocation);
-                    for (const action of (toolbar[action_type] || [])) {
-                        jQuery('<li/>', {
-                            'role': 'presentation',
-                        }).append(jQuery('<a/>', {
-                            'role': 'menuitem',
-                            'href': '#',
-                            'tabindex': -1,
-                        }).text(action.name).click(execute_action(
-                            action, this.screen.selected_records))
-                        ).appendTo(action_menu);
-                    }
-                }
-            };
-
-            var menu = jQuery('#popup-menu');
-            menu.empty();
-
-            var ul = jQuery('<ul/>', {
-                'class': 'dropdown-menu contextual',
-            }).appendTo(menu);
-
-            populate(ul, this.screen.model_name);
+            let ul = Sao.common.PopupMenu.initialize(evt);
+            Sao.common.PopupMenu.populate(
+                ul, this.screen.model_name, null, this.screen.context,
+                this.screen.selected_records, is_m2m);
 
             if (this.selected_records.length === 1) {
                 var m2os = this.screen.get_many2ones();
@@ -1584,19 +1662,12 @@
                     var submenu = jQuery('<ul/>', {
                         'class': 'dropdown-menu contextual contextual-submenu',
                     }).appendTo(item);
-                    populate(submenu, m2o.description.relation, m2o.description.name);
+                    Sao.common.PopupMenu.populate(
+                        submenu, m2o.description.relation,
+                        m2o.description.name, this.screen.context,
+                        this.screen.selected_records, is_m2m);
                 }
             }
-
-            $(document).one('click', () => {
-                menu.css('display', 'none');
-            });
-
-            menu.css({
-                'top': evt.pageY,
-                'left': evt.pageX,
-                'display': 'block',
-            });
         }
     });
 
@@ -1657,7 +1728,7 @@
         },
         get path() {
             if (!this._path) {
-                var path, position;
+                var path;
                 if (this.parent_) {
                     path = jQuery.extend([], this.parent_.path.split('.'));
                 } else {
@@ -1687,21 +1758,15 @@
         _construct: function() {
             var td;
             this.tree.el.uniqueId();
+            td = jQuery('<td/>');
             if (this.tree.draggable) {
-                td = jQuery('<td/>', {
-                    'class': 'draggable-handle'
-                });
-                if (this.tree.optionals.length) {
-                    td.addClass('optional');
-                }
+                td.addClass('draggable-handle');
                 td.append(Sao.common.ICONFACTORY.get_icon_img('tryton-drag'));
-                this.el.append(td);
-            } else if (this.tree.optionals.length) {
-                td = jQuery('<td/>', {
-                    'class': 'optional'
-                });
-                this.el.append(td);
             }
+            if (this.tree.optionals.length) {
+                td.addClass('optional');
+            }
+            this.el.append(td);
             td = jQuery('<td/>', {
                 'class': 'selection-state',
             }).click(event_ => {
@@ -1737,6 +1802,11 @@
                 this.expander.children().html('&nbsp;');
                 this.expander.on('click keypress',
                         Sao.common.click_press(this.toggle_row.bind(this)));
+                this.expander.dblclick((evt) => {
+                    // prevent calling switch_row on td
+                    evt.preventDefault();
+                    evt.stopImmediatePropagation();
+                });
             }
 
             for (var i = 0; i < this.tree.columns.length; i++) {
@@ -1751,6 +1821,7 @@
                         'aria-hidden': true
                     }));
                 }
+                td.attr('headers', column.header.attr('id'));
                 td.on('click keypress', {'index': i}, on_click);
                 td.dblclick(this.switch_row.bind(this));
                 if (this.tree.editable) {
@@ -1765,10 +1836,8 @@
                     'class': 'cell',
                 });
                 td.append(cell);
-                var j;
                 if (column.prefixes) {
-                    for (j = 0; j < column.prefixes.length; j++) {
-                        var prefix = column.prefixes[j];
+                    for (let j = 0; j < column.prefixes.length; j++) {
                         cell.append(jQuery('<span/>', {
                             'class': 'prefix'
                         }));
@@ -1778,8 +1847,7 @@
                     'class': 'widget'
                 }));
                 if (column.suffixes) {
-                    for (j = 0; j < column.suffixes.length; j++) {
-                        var suffix = column.suffixes[j];
+                    for (let j = 0; j < column.suffixes.length; j++) {
                         cell.append(jQuery('<span/>', {
                             'class': 'suffix'
                         }));
@@ -1791,13 +1859,8 @@
         },
         _get_column_td: function(column_index, row) {
             row = row || this.el;
-            var offset = 1;  // take into account the selection or optional column
-            if (this.tree.draggable) {
-                offset += 1;
-            } else if (this.tree.optionals.length) {
-                offset += 1;
-            }
-            return jQuery(row.children()[column_index + offset]);
+            // take into account the selection and option column
+            return jQuery(row.children()[column_index + 2]);
         },
         // [Coog specific)
         // > Used for always_expand
@@ -1990,11 +2053,9 @@
             }
         },
         collapse_row: function() {
-            if (this.children_field) {
-                for (const row of this.rows) {
-                    if (row.exception) {
-                        row.record.unload();
-                    }
+            for (const row of this.rows) {
+                if (row.exception) {
+                    row.record.cancel();
                 }
             }
             this.update_expander(false);
@@ -2016,8 +2077,7 @@
         collapse_children: function() {
             for (const row of this.rows) {
                 row.collapse_children();
-                var node = row.el[0];
-                node.parentNode.removeChild(node);
+                row.el.remove();
             }
             this.rows = [];
         },
@@ -2209,7 +2269,6 @@
         },
         redraw: function(selected, expanded) {
             var i, cell, widget;
-            var field;
 
             Sao.View.Tree.RowEditable._super.redraw.call(this, selected,
                     expanded);
@@ -2282,7 +2341,8 @@
 
             Sao.View.Tree.RowEditable._super.select_row.call(this, event_);
 
-            if (!event_.shiftKey && !(event_.ctrlKey || event_.metaKey)) {
+            if (!event_.shiftKey && !(event_.ctrlKey || event_.metaKey) &&
+                (this.record === current_record)) {
                 this.tree.edit_row(this);
             }
         },
@@ -2352,8 +2412,7 @@
             return this._get_column_td(this.edited_column);
         },
         key_press: function(event_) {
-            var current_td, selector, next_column, next_idx, i;
-            var states;
+            var next_column, next_idx, i;
 
             if (((event_.which != Sao.common.TAB_KEYCODE) &&
                     (event_.which != Sao.common.UP_KEYCODE) &&
@@ -2575,7 +2634,9 @@
                     if (!value) {
                         value = field.get_client(record) || '';
                     }
-                    cell.text(value);
+                    if (cell.text() != value) {
+                        cell.text(value);
+                    }
                 }
             };
             if (!record.is_loaded(this.attributes.name)) {
@@ -2653,7 +2714,7 @@
             return this.attributes.name;
         },
         get model_name() {
-            return model.name;
+            return this.model.name;
         },
         get_cell: function() {
             var cell = jQuery('<div/>', {
@@ -2662,9 +2723,14 @@
             });
             return cell;
         },
+        get_textual_value: function(record) {
+            return this.field.get_client(record);
+        },
         update_text: function(cell, record) {
-            var text = this.field.get_client(record);
-            cell.text(text).attr('title', text);
+            var text = this.get_textual_value(record);
+            if (text != cell.text()) {
+                cell.text(text).attr('title', text);
+            }
         },
         render: function(record, cell) {
             if (!cell) {
@@ -2732,11 +2798,9 @@
         get_cell: function() {
             return Sao.View.Tree.IntegerColumn._super.get_cell.call(this);
         },
-        update_text: function(cell, record) {
-            var value = this.field.get_client(
-                record, this.factor, this.grouping);
-            cell.text(value).attr('title', value);
-        }
+        get_textual_value: function(record) {
+            return this.field.get_client(record, this.factor, this.grouping);
+        },
     });
 
     Sao.View.Tree.FloatColumn = Sao.class_(Sao.View.Tree.IntegerColumn, {
@@ -2840,11 +2904,27 @@
             Sao.common.selection_mixin.update_selection.call(this, record,
                 this.field, callback);
         },
+        get_textual_value: function(record) {
+            var related = this.field.name + ':string';
+            if (!this.tree.editable && related in record._values) {
+                return record._values[related];
+            } else {
+                var value = this.field.get(record);
+                for (const option of this.selection) {
+                    if (option[0] === value) {
+                        return option[1];
+                    }
+                }
+                return value;
+            }
+        },
         update_text: function(cell, record) {
             if (!this.tree.editable &&
                     (this.field.name + ':string' in record._values)) {
-                var text_value = record._values[this.field.name + ':string'];
-                cell.text(text_value).attr('title', text_value);
+                var text_value = this.get_textual_value(record);
+                if (cell.text() != text_value) {
+                    cell.text(text_value).attr('title', text_value);
+                }
             } else {
                 this.update_selection(record, () => {
                     var value = this.field.get(record);
@@ -2865,7 +2945,9 @@
                         prm = jQuery.when(text);
                     }
                     prm.done(text_value => {
-                        cell.text(text_value).attr('title', text_value);
+                        if (cell.text() != text_value) {
+                            cell.text(text_value).attr('title', text_value);
+                        }
                     });
                 });
             }
@@ -2887,23 +2969,35 @@
             Sao.common.selection_mixin.update_selection.call(this, record,
                 this.field, callback);
         },
+        get_textual_value: function(record) {
+            var related = this.field.name + ':string';
+            if (!this.tree.editable && related in record._values) {
+                return record._values[related];
+            } else {
+                var values = this.field.get_eval(record).map(value => {
+                    for (const option of this.selection) {
+                        if (option[0] === value) {
+                            return option[1];
+                        }
+                    }
+                    return '';
+                });
+                return values.join(';');
+            }
+        },
         update_text: function(cell, record) {
             if (!this.tree.editable &&
                     (this.field_name + ':string' in record._values)) {
-                var text_value = record._values[this.field_name + ':string'];
-                cell.text(text_value).attr('title', text_value);
+                var text_value = this.get_textual_value(record);
+                if (cell.text() != text_value) {
+                    cell.text(text_value).attr('title', text_value);
+                }
             } else {
                 this.update_selection(record, () => {
-                    var values = this.field.get_eval(record).map(value => {
-                        for (const option of this.selection) {
-                            if (option[0] === value) {
-                                return option[1];
-                            }
-                        }
-                        return '';
-                    });
-                    var text_value = values.join(';');
-                    cell.text(text_value).attr('title', text_value);
+                    var text_value = this.get_textual_value(record);
+                    if (cell.text() != text_value) {
+                        cell.text(text_value).attr('title', text_value);
+                    }
                 });
             }
         },
@@ -2932,31 +3026,38 @@
             }));
             return cell;
         },
+        get_textual_value: function(record) {
+            var value = Sao.View.Tree.ReferenceColumn._super
+                .get_textual_value.call(this, record);
+            var model, name, text;
+            if (!value) {
+                model = '';
+                name = '';
+            } else {
+                model = value[0];
+                name = value[1];
+            }
+            if (model) {
+                for (const option of this.selection) {
+                    if (option[0] === model) {
+                        model = option[1];
+                        break;
+                    }
+                }
+                text = model + ',' + name;
+            } else {
+                text = name;
+            }
+            return text;
+        },
         update_text: function(cell, record) {
             cell = cell.children('a');
             cell.unbind('click');
             this.update_selection(record, () => {
-                var value = this.field.get_client(record);
-                var model, name, text;
-                if (!value) {
-                    model = '';
-                    name = '';
-                } else {
-                    model = value[0];
-                    name = value[1];
+                var text = this.get_textual_value(record);
+                if (cell.text() != text) {
+                    cell.text(text).attr('title', text);
                 }
-                if (model) {
-                    for (const option of this.selection) {
-                        if (option[0] === model) {
-                            model = option[1];
-                            break;
-                        }
-                    }
-                    text = model + ',' + name;
-                } else {
-                    text = name;
-                }
-                cell.text(text).attr('title', text);
                 cell.click(event => {
                     event.stopPropagation();
                     var value = this.field.get(record);
@@ -2979,29 +3080,26 @@
 
     Sao.View.Tree.DictColumn = Sao.class_(Sao.View.Tree.CharColumn, {
         class_: 'column-dict',
-        update_text: function(cell, record) {
-            var text = '(' + Object.keys(this.field.get_client(record)).length + ')';
-            cell.text(text).attr('title', text);
+        get_textual_value: function(record) {
+            return '(' + Object.keys(this.field.get_client(record)).length + ')';
         },
     });
 
     Sao.View.Tree.DateColumn = Sao.class_(Sao.View.Tree.CharColumn, {
         class_: 'column-date',
-        update_text: function(cell, record) {
+        get_textual_value: function(record) {
             var value = this.field.get_client(record);
             var date_format = this.field.date_format(record);
-            var text = Sao.common.format_date(date_format, value);
-            cell.text(text).attr('title', text);
+            return Sao.common.format_date(date_format, value);
         }
     });
 
     Sao.View.Tree.TimeColumn = Sao.class_(Sao.View.Tree.CharColumn, {
         class_: 'column-time',
-        update_text: function(cell, record) {
+        get_textual_value: function(record) {
             var value = this.field.get_client(record);
-            var text = Sao.common.format_time(
+            return Sao.common.format_time(
                     this.field.time_format(record), value);
-            cell.text(text).attr('title', text);
         }
     });
 
@@ -3011,9 +3109,8 @@
 
     Sao.View.Tree.One2ManyColumn = Sao.class_(Sao.View.Tree.CharColumn, {
         class_: 'column-one2many',
-        update_text: function(cell, record) {
-            var text = '( ' + this.field.get_client(record).length + ' )';
-            cell.text(text).attr('title', text);
+        get_textual_value: function(record) {
+            return '( ' + this.field.get_client(record).length + ' )';
         }
     });
 
@@ -3032,22 +3129,28 @@
             jQuery('<span/>').appendTo(cell);
             return cell;
         },
-        update_text: function(cell, record) {
+        get_textual_value: function(record) {
             var size;
             if (this.field.get_size) {
                 size = this.field.get_size(record);
             } else {
                 size = this.field.get(record).length;
             }
-            var text = size? Sao.common.humanize(size, 'B') : '';
-            cell.children('span').text(text).attr('title', text);
+            return size? Sao.common.humanize(size, 'B') : '';
+        },
+        update_text: function(cell, record) {
+            var text = this.get_textual_value(record);
+            let span = cell.children('span')
+            if (span.text() != text) {
+                span.text(text).attr('title', text);
+            }
             var button = cell.children('button');
             if (!button.length) {
                 button = jQuery('<button/>', {
                     'class': 'btn btn-default btn-sm',
                     'type': 'button',
                     'title': Sao.i18n.gettext("Save As..."),
-                }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-save')
+                }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-download')
                 ).appendTo(cell)
                     .click(record, event => {
                         // Prevent editable tree to start edition
@@ -3055,7 +3158,7 @@
                         this.save_as(event.data);
                     });
             }
-            if (!size) {
+            if (!text) {
                 button.hide();
             } else {
                 button.show();
@@ -3063,11 +3166,9 @@
         },
         save_as: function(record) {
             var filename;
-            var mimetype = 'application/octet-binary';
             var filename_field = record.model.fields[this.filename];
             if (filename_field) {
                 filename = filename_field.get_client(record);
-                mimetype = Sao.common.guess_mimetype(filename);
             }
             var prm;
             if (this.field.get_data) {
@@ -3166,16 +3267,22 @@
             progressbar.css('min-width: 2em');
             return cell;
         },
-        update_text: function(cell, record) {
+        get_textual_value: function(record) {
             var text = this.field.get_client(record, 100);
             if (text) {
                 text = Sao.i18n.gettext('%1%', text);
             }
+            return text;
+        },
+        update_text: function(cell, record) {
+            var text = this.get_textual_value(record);
             var value = this.field.get(record) || 0;
             var progressbar = cell.find('.progress-bar');
             progressbar.attr('aria-valuenow', value * 100);
-            progressbar.css('width', value * 100 + '%');
-            progressbar.text(text).attr('title', text);
+            if (progressbar.text() != text) {
+                progressbar.css('width', value * 100 + '%');
+                progressbar.text(text).attr('title', text);
+            }
         }
     });
 
@@ -3192,7 +3299,7 @@
                 button.el.click(
                         [record, button], this.button_clicked.bind(this));
             }
-            var fields = jQuery.map(this.view.screen.model.fields,
+            jQuery.map(this.view.screen.model.fields,
                 function(field, name) {
                     if ((field.description.loading || 'eager') ==
                         'eager') {
@@ -3244,7 +3351,6 @@
     });
 
     Sao.View.TreeXMLViewParser.WIDGETS = {
-        'biginteger': Sao.View.Tree.IntegerColumn,
         'binary': Sao.View.Tree.BinaryColumn,
         'boolean': Sao.View.Tree.BooleanColumn,
         'callto': Sao.View.Tree.URLColumn,
@@ -3295,6 +3401,18 @@
         }
     });
 
+    Sao.View.EditableTree.URL = Sao.class_(Sao.View.EditableTree.Char, {
+        class_: 'editable-url',
+        set_readonly: function(readonly) {
+            Sao.View.EditableTree.URL._super.set_readonly.call(this, readonly);
+            if (readonly) {
+                this.input.hide();
+            } else {
+                this.input.show();
+            }
+        },
+    });
+
     Sao.View.EditableTree.Date = Sao.class_(Sao.View.Form.Date, {
         class_: 'editabletree-date',
         init: function(view, attributes) {
@@ -3332,7 +3450,7 @@
             Sao.View.EditableTree.editable_mixin(this);
         },
         get width() {
-            return;
+            return null;
         },
     });
 
@@ -3346,7 +3464,7 @@
             Sao.View.EditableTree.editable_mixin(this);
         },
         get width() {
-            return;
+            return null;
         },
     });
 
@@ -3425,13 +3543,12 @@
     });
 
     Sao.View.EditableTree.WIDGETS = {
-        'biginteger': Sao.View.EditableTree.Integer,
         'binary': Sao.View.EditableTree.Binary,
         'boolean': Sao.View.EditableTree.Boolean,
-        'callto': Sao.View.EditableTree.Char,
+        'callto': Sao.View.EditableTree.URL,
         'char': Sao.View.EditableTree.Char,
         'date': Sao.View.EditableTree.Date,
-        'email': Sao.View.EditableTree.Char,
+        'email': Sao.View.EditableTree.URL,
         'float': Sao.View.EditableTree.Float,
         'integer': Sao.View.EditableTree.Integer,
         'many2many': Sao.View.EditableTree.Many2Many,
@@ -3441,11 +3558,11 @@
         'one2one': Sao.View.EditableTree.One2One,
         'reference': Sao.View.EditableTree.Reference,
         'selection': Sao.View.EditableTree.Selection,
-        'sip': Sao.View.EditableTree.Char,
+        'sip': Sao.View.EditableTree.URL,
         'text': Sao.View.EditableTree.Char,
         'time': Sao.View.EditableTree.Time,
         'timedelta': Sao.View.EditableTree.TimeDelta,
-        'url': Sao.View.EditableTree.Char,
+        'url': Sao.View.EditableTree.URL,
     };
 
 }());
