@@ -45,7 +45,7 @@
                 this.session_id = result[0];
                 this.start_state = this.state = result[1];
                 this.end_state = result[2];
-                this.process();
+                return this.process();
             }, () => {
                 this.destroy();
             });
@@ -53,28 +53,28 @@
         },
         process: function() {
             if (this.__processing || this.__waiting_response) {
-                return;
+                return jQuery.when();
             }
             var process = function() {
                 if (this.state == this.end_state) {
-                    this.end();
-                    return;
+                    return this.end();
                 }
                 var ctx = jQuery.extend({}, this.context);
                 var data = {};
                 if (this.screen) {
                     data[this.screen_state] = this.screen.get_on_change_value();
                 }
-                Sao.rpc({
+                return Sao.rpc({
                     'method': 'wizard.' + this.action + '.execute',
                     'params': [this.session_id, data, this.state, ctx]
                 }, this.session).then(result => {
+                    var prms = [];
                     if (result.view) {
                         this.clean();
                         var view = result.view;
                         this.update(view.fields_view, view.buttons);
 
-                        this.screen.new_(false).then(() => {
+                        prms.push(this.screen.new_(false).then(() => {
                             this.screen.current_record.set_default(
                                 view.defaults || {})
                                 .then(() => {
@@ -83,7 +83,7 @@
                                     this.update_buttons();
                                     this.screen.set_cursor();
                                 });
-                        });
+                        }));
 
                         this.screen_state = view.state;
                         this.__waiting_response = true;
@@ -92,6 +92,7 @@
                     }
 
                     const execute_actions = () => {
+                        var prms = [];
                         if (result.actions) {
                             for (const action of result.actions) {
                                 var context = jQuery.extend({}, this.context);
@@ -100,24 +101,29 @@
                                 delete context.active_ids;
                                 delete context.active_model;
                                 delete context.action_id;
-                                Sao.Action.execute(
-                                    action[0], action[1], context);
+                                prms.push(Sao.Action.execute(
+                                    action[0], action[1], context));
                             }
                         }
+                        return jQuery.when.apply(jQuery, prms);
                     };
 
                     if (this.state == this.end_state) {
-                        this.end().then(execute_actions);
+                        prms.push(this.end().then(execute_actions));
                     } else {
-                        execute_actions();
+                        prms.push(execute_actions());
                     }
                     this.__processing = false;
+                    return jQuery.when.apply(jQuery, prms);
                 }, result => {
-                    // TODO end for server error.
+                    if (!result[0] || !this.screen) {
+                        this.state = this.end_state;
+                        this.end();
+                    }
                     this.__processing = false;
                 });
             };
-            process.call(this);
+            return process.call(this);
         },
         destroy: function(action) {
             // TODO
@@ -127,8 +133,9 @@
                 'method': 'wizard.' + this.action + '.delete',
                 'params': [this.session_id, this.session.context]
             }, this.session).then(action => {
-                this.destroy(action);
-                this.__prm.resolve();
+                this.destroy(action).done(() => {
+                    this.__prm.resolve();
+                });
             })
             .fail(() => {
                 Sao.Logger.warn(
@@ -266,6 +273,7 @@
                     Sao.Session.current_session.reload_context();
                     break;
             }
+            return jQuery.when();
         },
         end: function() {
             return Sao.Wizard.Form._super.end.call(this).always(
@@ -321,22 +329,29 @@
         },
         destroy: function(action) {
             Sao.Wizard.Dialog._super.destroy.call(this, action);
+            let modal_dialog_elem = this.dialog[0];
+            let is_menu = false;
+            // Don't use an arrow function as "this" will point to each element
+            // found by jQuery
+            let dialog = jQuery('.wizard-dialog').filter(function(idx) {
+                return this !== modal_dialog_elem;
+            }).filter(':visible')[0];
+            let screen;
+            if (!dialog) {
+                dialog = Sao.Tab.tabs.get_current();
+            }
+            if (!dialog ||
+                !this.model ||
+                (Sao.main_menu_screen &&
+                (Sao.main_menu_screen.model_name == this.model))) {
+                is_menu = true;
+                screen = Sao.main_menu_screen;
+            } else {
+                screen = dialog.screen;
+            }
+            let destroy_prm = jQuery.Deferred();
             const destroy = () => {
                 this.dialog.remove();
-                var dialog = jQuery('.wizard-dialog').filter(':visible')[0];
-                var is_menu = false;
-                var screen;
-                if (!dialog) {
-                    dialog = Sao.Tab.tabs.get_current();
-                }
-                if (!dialog ||
-                    !this.model ||
-                    (Sao.main_menu_screen.model_name == this.model)) {
-                    is_menu = true;
-                    screen = Sao.main_menu_screen;
-                } else {
-                    screen = dialog.screen;
-                }
                 if (screen) {
                     var prm = jQuery.when();
                     if (screen.current_record && !is_menu) {
@@ -353,8 +368,13 @@
                     if (action) {
                         prm.then(function() {
                             screen.client_action(action);
+                            destroy_prm.resolve();
                         });
+                    } else {
+                        destroy_prm.resolve();
                     }
+                } else {
+                    destroy_prm.resolve();
                 }
             };
             if ((this.dialog.data('bs.modal') || {}).isShown) {
@@ -363,6 +383,7 @@
             } else {
                 destroy();
             }
+            return destroy_prm.promise();
         },
         show: function() {
             var view = this.screen.current_view;

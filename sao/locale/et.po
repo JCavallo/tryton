@@ -120,7 +120,7 @@ msgstr "Vahelehe otseteed"
 msgid "Unable to reach the server."
 msgstr "Serverit ei leita."
 
-msgid "Too many requests. Try again later."
+msgid "Error: \"%1\". Try again later."
 msgstr ""
 
 msgid "Login"
@@ -136,7 +136,18 @@ msgstr "Kasutaja nimi"
 msgid "Login with"
 msgstr "Logi sisse"
 
+msgid "Too many requests. Try again later."
+msgstr ""
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -190,12 +201,6 @@ msgstr ""
 msgid "False"
 msgstr "Väär"
 
-msgid "Message: "
-msgstr "Teade: "
-
-msgid "Warning: "
-msgstr "Hoiatus: "
-
 msgid "Always ignore this warning."
 msgstr "Eira alati seda hoiatust."
 
@@ -205,13 +210,7 @@ msgstr "Kas soovid jätkata?"
 msgid "No"
 msgstr "Ei"
 
-msgid "Confirmation: "
-msgstr "Kinnitus: "
-
-msgid "Concurrency Exception"
-msgstr ""
-
-msgid "Write Concurrency Warning: "
+msgid "Concurrency Warning"
 msgstr ""
 
 msgid "This record has been modified while you were editing it."
@@ -242,6 +241,9 @@ msgstr "Salvesta ikkagi"
 msgid "Application Error"
 msgstr "Rakenduse viga"
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "Vearaport"
 
@@ -253,6 +255,10 @@ msgid "Search..."
 msgstr "Otsi..."
 
 msgid "Create..."
+msgstr "Loo..."
+
+#, fuzzy
+msgid "Create \"%1\"..."
 msgstr "Loo..."
 
 msgid "Download"
@@ -465,6 +471,9 @@ msgstr "Eelkontroll"
 msgid ":"
 msgstr ":"
 
+msgid "Scan"
+msgstr ""
+
 msgid "Translate"
 msgstr "Tõlgi"
 
@@ -533,17 +542,21 @@ msgstr "Vali keel"
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+#, fuzzy
+msgid "Copy Selected Rows"
+msgstr "Järgmine kirje"
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr "Lisaks"
 
-msgid "#ERROR"
-msgstr ""
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr "Täna"
@@ -569,6 +582,19 @@ msgstr "Vali toiming"
 msgid "No action defined."
 msgstr "Toiming kirjeldamata."
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+#, fuzzy
+msgid "Add and New"
+msgstr "Lisa välja nimed"
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr "Manused (%1)"
 
@@ -585,6 +611,12 @@ msgstr "Mudel: "
 
 msgid "ID:"
 msgstr "ID"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 #, fuzzy
 msgid "Created by:"
@@ -645,8 +677,8 @@ msgstr "Vali imporditav fail"
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
-msgstr "Faili töötlemisel tekkis väljal %1 viga."
+msgid "Unknown column header \"%1\""
+msgstr ""
 
 msgid "Error"
 msgstr "Viga"
@@ -753,6 +785,15 @@ msgstr ""
 #, fuzzy
 msgid "Remove File"
 msgstr "Eemalda"
+
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
 
 msgid "Wizard"
 msgstr "Nõustaja"

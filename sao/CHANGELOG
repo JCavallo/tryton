@@ -1,14 +1,57 @@
-* Use grid layout for form container
 * Don't reset date/datetime/time to None when it is invalid
 
-Version 6.8.2 - 2023-09-06
-* Bug fixes (see mercurial logs for details)
-
-
-Version 6.8.1 - 2023-05-17
+Version 7.2.6 - 2024-09-01
 --------------------------
 * Bug fixes (see mercurial logs for details)
 
+
+Version 7.2.5 - 2024-08-01
+--------------------------
+* Bug fixes (see mercurial logs for details)
+
+
+Version 7.2.4 - 2024-07-17
+--------------------------
+* Bug fixes (see mercurial logs for details)
+
+
+Version 7.2.3 - 2024-07-01
+--------------------------
+* Bug fixes (see mercurial logs for details)
+
+
+Version 7.2.2 - 2024-06-15
+--------------------------
+* Bug fixes (see mercurial logs for details)
+
+
+Version 7.2.1 - 2024-05-01
+--------------------------
+* Bug fixes (see mercurial logs for details)
+
+
+Version 7.2.0 - 2024-04-29
+--------------------------
+* Bug fixes (see mercurial logs for details)
+* Read xxx2Many fields using the dotted notation
+* Display XML ID on Log window
+* Use operators when converting PYSON to string
+* Add DnD on binary and image widgets
+* Allow resetting forgotten password
+
+Version 7.0.0 - 2023-10-30
+--------------------------
+* Bug fixes (see mercurial logs for details)
+* Support create record from autocomplete
+* Use grid layout for form container
+* Support scanning code
+* Reset search offset when domain has changed
+* Add a canonicalize function for domains
+* Add menu to copy selected record from tree view to clipboard
+* Support PYSON comparison of timedelta
+* Support encoding timedelta into PYSON TimeDelta
+* Eagerly read string value of multiselection fields
+* Use locale timezone for CSV in locale format
 
 Version 6.8.0 - 2023-05-01
 --------------------------

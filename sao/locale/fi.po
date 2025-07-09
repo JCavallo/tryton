@@ -111,7 +111,7 @@ msgstr ""
 msgid "Unable to reach the server."
 msgstr ""
 
-msgid "Too many requests. Try again later."
+msgid "Error: \"%1\". Try again later."
 msgstr ""
 
 msgid "Login"
@@ -126,7 +126,18 @@ msgstr ""
 msgid "Login with"
 msgstr ""
 
+msgid "Too many requests. Try again later."
+msgstr ""
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -181,12 +192,6 @@ msgstr ""
 msgid "False"
 msgstr ""
 
-msgid "Message: "
-msgstr ""
-
-msgid "Warning: "
-msgstr ""
-
 msgid "Always ignore this warning."
 msgstr ""
 
@@ -196,13 +201,7 @@ msgstr ""
 msgid "No"
 msgstr ""
 
-msgid "Confirmation: "
-msgstr ""
-
-msgid "Concurrency Exception"
-msgstr ""
-
-msgid "Write Concurrency Warning: "
+msgid "Concurrency Warning"
 msgstr ""
 
 msgid "This record has been modified while you were editing it."
@@ -232,6 +231,9 @@ msgstr ""
 msgid "Application Error"
 msgstr ""
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr ""
 
@@ -242,6 +244,9 @@ msgid "Search..."
 msgstr ""
 
 msgid "Create..."
+msgstr ""
+
+msgid "Create \"%1\"..."
 msgstr ""
 
 msgid "Download"
@@ -442,6 +447,9 @@ msgstr ""
 msgid ":"
 msgstr ":"
 
+msgid "Scan"
+msgstr ""
+
 msgid "Translate"
 msgstr ""
 
@@ -509,18 +517,21 @@ msgstr ""
 msgid "%1%"
 msgstr ""
 
-#, fuzzy
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+msgid "Copy Selected Rows"
+msgstr ""
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr ""
 
-msgid "#ERROR"
-msgstr ""
+#, fuzzy
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr ""
@@ -546,6 +557,18 @@ msgstr ""
 msgid "No action defined."
 msgstr ""
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+msgid "Add and New"
+msgstr ""
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr ""
 
@@ -559,6 +582,12 @@ msgid "Model:"
 msgstr ""
 
 msgid "ID:"
+msgstr ""
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
 msgstr ""
 
 msgid "Created by:"
@@ -615,7 +644,7 @@ msgstr ""
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
+msgid "Unknown column header \"%1\""
 msgstr ""
 
 msgid "Error"
@@ -710,6 +739,15 @@ msgid "Send"
 msgstr ""
 
 msgid "Remove File"
+msgstr ""
+
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
 msgstr ""
 
 msgid "Wizard"

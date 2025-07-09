@@ -26,6 +26,9 @@ msgstr "Gestionar..."
 msgid "Logout"
 msgstr "Cerrar sesión"
 
+msgid "Close"
+msgstr "Cerrar"
+
 msgid "Action"
 msgstr "Acción"
 
@@ -92,9 +95,6 @@ msgstr "Mostrar/Esconder las teclas rápidas"
 msgid "Help"
 msgstr "Ayuda"
 
-msgid "Close"
-msgstr "Cerrar"
-
 msgid "Documentation..."
 msgstr "Documentación..."
 
@@ -110,8 +110,8 @@ msgstr "Atajos de las pestañas"
 msgid "Unable to reach the server."
 msgstr "No es posible conectar con el servidor."
 
-msgid "Too many requests. Try again later."
-msgstr "Demasiadas peticiones. Inténtelo de nuevo más tarde."
+msgid "Error: \"%1\". Try again later."
+msgstr "Error: \"%1\". Inténtelo de nuevo más tarde."
 
 msgid "Login"
 msgstr "Acceder"
@@ -125,8 +125,24 @@ msgstr "Nombre de usuario"
 msgid "Login with"
 msgstr "Identificarse con"
 
+msgid "Too many requests. Try again later."
+msgstr "Demasiadas peticiones. Inténtelo de nuevo más tarde."
+
 msgid "Not found."
 msgstr "No se ha encontrado."
+
+msgid "Send you an email to reset your password."
+msgstr "Recibe un correo para restablecer tu contraseña."
+
+msgid "Reset forgotten password"
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
+msgstr ""
+"Se ha mandado una solicitud para restablecer tu contraseña.\n"
+"Por favor revisa tu buzón de correo."
 
 msgid "Your selection:"
 msgstr "Su selección:"
@@ -179,29 +195,14 @@ msgstr "v"
 msgid "False"
 msgstr "Falso"
 
-msgid "Message: "
-msgstr "Mensaje: "
-
-msgid "Warning: "
-msgstr "Aviso: "
-
-msgid "Always ignore this warning."
-msgstr "Ignorar siempre esta advertencia."
-
 msgid "Do you want to proceed?"
 msgstr "¿Desea continuar?"
 
 msgid "No"
 msgstr "No"
 
-msgid "Confirmation: "
-msgstr "Confirmación: "
-
-msgid "Concurrency Exception"
-msgstr "Excepción de concurrencia"
-
-msgid "Write Concurrency Warning: "
-msgstr "Aviso de concurrencia de escritura: "
+msgid "Concurrency Warning"
+msgstr "Aviso de concurrencia"
 
 msgid "This record has been modified while you were editing it."
 msgstr "Este registro ha sido modificado mientras lo editaba."
@@ -230,6 +231,9 @@ msgstr "Guardar de todas formas"
 msgid "Application Error"
 msgstr "Error de aplicación"
 
+msgid "Details"
+msgstr "Detalles"
+
 msgid "Report Bug"
 msgstr "Informar del error"
 
@@ -241,6 +245,9 @@ msgstr "Buscar…"
 
 msgid "Create..."
 msgstr "Crear..."
+
+msgid "Create \"%1\"..."
+msgstr "Crear \"%1\"..."
 
 msgid "Download"
 msgstr "Descargar"
@@ -274,6 +281,18 @@ msgstr "Justificar al centro"
 
 msgid "Justify Full"
 msgstr "Justificar por completo"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Editar"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Relacionado"
+
+#, fuzzy
+msgid "Report"
+msgstr "Informes"
 
 msgid "Switch view"
 msgstr "Cambiar de vista"
@@ -436,11 +455,18 @@ msgstr "\"%1\" no es válido según su dominio."
 msgid "The values of \"%1\" are not valid."
 msgstr "Los valores de \"%1\" no son válidos."
 
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
+msgstr "Los valores de \"%1\" no son válidos."
+
 msgid "Pre-validation"
 msgstr "Prevalidación"
 
 msgid ":"
 msgstr ":"
+
+msgid "Scan"
+msgstr "Escanear"
 
 msgid "Translate"
 msgstr "Traducir"
@@ -509,17 +535,20 @@ msgstr "Escoja un lenguaje"
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr "Menú"
 
-msgid "Customize"
-msgstr "Personalizar"
+msgid "Copy Selected Rows"
+msgstr "Copiar filas seleccionadas"
+
+msgid "#ERROR"
+msgstr "#ERROR"
 
 msgid "More"
 msgstr "Más"
 
-msgid "#ERROR"
-msgstr "#ERROR"
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr "Hoy"
@@ -545,6 +574,18 @@ msgstr "Seleccione su acción"
 msgid "No action defined."
 msgstr "No se ha definido ninguna acción."
 
+msgid "Discard changes"
+msgstr "Descartar cambios"
+
+msgid "Save and New"
+msgstr "Guardar y nuevo"
+
+msgid "Add and New"
+msgstr "Añadir y nuevo"
+
+msgid "Apply changes"
+msgstr "Aplicar cambios"
+
 msgid "Attachments (%1)"
 msgstr "Adjuntos (%1)"
 
@@ -559,6 +600,12 @@ msgstr "Modelo:"
 
 msgid "ID:"
 msgstr "ID:"
+
+msgid "Module:"
+msgstr "Modulo:"
+
+msgid "XML ID:"
+msgstr "ID XML:"
 
 msgid "Created by:"
 msgstr "Creado por:"
@@ -614,8 +661,8 @@ msgstr "Primero debe elegir un archivo a importar."
 msgid "Detection failed"
 msgstr "Ha fallado la detección"
 
-msgid "Error processing the file at field %1."
-msgstr "Error procesando el fichero en el campo %1."
+msgid "Unknown column header \"%1\""
+msgstr "Cabecera de columna desconocida: \"%1\""
 
 msgid "Error"
 msgstr "Error"
@@ -711,8 +758,20 @@ msgstr "Enviar"
 msgid "Remove File"
 msgstr "Eliminar archivo"
 
+msgid "Code Scanner"
+msgstr "Escáner de códigos"
+
+msgid "Code"
+msgstr "Código"
+
+msgid "Toggle Sound"
+msgstr "Alternar sonido"
+
 msgid "Wizard"
 msgstr "Asistente"
 
 msgid "Translate view"
 msgstr "Traducir vista"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Ignorar siempre esta advertencia."

@@ -54,6 +54,8 @@
         var pyson_datetime = new Sao.PYSON.DateTime(
             2002, 1, 1, 12, 30, 0, 0).pyson();
         pyson_datetime.start = null;
+        var timedelta = Sao.TimeDelta(1, 2, 3);
+        var pyson_timedelta = new Sao.PYSON.TimeDelta(1, 2, 3000).pyson();
         var array = ["create_date", '>=', date];
         var pyson_array = ["create_date", '>=', pyson_date];
         var statement = new Sao.PYSON.Equal(date, date);
@@ -71,6 +73,8 @@
             JSON.stringify(pyson_date), "encode(date)");
         QUnit.strictEqual(encoder.encode(datetime),
             JSON.stringify(pyson_datetime), "encode(datetime)");
+        QUnit.strictEqual(encoder.encode(timedelta),
+            JSON.stringify(pyson_timedelta), "encode(timedelta)");
         QUnit.strictEqual(encoder.encode(array),
             JSON.stringify(pyson_array), "encode(array)");
         QUnit.strictEqual(encoder.encode(statement),
@@ -534,6 +538,24 @@
         QUnit.strictEqual(new Sao.PYSON.Decoder().decode(eval_), true,
             'decode(Greater(PYSON.DateTime(2020, 1, 1, 0, 0, 0, 0), 90000))');
 
+        eval_ = new Sao.PYSON.Encoder().encode(new Sao.PYSON.Greater(
+            new Sao.PYSON.TimeDelta(5, 2),
+            new Sao.PYSON.TimeDelta(4, 2)));
+        QUnit.strictEqual(new Sao.PYSON.Decoder().decode(eval_), true,
+            'decode(Greater(PYSON.TimeDelta(5, 2), PYSON.TimeDelta(4, 2)))');
+
+        eval_ = new Sao.PYSON.Encoder().encode(new Sao.PYSON.Greater(
+            new Sao.PYSON.TimeDelta(4, 2),
+            new Sao.PYSON.TimeDelta(5, 2)));
+        QUnit.strictEqual(new Sao.PYSON.Decoder().decode(eval_), false,
+            'decode(Greater(PYSON.TimeDelta(4, 2), PYSON.TimeDelta(5, 2)))');
+
+        eval_ = new Sao.PYSON.Encoder().encode(new Sao.PYSON.Greater(
+            new Sao.PYSON.TimeDelta(5, 2),
+            Sao.TimeDelta(4, 2)));
+        QUnit.strictEqual(new Sao.PYSON.Decoder().decode(eval_), true,
+            'decode(Greater(PYSON.TimeDelta(5, 2), Sao.TimeDelta(4, 2)))');
+
         eval_ = new Sao.PYSON.Encoder().encode(
             new Sao.PYSON.Greater(new Sao.PYSON.Eval('i', 0), 0));
         QUnit.strictEqual(new Sao.PYSON.Decoder({i: 1}).decode(eval_), true,
@@ -728,6 +750,10 @@
         QUnit.strictEqual(new Sao.PYSON.Get(
                 {'foo': 'bar'}, 'foo', 'default').toString(),
             'Get({"foo": "bar"}, "foo", "default")');
+
+        QUnit.strictEqual(
+            new Sao.PYSON.Eval('foo', {}).get('bar').toString(),
+            'Eval("foo", {}).get("bar")');
     });
 
     QUnit.test('PYSON In', function() {
@@ -807,6 +833,10 @@
 
         QUnit.strictEqual(new Sao.PYSON.In('foo', ['foo', 'bar']).toString(),
                 'In("foo", ["foo", "bar"])');
+
+        QUnit.strictEqual(
+            new Sao.PYSON.Eval('foo').in_(['foo', 'bar']).toString(),
+            'Eval("foo").in_(["foo", "bar"])');
     });
 
     QUnit.test('PYSON Date', function() {
@@ -1196,7 +1226,7 @@
             ['id', '=', -1]));
 
         QUnit.strictEqual(expr.toString(),
-            "If(Not(In(\"company\", Eval(\"context\", {}))), \"=\", \"!=\")");
+            'If(Not(Eval("context", {}).contains("company")), "=", "!=")');
         });
     QUnit.test('PYSON noeval', function() {
         var decoder = new Sao.PYSON.Decoder({}, true);
@@ -1232,7 +1262,7 @@
             'pyson': new Sao.PYSON.Eval('test'),
         };
         QUnit.strictEqual(Sao.PYSON.toString(value),
-            '{"test": ["foo", "bar"], "pyson": Eval("test", "")}');
+            '{"test": ["foo", "bar"], "pyson": Eval("test")}');
     });
 
     QUnit.test('PYSON.Eval dot notation', function() {
@@ -1290,6 +1320,9 @@
         QUnit.strictEqual(
             eval_pyson('Or(True, False).toString()'),
             "Or(true, false)", "eval_pyson('Or(True, False)').toString()");
+        QUnit.strictEqual(
+            eval_pyson('Eval("foo", {}).get("bar").toString()'),
+            'Eval("foo", {}).get("bar")');
     });
 
     var humanize_tests = [
@@ -1490,13 +1523,12 @@
         var udlex = function(input) {
             var lex = new Sao.common.udlex(input);
             var tokens = [];
-            while (true) {
+            do {
                 var token = lex.next();
-                if (token === null) {
-                    break;
+                if (token !== null) {
+                    tokens.push(token);
                 }
-                tokens.push(token);
-            }
+            } while (token !== null);
             return tokens;
         };
         var c = function(clause) {
@@ -1653,7 +1685,7 @@
         [
         ['test', 'test'],
         ['foo bar', '"foo bar"'],
-        ['"foo"', '\\\"foo\\\"'],
+        ['"foo"', '\\"foo\\"'],
         ['foo\\bar', 'foo\\\\bar']
         ].forEach(function(test) {
             var value = test[0];
@@ -1869,6 +1901,7 @@
         ['test', Sao.Time(undefined, undefined, undefined, undefined, 'test')]
         ].forEach(test_moment_func, field);
         [
+        ['test', null],
         [null, null]
         ].forEach(test_moment_func, field);
 
@@ -2200,6 +2233,8 @@
         });
         var valid = ['name', '=', 'Doe'];
         var invalid = ['surname', '=', 'John'];
+        QUnit.ok(parser.stringable([]));
+        QUnit.ok(parser.stringable([[]]));
         QUnit.ok(parser.stringable([valid]));
         QUnit.ok(!parser.stringable([invalid]));
         QUnit.ok(parser.stringable(['AND', valid]));
@@ -2440,60 +2475,57 @@
     });
 
     QUnit.test('DomainInversion unconstrained_inversion', function() {
-        var domain_inversion = new Sao.common.DomainInversion();
+        let domain_inversion = new Sao.common.DomainInversion();
         domain_inversion = domain_inversion.domain_inversion.bind(
             domain_inversion);
-        var compare = Sao.common.compare;
+        let compare = Sao.common.compare;
 
-        var domain = [['x', '=', 3], ['y', 'in', ['a', 'b']]];
-        var domainJSON = JSON.stringify(domain);
+        let domain = [['x', '=', 3], ['y', 'in', ['a', 'b']]];
         QUnit.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\')');
+            `domain_inversion(${domain}, 'x')`);
         QUnit.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'a\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'a'})`);
         QUnit.strictEqual(
             domain_inversion(domain, 'x', {'y': 'c'}), false,
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'c\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
 
     QUnit.test('DomainInversion constrained_equal_inversion', function() {
-        var domain_inversion = new Sao.common.DomainInversion();
+        let domain_inversion = new Sao.common.DomainInversion();
         domain_inversion = domain_inversion.domain_inversion.bind(
             domain_inversion);
-        var compare = Sao.common.compare;
+        let compare = Sao.common.compare;
 
-        var domain = [['x', '=', 3], ['y', '=', 'a']];
-        var domainJSON = JSON.stringify(domain);
+        let domain = [['x', '=', 3], ['y', '=', 'a']];
         QUnit.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\')');
+            `domain_inversion(${domain}, 'x')`);
         QUnit.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'a\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'a'})`);
         QUnit.ok(
             compare(domain_inversion(domain, 'x', {'y': 'c'}), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'c\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
 
     QUnit.test('DomainInversion constrained_in_inversion', function() {
-        var domain_inversion = new Sao.common.DomainInversion();
+        let domain_inversion = new Sao.common.DomainInversion();
         domain_inversion = domain_inversion.domain_inversion.bind(
             domain_inversion);
-        var compare = Sao.common.compare;
+        let compare = Sao.common.compare;
 
-        var domain = [['x', '=', 3], ['y', 'in', ['a']]];
-        var domainJSON = JSON.stringify(domain);
+        let domain = [['x', '=', 3], ['y', 'in', ['a']]];
         QUnit.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\')');
+            `domain_inversion(${domain}, 'x')`);
         QUnit.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'a\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'a'})`);
         QUnit.ok(
             compare(domain_inversion(domain, 'x', {'y': 'c'}), [['x', '=', 3]]),
-            'domain_inversion(' + domainJSON + ', \'x\', {\'y\': \'c\'})');
+            `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
 
     QUnit.test('DomainInversion and_inversion', function() {
@@ -2910,8 +2942,10 @@
         QUnit.ok(compare(unique_value(domain), [true, 'a.id', ['model', 1]]));
         domain = [['a.b.id', '=', 1, 'model']];
         QUnit.ok(compare(unique_value(domain), [false, null, null]));
+        QUnit.ok(compare(unique_value(domain, false), [false, null, null]));
         domain = [['a', 'in', [1]]];
         QUnit.ok(compare(unique_value(domain), [true, 'a', 1]));
+        QUnit.ok(compare(unique_value(domain, false), [false, null, null]));
         domain = [['a', 'in', [1, 2]]];
         QUnit.ok(compare(unique_value(domain), [false, null, null]));
         domain = [['a', 'in', []]];
@@ -2920,6 +2954,7 @@
         QUnit.ok(compare(unique_value(domain), [false, null, null]));
         domain = [['a.id', 'in', [1], 'model']];
         QUnit.ok(compare(unique_value(domain), [true, 'a.id', ['model', 1]]));
+        QUnit.ok(compare(unique_value(domain, false), [false, null, null]));
     });
 
     QUnit.test('DomainInversion evaldomain', function() {
@@ -3213,6 +3248,67 @@
         QUnit.ok(compare(
             extract_reference_models(domain, 'y'),
             []));
+    });
+
+    QUnit.test('DomainInversion.sort', function() {
+        var domain_inversion = new Sao.common.DomainInversion();
+        var sort = domain_inversion.sort.bind(domain_inversion);
+        var tests = [
+            [[], []],
+            [['AND'], ['AND']],
+            [['OR'], ['OR']],
+            [[['foo', '=', 1]], [['foo', '=', 1]]],
+            [[['foo', '=', 1000], ['foo', '=', 0]],
+                [['foo', '=', 0], ['foo', '=', 1000]]],
+            [[['foo', '=', 1], ['foo', '=', null]],
+                [['foo', '=', null], ['foo', '=', 1]]],
+            [[['foo', '=', 1], []], [[], ['foo', '=', 1]]],
+            [[[[[['foo', '=', 1]]]], [[['foo', '=', 1]]]],
+                [[[['foo', '=', 1]]], [[[['foo', '=', 1]]]]]],
+            [[[['foo', '=', 1], ['bar', '=', 2]],
+                [['foo', '=', 1], ['bar', '=', 2], ['baz', '=', 3]]],
+                [[['bar', '=', 2], ['baz', '=', 3], ['foo', '=', 1]],
+                    [['bar', '=', 2], ['foo', '=', 1]]]],
+            [['OR', ['foo', '=', 1], ['foo', '=', null],
+                ['AND', ['bar', '=', 2], ['baz', '=', 3]]],
+                ['OR', ['foo', '=', null], ['foo', '=', 1],
+                    ['AND', ['bar', '=', 2], ['baz', '=', 3]]]],
+            [[['foo', '=', 'bar'], ['foo', '=', null]],
+                [['foo', '=', 'bar'], ['foo', '=', null]]],
+        ];
+        for (const [domain, expected] of tests) {
+            QUnit.deepEqual(sort(domain), expected);
+        }
+    });
+
+    QUnit.test('DomainInversion.canonicalize', function() {
+        var domain_inversion = new Sao.common.DomainInversion();
+        var canonicalize = domain_inversion.canonicalize.bind(domain_inversion);
+        var tests = [
+                [[], []],
+                [['AND'], []],
+                [['OR'], []],
+                [[['foo', '=', 1], ['bar', '=', 2]],
+                    [['bar', '=', 2], ['foo', '=', 1]]],
+                [[[['foo', '=', 1]]], [['foo', '=', 1]]],
+                [['AND', ['OR', ['bar', '=', 2], ['baz', '=', 3]],
+                        ['foo', '=', 1]],
+                    [['foo', '=', 1],
+                        ['OR', ['bar', '=', 2], ['baz', '=', 3]]]],
+                [['OR', ['AND', ['bar', '=', 2], ['baz', '=', 3]],
+                        ['foo', '=', 1]],
+                    ['OR', ['foo', '=', 1],
+                        [['bar', '=', 2], ['baz', '=', 3]]]],
+                [['AND', ['AND', ['bar', '=', 2], ['baz', '=', 3]],
+                        ['foo', '=', 1]],
+                    [['bar', '=', 2], ['baz', '=', 3], ['foo', '=', 1]]],
+                [['OR', ['OR', ['bar', '=', 2], ['baz', '=', 3]],
+                        ['foo', '=', 1]],
+                    ['OR', ['bar', '=', 2], ['baz', '=', 3], ['foo', '=', 1]]],
+        ];
+        for (const [domain, expected] of tests) {
+            QUnit.deepEqual(expected, canonicalize(domain));
+        }
     });
 
     QUnit.test('DomainParser.completion', function() {

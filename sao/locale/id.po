@@ -110,7 +110,8 @@ msgstr ""
 msgid "Unable to reach the server."
 msgstr ""
 
-msgid "Too many requests. Try again later."
+#, fuzzy
+msgid "Error: \"%1\". Try again later."
 msgstr "Terlalu banyak permintaan. Coba lagi nanti."
 
 msgid "Login"
@@ -125,7 +126,18 @@ msgstr ""
 msgid "Login with"
 msgstr ""
 
+msgid "Too many requests. Try again later."
+msgstr "Terlalu banyak permintaan. Coba lagi nanti."
+
 msgid "Not found."
+msgstr ""
+
+msgid "Send you an email to reset your password."
+msgstr ""
+
+msgid ""
+"A request to reset your password has been sent.\n"
+"Please check your mailbox."
 msgstr ""
 
 msgid "Your selection:"
@@ -179,12 +191,6 @@ msgstr "t"
 msgid "False"
 msgstr "Salah"
 
-msgid "Message: "
-msgstr "Pesan: "
-
-msgid "Warning: "
-msgstr ""
-
 msgid "Always ignore this warning."
 msgstr "Selalu abaikan peringatan ini."
 
@@ -194,13 +200,7 @@ msgstr "Apakah Anda ingin melanjutkan?"
 msgid "No"
 msgstr "Tidak"
 
-msgid "Confirmation: "
-msgstr ""
-
-msgid "Concurrency Exception"
-msgstr ""
-
-msgid "Write Concurrency Warning: "
+msgid "Concurrency Warning"
 msgstr ""
 
 msgid "This record has been modified while you were editing it."
@@ -230,6 +230,9 @@ msgstr "Tetap Menulis"
 msgid "Application Error"
 msgstr ""
 
+msgid "Details"
+msgstr ""
+
 msgid "Report Bug"
 msgstr "Melaporkan Kesalahan"
 
@@ -240,6 +243,9 @@ msgid "Search..."
 msgstr ""
 
 msgid "Create..."
+msgstr ""
+
+msgid "Create \"%1\"..."
 msgstr ""
 
 msgid "Download"
@@ -440,6 +446,9 @@ msgstr ""
 msgid ":"
 msgstr ":"
 
+msgid "Scan"
+msgstr ""
+
 msgid "Translate"
 msgstr ""
 
@@ -507,17 +516,20 @@ msgstr "Pilih bahasa"
 msgid "%1%"
 msgstr "%1%"
 
-msgid ": "
-msgstr ": "
+msgid "Menu"
+msgstr ""
 
-msgid "Customize"
+msgid "Copy Selected Rows"
+msgstr ""
+
+msgid "#ERROR"
 msgstr ""
 
 msgid "More"
 msgstr ""
 
-msgid "#ERROR"
-msgstr ""
+msgid ": "
+msgstr ": "
 
 msgid "Today"
 msgstr "Hari ini"
@@ -543,6 +555,18 @@ msgstr "Pilih tindakan Anda"
 msgid "No action defined."
 msgstr "Tidak ada tindakan yang ditentukan."
 
+msgid "Discard changes"
+msgstr ""
+
+msgid "Save and New"
+msgstr ""
+
+msgid "Add and New"
+msgstr ""
+
+msgid "Apply changes"
+msgstr ""
+
 msgid "Attachments (%1)"
 msgstr ""
 
@@ -557,6 +581,12 @@ msgstr ""
 
 msgid "ID:"
 msgstr "ID:"
+
+msgid "Module:"
+msgstr ""
+
+msgid "XML ID:"
+msgstr ""
 
 msgid "Created by:"
 msgstr "Dibuat oleh:"
@@ -612,7 +642,7 @@ msgstr ""
 msgid "Detection failed"
 msgstr ""
 
-msgid "Error processing the file at field %1."
+msgid "Unknown column header \"%1\""
 msgstr ""
 
 msgid "Error"
@@ -706,6 +736,15 @@ msgstr "Kirim"
 
 msgid "Remove File"
 msgstr "Hapus Berkas"
+
+msgid "Code Scanner"
+msgstr ""
+
+msgid "Code"
+msgstr ""
+
+msgid "Toggle Sound"
+msgstr ""
 
 msgid "Wizard"
 msgstr "Wisaya"

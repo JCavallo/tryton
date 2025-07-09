@@ -20,10 +20,13 @@ this repository contains the full copyright notices and license terms. -->
         <script type="text/javascript" src="bower_components/fullcalendar/dist/fullcalendar.min.js"></script>
         <script type="text/javascript" src="bower_components/fullcalendar/dist/locale-all.js"></script>
         <script type="text/javascript" src="bower_components/mousetrap/mousetrap.min.js"></script>
-        <script type="text/javascript" src="bower_components/Sortable/Sortable.js"></script>
+        <script type="text/javascript" src="bower_components/mousetrap/plugins/pause/mousetrap-pause.js"></script>
+        <script type="text/javascript" src="bower_components/Sortable/Sortable.min.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/lib/codemirror.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/mode/python/python.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/addon/lint/lint.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/hint/show-hint.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/runmode/runmode.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/addon/display/autorefresh.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/addon/search/search.js"></script>
         <script type="text/javascript" src="bower_components/codemirror/addon/search/searchcursor.js"></script>
@@ -34,20 +37,11 @@ this repository contains the full copyright notices and license terms. -->
         <link rel="stylesheet" href="bower_components/fullcalendar/dist/fullcalendar.min.css">
         <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css">
         <link rel="stylesheet" href="bower_components/codemirror/addon/lint/lint.css">
+        <link rel="stylesheet" href="bower_components/codemirror/addon/hint/show-hint.css">
         <link rel="stylesheet" href="bower_components/codemirror/addon/dialog/dialog.css">
-        <link rel="stylesheet" href="offcanvas.css">
 
-        <script type="text/javascript" src="dist/tryton-sao.min.js"></script>
-        <link rel="stylesheet" type="text/css" href="dist/tryton-sao.min.css"
-        media="screen"/>
-        <link rel="stylesheet" type="text/css" href="dist/coog-sao.min.css" media="screen"/>
-        <script type="text/javascript">
-            if (typeof Sao == 'undefined') {
-                document.write(unescape('%3cscript type="text/javascript" src="dist/tryton-sao.js"%3e%3c/script%3e'));
-                document.write(unescape('%3clink rel="stylesheet" type="text/css" href="dist/tryton-sao.css" media="screen"/%3e'));
-                document.write(unescape('%3clink rel="stylesheet" type="text/css" href="dist/coog-sao.css" media="screen"/%3e'));
-            }
-        </script>
+        <script type="text/javascript" src="dist/tryton-sao.js"></script>
+        <link rel="stylesheet" type="text/css" href="dist/tryton-sao.css" media="screen"/>
         <script type="text/javascript" src="custom.js"></script>
         <link rel="stylesheet" type="text/css" href="custom.css" media="screen"/>
     </head>
@@ -56,14 +50,14 @@ this repository contains the full copyright notices and license terms. -->
             <strong>Sorry sao does not work without JavaScript enabled. Please enable it to continue.</strong>
         </noscript>
         <div class="body" style="display: none;">
-            <nav class="navbar navbar-inverse navbar-static-top" role="navigation" style="margin-bottom: 0px;">
+            <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
                 <div class="container-fluid">
                     <div class="navbar-header">
                         <button type="button" class="navbar-toggle collapsed"
                                               data-toggle="collapse" data-target="#main_navbar">
                             <span class="caret"></span>
                         </button>
-                        <a class="navbar-brand" href="javascript:void(0)" data-toggle="offcanvas">
+                        <a class="navbar-brand" href="javascript:void(0)" data-toggle="menu">
                             <span class="icon">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
                                     <path d="M0 0h24v24H0z" fill="none"/>
@@ -96,14 +90,10 @@ this repository contains the full copyright notices and license terms. -->
                     </div>
                 </div>
             </nav>
-            <div id="main" class="container-fluid" style="padding: 0px;">
-                <div class="row row-offcanvas row-offcanvas-left active"
-                     style="height: calc(100vh - 50px - 1px - 20px); margin: 0px;">
-                    <div class="col-xs-12 col-sm-4 col-lg-3 sidebar-offcanvas" id="menu" role="navigation"
-                                                                                         style="overflow-y: auto; height: 100%;"></div>
-                    <div class="col-xs-12 col-sm-8 col-lg-9 main-offcanvas" style="display:flex; overflow-y: auto; height: 100%;" id="tabs" role="tabpanel">
-                        <div id="tabcontent" class="tab-content"></div>
-                    </div>
+            <div id="main">
+                <div id="menu" role="navigation"></div>
+                <div id="tabs" class="hidden-xs" role="tabpanel">
+                    <div id="tabcontent" class="tab-content"></div>
                 </div>
             </div>
         </div>
@@ -114,20 +104,38 @@ this repository contains the full copyright notices and license terms. -->
             } else {
                 jQuery(function() {
                     jQuery('.body').show();
-                    jQuery('[data-toggle="offcanvas"]').click(function() {
-                        jQuery('.row-offcanvas').toggleClass('active');
+                    jQuery('[data-toggle="menu"]').click(function() {
+                        jQuery('#menu').toggleClass('hidden');
+                        jQuery('#tabs').toggleClass('hidden-xs');
                     });
                     jQuery('#tabs').on('ready', function() {
                         // MAB: I removed b08b13cb commit code in this script as it seems contradictory with what b2ck do
                         var mq = window.matchMedia('(max-width: 991px)');
                         if (mq.matches) {
                             if (jQuery('#tablist').children().length) {
-                                jQuery('.row-offcanvas').removeClass('active');
+                                jQuery('#menu').addClass('hidden');
+                                jQuery('#tabs').removeClass('hidden-xs');
                             } else {
-                                jQuery('.row-offcanvas').addClass('active');
+                                jQuery('#menu').removeClass('hidden');
+                                jQuery('#tabs').addClass('hidden-xs');
                             }
                         }
                     });
+                });
+
+                const menu_resize_obs = new MutationObserver((mutationList) => {
+                    if (mutationList.length == 0) {
+                        return;
+                    }
+                    let last_mut = mutationList.at(-1);
+                    let menu_width = last_mut.target.style.width;
+                    jQuery('#tabs').css(
+                        'width',
+                        `calc(100vw - .5rem - ${menu_width})`);
+                });
+                menu_resize_obs.observe(document.getElementById('menu'), {
+                    attributeFilter: ["style"],
+                    subtree: false,
                 });
             }
         </script>
