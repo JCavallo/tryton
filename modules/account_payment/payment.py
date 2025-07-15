@@ -475,10 +475,6 @@ class Payment(Workflow, ModelSQL, ModelView):
         table_h = cls.__table_handler__(module)
         number_exist = table_h.column_exist('number')
 
-        # Migration from 7.4: rename description into reference
-        if table_h.column_exist('description'):
-            table_h.column_rename('description', 'reference')
-
         super().__register__(module)
 
         # Migration from 7.2: add number
