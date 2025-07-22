@@ -699,6 +699,7 @@ class DictWidget(Widget):
             widget = self.fields[key]
             widget.set_value(val)
             widget.set_readonly(self._readonly)
+            widget_class(widget.widget, 'readonly', self._readonly)
             key_domain = decoder.decode(
                 self.field.keys[key].get('domain') or '[]')
             widget_class(

@@ -29,12 +29,11 @@ entry,
     border-color: @shape_color;
 }
 
-*.readonly spinbutton,
-*.readonly entry,
-*.readonly *.multiselection,
-*.readonly *.multiselection:focus,
-*.readonly spinbutton:focus,
-*.readonly entry:focus {
+box.readonly > spinbutton,
+box.readonly > *.multiselection,
+box.readonly > entry,
+box.readonly > spinbutton:focus,
+box.readonly > entry:focus{
     border-width:0px;
     margin:2px;
 }
