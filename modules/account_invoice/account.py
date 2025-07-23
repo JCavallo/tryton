@@ -261,10 +261,21 @@ class Reconciliation(metaclass=PoolMeta):
 
         super().on_modification(mode, reconciliations, field_names=field_names)
 
-        with transaction.set_context(
-                queue_batch=context.get('queue_batch', True)):
-            Invoice.process(
-                list(_invoices_to_process(reconciliations)))
+        if mode != 'delete':
+            with transaction.set_context(
+                    queue_batch=context.get('queue_batch', True)):
+                Invoice.process(
+                    list(_invoices_to_process(reconciliations)))
+
+    @classmethod
+    def on_delete(cls, records):
+        pool = Pool()
+        Invoice = pool.get('account.invoice')
+
+        on_delete = super().on_delete(records)
+        invoices_to_process = _invoices_to_process(records)
+        on_delete.append(lambda: Invoice.process(list(invoices_to_process)))
+        return on_delete
 
 
 class RenewFiscalYear(metaclass=PoolMeta):
