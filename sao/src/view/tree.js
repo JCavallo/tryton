@@ -130,7 +130,7 @@
         display_size: null,
         init: function(view_id, screen, xml, children_field, children_definitions) {
             this.children_field = children_field;
-            this.optionals = {};
+            this.optionals = [];
             this.sum_widgets = new Map();
             this.columns = [];
             this.selection_mode = (screen.attributes.selection_mode ||
