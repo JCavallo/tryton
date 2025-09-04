@@ -446,6 +446,7 @@
         });
     };
 
+    Sao.Tab._dragged_tab = null;
     Sao.Tab.add = function(tab) {
         var tabs = jQuery('#tabs');
         var tablist = jQuery('#tablist');
@@ -475,13 +476,44 @@
             tab.close();
         }))
         .append(tab.name_el);
-        jQuery('<li/>', {
+        let tab_element = jQuery('<li/>', {
             'role': 'presentation',
             'data-placement': 'bottom',
             id: 'nav-' + tab.id
         }).append(tab_link)
         .appendTo(tablist)
         .data('tab', tab);
+
+        tab_element.on('dragstart', (evt) => {
+            tab_link.tab('show');
+            Sao.Tab._dragged_tab = tab;
+            evt.originalEvent.dataTransfer.setDragImage(Sao.common.transparent_png, 0, 0);
+        });
+        tab_element.on('dragover', (evt) => {
+            let tab = tab_element.data('tab');
+            if (tab.id == Sao.Tab._dragged_tab.id) {
+                return;
+            }
+
+            evt.preventDefault();
+            let tab_idx = Sao.Tab.tabs.indexOf(tab);
+            let dragged_idx = Sao.Tab.tabs.indexOf(Sao.Tab._dragged_tab);
+            let li = jQuery(`#nav-${Sao.Tab._dragged_tab.id}`);
+            if (tab_idx < dragged_idx) {
+                li.insertBefore(tab_element);
+            } else {
+                li.insertAfter(tab_element);
+            }
+            // In case we add before or after the sequence of actions stays the
+            // same as in case we add after the dragged tab has been removed
+            // before tab_idx
+            Sao.Tab.tabs.splice(dragged_idx, 1);
+            Sao.Tab.tabs.splice(tab_idx, 0, Sao.Tab._dragged_tab);
+        });
+        tab_element.on('dragend', (evt) => {
+            Sao.Tab._dragged_tab = null;
+        });
+
         jQuery('<div/>', {
             role: 'tabpanel',
             'class': 'tab-pane',
