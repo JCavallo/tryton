@@ -154,7 +154,7 @@ class AgentTimeseries(Agent):
     @classmethod
     def __setup__(cls):
         super().__setup__()
-        cls._order = [('date', 'ASC')]
+        cls._order = [('date', 'ASC'), ('id', None)]
 
     @classmethod
     def _columns(cls, tables, withs):

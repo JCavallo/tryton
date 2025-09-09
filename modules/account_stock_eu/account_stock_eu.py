@@ -271,6 +271,7 @@ class IntrastatDeclarationLine(ModelSQL, ModelView):
             ('transaction', 'ASC'),
             ('country_of_origin', 'ASC'),
             ('vat', 'ASC'),
+            ('id', None),
             ]
 
     @classmethod
