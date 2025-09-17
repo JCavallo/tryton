@@ -1237,6 +1237,16 @@
         },
         set_on_change: function(values) {
             var fieldname, value;
+            let missing_keys = new Set(Object.keys(values)).difference(
+                new Set(Object.keys(this.model.fields)));
+            if (missing_keys.size > 0) {
+                let args = {
+                    method: `model.${this.model.name}.fields_get`,
+                    params: [missing_keys.keys(), this.get_context()],
+                };
+                let new_fields = Sao.rpc(args, this.model.session, false);
+                this.group.add_fields(new_fields);
+            }
             for (fieldname in values) {
                 value = values[fieldname];
                 if (!(fieldname in this.model.fields)) {
