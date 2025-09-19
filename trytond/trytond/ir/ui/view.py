@@ -508,7 +508,9 @@ class ViewTreeWidth(
     @classmethod
     def on_modification(cls, mode, records, field_names=None):
         super().on_modification(mode, records, field_names=field_names)
-        ModelView._fields_view_get_cache.clear()
+        # JCA: Resetting the full view cache when a single user modifies the
+        # width of a column is not good
+        # ModelView._fields_view_get_cache.clear()
 
     @classmethod
     def get_width(cls, model, width):
@@ -681,7 +683,9 @@ class ViewTreeOptional(
     @classmethod
     def on_modification(cls, mode, record, field_names=None):
         super().on_modification(mode, record, field_names=field_names)
-        ModelView._fields_view_get_cache.clear()
+        # JCA: Resetting the full view cache when a single user modifies
+        # chooses to hide / show a column is not good
+        # ModelView._fields_view_get_cache.clear()
 
     @classmethod
     def set_optional(cls, view_id, fields):
