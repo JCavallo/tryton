@@ -446,7 +446,8 @@ class MemoryCache(BaseCache):
                         remote_id = payload[len(REFRESH_POOL_MSG) + 1:]
                         process_id = cls._local.portable_id
                         if remote_id != process_id:
-                            Pool.refresh(dbname, _get_modules(cursor))
+                            Pool.refresh(dbname, _get_modules(cursor),
+                                force=True)
                     elif isinstance(payload, str) and payload in callbacks:
                         callbacks[payload](pool)
                     elif payload:
