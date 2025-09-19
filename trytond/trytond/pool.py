@@ -385,8 +385,8 @@ class Pool(object):
                         self.add(cls, type=type_)
 
     @classmethod
-    def refresh(cls, database_name, modules):
-        if (cls._pool_modules[database_name]
+    def refresh(cls, database_name, modules, force=False):
+        if force or (cls._pool_modules[database_name]
                 and set(cls._pool_modules[database_name]) != set(modules)):
             cls.stop(database_name)
 
