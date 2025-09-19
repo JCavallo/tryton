@@ -2098,7 +2098,7 @@
                             // Reset valid state with normal domain
                             record.validate(fields);
                         });
-                    return;
+                    return jQuery.Deferred().reject();
                 }
             }
             var prm = jQuery.when();
