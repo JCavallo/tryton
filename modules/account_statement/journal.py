@@ -177,7 +177,7 @@ class Journal(DeactivableMixin, ModelSQL, ModelView):
             cursor.execute(*query)
             for row in cursor_dict(cursor):
                 journal = row['journal']
-                if 'last_amount' in names:
+                if 'last_amount' in names and row['last_amount'] is not None:
                     result['last_amount'][journal] = (
                         id2currency[journal].round(row['last_amount']))
                 if 'last_date' in names:
