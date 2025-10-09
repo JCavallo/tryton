@@ -11,6 +11,7 @@ from xml import sax
 from trytond import __version__
 from trytond.pyson import CONTEXT, PYSONEncoder
 from trytond.transaction import Transaction, inactive_records
+from trytond.server_context import ServerContext
 
 logger = logging.getLogger(__name__)
 
@@ -524,6 +525,9 @@ class TrytondXmlHandler(sax.handler.ContentHandler):
         return set(rec.fs_id for rec in module_data)
 
     def import_record(self, model, values, fs_id):
+        force_xml_update = ServerContext().get('force_xml_update')
+        if force_xml_update and fs_id not in force_xml_update:
+            return
         module = self.module
 
         if not fs_id:
@@ -539,7 +543,8 @@ class TrytondXmlHandler(sax.handler.ContentHandler):
         self.to_delete.discard(fs_id)
 
         if self.fs2db.exists(module, fs_id):
-            if self.noupdate and self.module_state != 'to activate':
+            if (self.noupdate and self.module_state != 'to activate'
+                    and fs_id not in (force_xml_update or [])):
                 return
             mdata = self.fs2db.get(module, fs_id)
             # Check if record has not been deleted
