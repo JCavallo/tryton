@@ -1272,7 +1272,7 @@ class TranslationSet(Wizard):
                         [
                             [view.model, INTERNAL_LANG,
                                 'view', string,
-                                '', '',
+                                Null, '',
                                 '', '',
                                 '', view.module,
                                 False, Null]]))
