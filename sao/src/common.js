@@ -19,6 +19,13 @@
     Sao.common.SELECTION_SINGLE = 2;
     Sao.common.SELECTION_MULTIPLE = 3;
 
+    Sao.common.vp_width = window.visualViewport.width;
+    Sao.common.vp_height = window.visualViewport.height;
+    window.addEventListener('resize', () => {
+        Sao.common.vp_width = window.visualViewport.width;
+        Sao.common.vp_height = window.visualViewport.height;
+    });
+
     Sao.common.compare = function(arr1, arr2) {
         if (arr1.length != arr2.length) {
             return false;

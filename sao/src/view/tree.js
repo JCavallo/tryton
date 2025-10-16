@@ -2380,6 +2380,16 @@
         },
         set_editable: function() {
             var focus_widget = null;
+            let table_node = this.el[0].parentNode;
+            let tr_copy = this.el[0].cloneNode(true);
+            Object.keys(tr_copy).forEach(key => {
+                tr_copy.addEventListener(key.slice(2), (evt) => {
+                    evt.preventDefault();
+                    evt.stopPropagation();
+                });
+            });
+            table_node.replaceChild(tr_copy, this.el[0]);
+            let display_prms = [];
             for (var i = 0, len=this.tree.columns.length; i < len; i++) {
                 var td = this._get_column_td(i);
                 var col = this.tree.columns[i];
@@ -2396,7 +2406,7 @@
                     var editable_el = this.get_editable_el(td);
                     editable_el.append(widget.el);
                     editable_el.data('widget', widget);
-                    widget.display(this.record, col.field);
+                    display_prms.push(widget.display(this.record, col.field));
 
                     var static_el = this.get_static_el(td);
                     static_el.hide();
@@ -2409,6 +2419,9 @@
                     }
                 }
             }
+            jQuery.when.apply(jQuery, display_prms).done(() => {
+                table_node.replaceChild(this.el[0], tr_copy);
+            });
             if (focus_widget && focus_widget.focus) {
                 focus_widget.focus();
             }
@@ -2807,8 +2820,9 @@
         },
         get_visible: function() {
             // 480px is bootstrap's screen-xs-max
-            return (window.visualViewport.width > 480) && this._visible_header;
-        },
+            return ((Sao.common.vp_width > 480) &&
+                !this.header.hasClass('invisible'));
+        }
     });
 
     Sao.View.Tree.TextColum = Sao.class_(Sao.View.Tree.CharColumn, {
@@ -3352,7 +3366,8 @@
             }
         },
         get_visible: function() {
-            return this._visible_header && !this.header.hasClass('invisible');
+            return ((Sao.common.vp_width > 480) &&
+                !this.header.hasClass('invisible'));
         },
         button_clicked: function(event) {
             var record = event.data[0];
