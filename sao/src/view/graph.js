@@ -210,6 +210,11 @@
                         type: 'category',
                     }
                 };
+                bb_config.axis.y = {
+                    tick: {
+                        format: d => Number.isInteger(d) ? d : null,
+                    }
+                };
             }
             let keys = this._data_keys(data);
             var color = this.view.attributes.color || Sao.config.graph_color;
@@ -229,6 +234,11 @@
                 var key = column.id || column;
                 return colors[key] || color;
             };
+            bb_config.grid = {
+                focus: {
+                    show: false
+                }
+            }
             return bb_config;
         },
         _data_keys: function(data) {
@@ -244,6 +254,9 @@
             var ctx = jQuery.extend({}, this.view.screen.group.local_context);
             delete ctx.active_ids;
             delete ctx.active_id;
+            if (ctx.task_extra_filter && typeof data.id == "string") {
+                ctx.task_extra_filter.sub_filter = data.id;
+            }
             Sao.Action.exec_keyword('graph_open', {
                 model: this.view.screen.model_name,
                 id: ids[0],
@@ -264,7 +277,14 @@
     });
 
     Sao.View.Graph.VerticalBar = Sao.class_(Sao.View.Graph.Chart, {
-        _chart_type: 'bar'
+        _chart_type: 'bar',
+        _action_key: function(data) {
+            var x = Sao.View.Graph.VerticalBar._super._action_key.call(this, data);
+            if (typeof x == "number" && !(x in this.ids)) {
+                x = this.view.group[x]._values.name;
+            }
+            return x;
+        },
     });
 
     Sao.View.Graph.HorizontalBar = Sao.class_(Sao.View.Graph.Chart, {
@@ -338,6 +358,23 @@
             config.data.columns = pie_columns;
             config.data.names = pie_names;
             config.data.order = null;
+
+            if (this.view.attributes.mode && (this.view.attributes.mode == 'number')) {
+                config.pie = {
+                    label: {
+                        format: function (value, ratio, id) {
+                            return value;
+                        }
+                    }
+                };
+                config.tooltip = {
+                    format: {
+                        value: function (value, ratio, id) {
+                            return value;
+                        }
+                    }
+                };
+            }
             return config;
         },
         _data_keys: function(data) {
