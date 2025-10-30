@@ -688,6 +688,9 @@ var Sao = {
                                 Sao.user_menu(preferences);
                                 Sao.open_url(url);
                                 Sao.Bus.listen();
+                                Sao.Bus.register(
+                                    `user:${Sao.Session.current_session.user_id}`,
+                                    Sao.Bus.popup_notification);
                             });
                     }
                 }, function() {

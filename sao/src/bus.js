@@ -108,7 +108,7 @@
         }
     }
 
-    let popup_notification = function(message) {
+    Sao.Bus.popup_notification = function(message) {
         if (message.type != 'notification') {
             return;
         }
@@ -126,6 +126,6 @@
             body: message.body || '',
         });
     }
-    Sao.Bus.register(`client:${Sao.Bus.id}`, popup_notification);
+    Sao.Bus.register(`client:${Sao.Bus.id}`, Sao.Bus.popup_notification);
 
 }());
