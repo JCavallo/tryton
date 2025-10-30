@@ -653,7 +653,9 @@ var Sao = {
                                     Sao.NotificationMenu.notify);
                                 Sao.NotificationMenu.count();
                                 Sao.Bus.listen();
-
+                                Sao.Bus.register(
+                                    `user:${Sao.Session.current_session.user_id}`,
+                                    Sao.Bus.popup_notification);
                             });
                     }
                 }, function() {
