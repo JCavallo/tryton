@@ -1,3 +1,5 @@
+* Handle URL host of the bus on login
+* Restrict sessions to the client's IP address
 
 Version 7.6.6 - 2025-09-03
 --------------------------

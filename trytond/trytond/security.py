@@ -1,15 +1,19 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import datetime as dt
+import ipaddress
 import logging
 import random
 import time
+from secrets import compare_digest
 
 try:
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
+from sql import Table
+from sql.conditionals import Coalesce
 from werkzeug.exceptions import abort
 
 from trytond import backend
@@ -59,7 +63,7 @@ def login(dbname, loginname, parameters, cache=True, context=None):
         if not cache:
             session = user_id
         else:
-            with Transaction().start(dbname, user_id):
+            with Transaction().start(dbname, user_id, context=context):
                 Session = pool.get('ir.session')
                 session = user_id, Session.new()
         logger.info("login succeeded for '%s' from '%s' on database '%s'",
@@ -166,6 +170,33 @@ def check_timeout(dbname, user, session, context=None):
         logger.info("session timeout for '%s' from '%s' on database '%s'",
             user, _get_remote_addr(context), dbname)
     return valid
+
+
+def check_session(dbname, user, session, remote_addr=None):
+    "Check the session without using the pool"
+    database = backend.Database(dbname)
+    now = dt.datetime.now()
+    timeout = dt.timedelta(config.getint('session', 'max_age'))
+    conn = database.get_connection(readonly=True)
+    if remote_addr:
+        ip_addr = str(ipaddress.ip_address(remote_addr))
+    else:
+        ip_addr = None
+    try:
+        ir_session = Table('ir_session')
+        cursor = conn.cursor()
+        cursor.execute(*ir_session.select(
+                Coalesce(ir_session.write_date, ir_session.create_date),
+                ir_session.key,
+                where=((ir_session.create_uid == user)
+                    & (ir_session.ip_address == ip_addr))))
+        for session_date, session_key in cursor:
+            if abs(session_date - now) < timeout:
+                if compare_digest(session_key, session):
+                    return user
+        return None
+    finally:
+        database.put_connection(conn)
 
 
 def reset(dbname, session, context):
