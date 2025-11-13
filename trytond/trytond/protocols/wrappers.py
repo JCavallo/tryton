@@ -118,7 +118,7 @@ class Request(_Request):
             return None
         context = {'_request': self.context}
         if auth.type == 'session':
-            user_id = security.check_session(
+            user_id = security.check(
                 database_name, auth.get('userid'), auth.get('session'),
                 context=context)
         elif auth.type == 'token':

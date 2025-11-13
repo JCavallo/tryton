@@ -97,8 +97,12 @@ class TrytondWSGI(object):
             session = request.authorization.get('session')
             dbname = request.view_args.get('database_name')
 
-            session_check = security.check_session(
-                dbname, userid, session, request.remote_addr)
+            session_check = security.check(
+                dbname, userid, session, {
+                    '_request': {
+                        'remote_addr': request.remote_addr,
+                        },
+                    })
             if session_check is None:
                 _do_basic_auth(request)
 
