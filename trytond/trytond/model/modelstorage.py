@@ -108,7 +108,7 @@ class ModelStorage(Model):
     """
     Define a model with storage capability in Tryton.
     """
-    __slots__ = ('_transaction', '_user', '_context', '_ids',
+    __slots__ = ('_transaction', '_savepoint', '_user', '_context', '_ids',
         '_transaction_cache', '_local_cache')
 
     create_uid = fields.Many2One(
@@ -1808,6 +1808,7 @@ class ModelStorage(Model):
         self._transaction = transaction
         self._user = transaction.user
         self._context = transaction.context
+        self._savepoint = transaction.current_savepoint
         if id is not None:
             id = int(id)
         if _ids is not None:

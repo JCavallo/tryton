@@ -394,6 +394,9 @@ class Field(object):
 
     def __set__(self, inst, value):
         assert self.name is not None
+        if hasattr(inst, '_transaction'):
+            assert inst._transaction is Transaction()
+            assert inst._transaction.current_savepoint == inst._savepoint
         if isinstance(value, (Query, Expression)):
             raise ValueError("Can not assign SQL")
         if inst._values is None:

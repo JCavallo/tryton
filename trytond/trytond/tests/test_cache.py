@@ -183,6 +183,45 @@ class MemoryCacheTestCase(TestCase):
             with transaction1.new_transaction():
                 cache.clear()
 
+    def test_memory_cache_set_get_savepoint(self):
+        "Test MemoryCache set/get with savepoint"
+        transaction = Transaction()
+
+        with transaction.start(DB_NAME, USER):
+            cache.set('foo', 'bar')
+            with transaction.savepoint():
+                self.assertEqual(cache.get('foo'), None)
+                cache.set('foo', 'baz')
+                self.assertEqual(cache.get('foo'), 'baz')
+                with transaction.savepoint():
+                    self.assertEqual(cache.get('foo'), None)
+                    cache.set('foo', 'quux')
+                    self.assertEqual(cache.get('foo'), 'quux')
+            self.assertEqual(cache.get('foo'), 'bar')
+
+    def test_memory_cache_savepoint_clear(self):
+        "Test clearing MemoryCache with a savepoint"
+        transaction = Transaction()
+
+        with transaction.start(DB_NAME, USER):
+            cache.set('foo', 'bar')
+            with transaction.savepoint():
+                cache.clear()
+            time.sleep(config.getint('cache', 'clean_timeout'))
+            self.assertEqual(cache.get('foo'), None)
+
+    def test_memory_cache_savepoint_clear_rollback(self):
+        "Test clearing MemoryCache with a rollbacked savepoint"
+        transaction = Transaction()
+
+        with transaction.start(DB_NAME, USER):
+            cache.set('foo', 'bar')
+            with transaction.savepoint() as sp:
+                cache.clear()
+                sp.rollback()
+            time.sleep(config.getint('cache', 'clean_timeout'))
+            self.assertEqual(cache.get('foo'), None)
+
     def test_memory_cache_sync(self):
         "Test MemoryCache synchronisation"
         with Transaction().start(DB_NAME, USER):

@@ -16,7 +16,7 @@ def register():
         field_one2one, field_reference, field_selection, field_text,
         field_time, field_timedelta, history, import_data, mixin, model,
         model_log, modelsql, modelstorage, modelview, mptt, multivalue, path,
-        resource, rule, tree, trigger, wizard, workflow)
+        resource, rule, transaction, tree, trigger, wizard, workflow)
 
     access.register('tests')
     copy_.register('tests')
@@ -56,6 +56,7 @@ def register():
     path.register('tests')
     resource.register('tests')
     rule.register('tests')
+    transaction.register('tests')
     tree.register('tests')
     trigger.register('tests')
     wizard.register('tests')

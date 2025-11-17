@@ -325,6 +325,23 @@ class Database(DatabaseInterface):
         cls._list_cache.clear()
 
     @classmethod
+    def savepoint(cls, connection, name):
+        cursor = connection.cursor()
+        cursor.execute(SQL("SAVEPOINT {}").format(Identifier(name)))
+
+    @classmethod
+    def savepoint_release(cls, connection, name):
+        cursor = connection.cursor()
+        cursor.execute(
+            SQL("RELEASE SAVEPOINT {}").format(Identifier(name)))
+
+    @classmethod
+    def savepoint_rollback(cls, connection, name):
+        cursor = connection.cursor()
+        cursor.execute(
+            SQL("ROLLBACK TO SAVEPOINT {}").format(Identifier(name)))
+
+    @classmethod
     def drop(cls, connection, database_name):
         cursor = connection.cursor()
         cursor.execute(SQL("DROP DATABASE {}")

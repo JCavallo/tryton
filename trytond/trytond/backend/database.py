@@ -77,6 +77,18 @@ class DatabaseInterface(object):
     def lock_records(cls, connection, table, ids):
         raise NotImplementedError
 
+    @classmethod
+    def savepoint(cls, connection, name):
+        raise NotImplementedError
+
+    @classmethod
+    def savepoint_release(cls, connection, name):
+        raise NotImplementedError
+
+    @classmethod
+    def savepoint_rollback(cls, connection, name):
+        raise NotImplementedError
+
     def lock_id(self, id, timeout=None):
         raise NotImplementedError
 

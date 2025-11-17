@@ -1,11 +1,12 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 
+import copy
 import ipaddress
 import logging
 import time
 from collections import defaultdict, deque
-from functools import wraps
+from functools import partial, wraps
 from itertools import chain
 from threading import local
 from weakref import WeakValueDictionary
@@ -103,6 +104,117 @@ class _AttributeManager(object):
             setattr(Transaction(), name, value)
 
 
+class SavepointManager:
+
+    _count = 0
+
+    def __init__(self, transaction, *, rollback_on=None, group=None):
+        self.rollback_on = rollback_on
+        self.name = f'sp-{id(transaction)}-{self._count}'
+        self.__class__._count += 1
+        self.previous_savepoint = transaction.current_savepoint
+        self.transaction = transaction
+        transaction.current_savepoint = self.name
+        self.transaction.savepoints.append(self)
+
+    def __enter__(self):
+        self.transaction.database.savepoint(
+            self.transaction.connection, self.name)
+        return self
+
+    def __exit__(self, type_, value, traceback):
+        transaction_members = vars(Transaction)
+        descriptors = [transaction_members[n] for n in (
+                'log_records', 'create_records', 'delete_records',
+                'trigger_records', 'check_warnings', '_atexit',
+                '_datamanagers')]
+        inner = self.transaction.current_savepoint
+        inner_cache_key = self.transaction._cache_key()
+        self.transaction.current_savepoint = outer = self.previous_savepoint
+        outer_cache_key = self.transaction._cache_key()
+        if type_ is None and value is None and traceback is None:
+            for d in descriptors:
+                d.merge(self.transaction, inner, outer)
+            # since the outer cache is a deepcopy of the inner cache we can
+            # safely replace the inner value by the outer value when releasing
+            # the savepoint
+            if outer_cache_key in self.transaction.cache:
+                self.transaction.cache[inner_cache_key] = \
+                    self.transaction.cache.pop(outer_cache_key)
+            database = self.transaction.database
+            database.savepoint_release(
+                self.transaction.connection, self.name)
+            self.transaction.savepoints.pop()
+            return True
+        elif ((isinstance(value, SavepointRollback)
+                and value.name == self.name)
+            or (self.rollback_on is not None
+                and issubclass(type_, self.rollback_on))):
+            database = self.transaction.database
+            database.savepoint_rollback(
+                self.transaction.connection, self.name)
+            self.transaction.savepoints.pop()
+            return True
+        else:
+            return False
+
+    def rollback(self):
+        raise SavepointRollback(self.name)
+
+
+class SavepointRollback(Exception):
+
+    def __init__(self, name=None):
+        self.name = name
+
+
+_MISSING_SAVEPOINT = object()
+
+
+class SavepointAwareProperty:
+
+    def __init__(self, factory):
+        self.factory = factory
+
+    def __set_name__(self, owner, name):
+        self.public_name = name
+        self.private_name = f'_sp_{name}'
+
+    def __get__(self, obj, objtype=None):
+        if not hasattr(obj, self.private_name):
+            setattr(obj, self.private_name, {})
+        store = getattr(obj, self.private_name)
+        return store.setdefault(obj.current_savepoint, self.factory())
+
+    def __set__(self, obj, value):
+        if not hasattr(obj, self.private_name):
+            setattr(obj, self.private_name, {})
+        store = getattr(obj, self.private_name)
+        store[obj.current_savepoint] = value
+
+    def merge(self, transaction, from_, to):
+        store = getattr(transaction, self.private_name, {})
+        to_merge = store.pop(from_, _MISSING_SAVEPOINT)
+        if to_merge is not _MISSING_SAVEPOINT:
+            new_value = store.setdefault(to, self.factory())
+            if isinstance(new_value, list):
+                new_value += to_merge
+            elif isinstance(new_value, (dict, set)):
+                new_value.update(to_merge)
+            else:
+                raise TypeError
+
+
+def with_savepoint(*, rollback_on=Exception):
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            with Transaction().savepoint(rollback_on=rollback_on):
+                return func(*args, **kwargs)
+        return wrapper
+    return decorator
+
+
 class _Local(local):
 
     def __init__(self):
@@ -118,6 +230,14 @@ class Transaction(object):
 
     _local = _Local()
 
+    log_records = SavepointAwareProperty(list)
+    create_records = SavepointAwareProperty(partial(defaultdict, set))
+    delete_records = SavepointAwareProperty(partial(defaultdict, set))
+    trigger_records = SavepointAwareProperty(partial(defaultdict, set))
+    check_warnings = SavepointAwareProperty(partial(defaultdict, set))
+    _atexit = SavepointAwareProperty(list)
+    _datamanagers = SavepointAwareProperty(list)
+
     cache_keys = {'language', 'fuzzy_translation', '_datetime'}
 
     def __new__(cls, new=False):
@@ -130,16 +250,12 @@ class Transaction(object):
             instance.close = None
             instance.user = None
             instance.context = None
-            instance.create_records = None
-            instance.delete_records = None
-            instance.trigger_records = None
-            instance.log_records = None
-            instance.check_warnings = None
+            instance.current_savepoint = None
+            instance.savepoints = []
             instance.timestamp = None
             instance.started_at = None
             instance.cache = WeakValueDictionary()
             instance._cache_deque = deque(maxlen=_cache_transaction)
-            instance._atexit = []
             transactions.append(instance)
         else:
             instance = transactions[-1]
@@ -156,14 +272,18 @@ class Transaction(object):
     def tasks(self):
         return self._local.tasks
 
-    def get_cache(self):
-        from trytond.cache import LRUDict
-        from trytond.pool import Pool
+    def _cache_key(self):
         keys = tuple(((key, self.context[key])
                 for key in sorted(self.cache_keys)
                 if key in self.context))
+        return (self.current_savepoint, self.user, keys)
+
+    def get_cache(self):
+        from trytond.cache import LRUDict
+        from trytond.pool import Pool
         cache = self.cache.setdefault(
-            (self.user, keys), LRUDict(
+            self._cache_key(),
+            LRUDict(
                 _cache_model,
                 lambda name: LRUDict(
                     record_cache_size(self),
@@ -198,14 +318,9 @@ class Transaction(object):
             self.readonly = readonly
             self.close = close
             self.context = ImmutableDict(context or {})
-            self.create_records = defaultdict(set)
-            self.delete_records = defaultdict(set)
-            self.trigger_records = defaultdict(set)
-            self.log_records = []
-            self.check_warnings = defaultdict(set)
+            self.current_savepoint = None
             self.timestamp = {}
             self.counter = 0
-            self._datamanagers = []
 
             self.connection = database.get_connection(readonly=readonly,
                 autocommit=autocommit, statement_timeout=timeout)
@@ -266,12 +381,9 @@ class Transaction(object):
                     self.close = None
                     self.user = None
                     self.context = None
-                    self.create_records = None
-                    self.delete_records = None
-                    self.trigger_records = None
-                    self.log_records = None
+                    self.current_savepoint = None
+                    self.savepoints = []
                     self.timestamp = None
-                    self._datamanagers = []
 
                 for func, args, kwargs in self._atexit:
                     func(*args, **kwargs)
@@ -360,6 +472,8 @@ class Transaction(object):
         self.check_warnings.clear()
 
     def commit(self):
+        assert self.current_savepoint is None
+
         from trytond.cache import Cache
         try:
             self._store_log_records()
@@ -399,6 +513,13 @@ class Transaction(object):
         self._clear_warnings()
         if self.connection:
             self.connection.rollback()
+
+    def savepoint(self, *, rollback_on=None):
+        previous_cache = self.get_cache()
+        savepoint = SavepointManager(self, rollback_on=rollback_on)
+        current_cache = self.get_cache()
+        current_cache.update(copy.deepcopy(previous_cache))
+        return savepoint
 
     def join(self, datamanager):
         try:
