@@ -3838,7 +3838,7 @@
         },
         _format: function(content) {
             if (this.format) {
-                return this.format(content);
+                content = this.format(content);
             }
             return jQuery('<span/>').text(content);
         },
