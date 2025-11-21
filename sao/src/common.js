@@ -3838,7 +3838,7 @@
         },
         _format: function(content) {
             if (this.format) {
-                content = this.format(content);
+                return this.format(content);
             }
             return jQuery('<span/>').text(content);
         },
@@ -3903,7 +3903,7 @@
     Sao.common.get_completion = function(el, source,
             match_selected, action_activated, search=true, create=true) {
         var format = function(content) {
-            return content.name;
+            return jQuery('<span/>').text(content.name);
         };
         var completion = new Sao.common.InputCompletion(
                 el, source, match_selected, format);
