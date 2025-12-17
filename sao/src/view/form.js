@@ -2873,6 +2873,8 @@ function eval_pyson(value){
             if (this.has_target(value)) {
                 var m2o_id =
                     this.id_from_value(record.field_get(this.field_name));
+                var body;
+                body = jQuery(document.body);
                 if (evt && (evt.ctrlKey || evt.metaKey)) {
                     if (!jQuery.isEmptyObject(view_ids)) {
                         // Remove the first tree view as mode is form only
