@@ -6,7 +6,7 @@ from trytond.model.exceptions import (
     DomainValidationError, RequiredValidationError, SizeValidationError)
 from trytond.pool import Pool
 from trytond.tests.test_tryton import (
-    TestCase, activate_module, with_transaction)
+    TestCase, activate_module, drop_db, with_transaction)
 
 
 class SearchTestCaseMixin:
@@ -499,6 +499,11 @@ class FieldOne2ManyTestCase(
         super().setUpClass()
         activate_module('tests')
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
+
     def One2Many(self):
         return Pool().get('test.one2many')
 
@@ -787,6 +792,11 @@ class FieldOne2ManyReferenceTestCase(
         super().setUpClass()
         activate_module('tests')
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
+
     def One2Many(self):
         return Pool().get('test.one2many_reference')
 
@@ -805,6 +815,11 @@ class FieldOne2ManyExistsTestCase(TestCase, SearchTestCaseMixin):
     def setUpClass(cls):
         super().setUpClass()
         activate_module('tests')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
 
     def setUp(self):
         super().setUp()
@@ -831,6 +846,11 @@ class FieldOne2ManyReferenceExistsTestCase(
     def setUpClass(cls):
         super().setUpClass()
         activate_module('tests')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
 
     def setUp(self):
         super().setUp()
