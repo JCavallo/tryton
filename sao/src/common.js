@@ -4342,21 +4342,28 @@
     };
 
     Sao.common.get_input_data = function(input, callback, char_) {
+        let reader_promises = [];
         for (var i = 0; i < input[0].files.length; i++) {
-            Sao.common.get_file_data(input[0].files[i], callback, char_);
+            reader_promises.push(Sao.common.get_file_data(input[0].files[i], callback, char_));
         }
+        Promise.allSettled(reader_promises).then((results) => {
+            input.val(undefined);
+        });
     };
 
     Sao.common.get_file_data = function(file, callback, char_) {
-        var reader = new FileReader();
-        reader.onload = function() {
-            var value = new Uint8Array(reader.result);
-            if (char_) {
-                value = String.fromCharCode.apply(null, value);
-            }
-            callback(value, file.name);
-        };
-        reader.readAsArrayBuffer(file);
+        return new Promise((resolve, reject) => {
+            var reader = new FileReader();
+            reader.onload = function() {
+                var value = new Uint8Array(reader.result);
+                if (char_) {
+                    value = String.fromCharCode.apply(null, value);
+                }
+                callback(value, file.name);
+                resolve();
+            };
+            reader.readAsArrayBuffer(file);
+        });
     };
 
     Sao.common.ellipsize = function(string, length) {
