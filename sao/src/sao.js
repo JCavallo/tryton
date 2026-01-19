@@ -1186,6 +1186,14 @@ var Sao = {
                 label: Sao.i18n.gettext('Action'),
                 id: 'action',
             }, {
+                // Copied from index.html
+                shortcut: 'alt+t',
+                label: Sao.i18n.gettext('Toggle Menu'),
+                callback: function() {
+                    jQuery('#menu').toggleClass('hidden');
+                    jQuery('#tabs').toggleClass('hidden-xs');
+                },
+            }, {
                 shortcut: 'ctrl+shift+r',
                 label: Sao.i18n.gettext('Relate'),
                 id: 'relate',

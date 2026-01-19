@@ -68,6 +68,9 @@ msgstr "Attachement"
 msgid "Note"
 msgstr "Note"
 
+msgid "Toggle Menu"
+msgstr "Masquer/afficher le menu"
+
 msgid "Relate"
 msgstr "Relation"
 
