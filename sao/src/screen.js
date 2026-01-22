@@ -985,9 +985,13 @@
                 this.group.model.fields[field].views.add(view_id);
             }
             // [Coog specific] multi_mixed_view
-            var view_widget = Sao.View.parse(
-                this, view_id, view.type, xml_view, view.field_childs,
-                view.children_definitions);
+            try {
+                var view_widget = Sao.View.parse(
+                    this, view_id, view.type, xml_view, view.field_childs,
+                    view.children_definitions);
+            } catch (e) {
+                return null;
+            }
             this.views.push(view_widget);
             // JMO: report https://github.com/coopengo/tryton/pull/13
             var fkeys = {};
