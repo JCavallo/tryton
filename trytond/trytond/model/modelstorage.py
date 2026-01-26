@@ -661,7 +661,9 @@ class ModelStorage(Model):
         return new_records
 
     @classmethod
-    def search(cls, domain, offset=0, limit=None, order=None, count=False):
+    def search(
+            cls, domain, offset=0, limit=None, order=None, count=False,
+            query=True):
         '''
         Return a list of records that match the domain.
         '''

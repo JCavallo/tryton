@@ -104,9 +104,12 @@ class ModelSingleton(ModelStorage):
         return records
 
     @classmethod
-    def search(cls, domain, offset=0, limit=None, order=None, count=False):
-        res = super().search(domain, offset=offset,
-                limit=limit, order=order, count=count)
+    def search(
+            cls, domain, offset=0, limit=None, order=None, count=False,
+            query=False):
+        res = super().search(
+            domain, offset=offset, limit=limit, order=order, count=count,
+            query=query)
         if not res and not domain:
             if count:
                 return 1
