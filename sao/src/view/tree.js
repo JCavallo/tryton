@@ -2351,7 +2351,10 @@
                             }
                         }
                         this._get_column_td(next_column)
-                            .find(':input,[tabindex=0]').focus();
+                            .find(':input,[tabindex=0]')
+                            .filter(':visible')
+                            .first()
+                            .focus();
                     } else {
                         var prm = jQuery.when();
                         if (!this.tree.screen.group.parent) {
@@ -2400,7 +2403,10 @@
                                 this._get_column_td(
                                     next_column, next_row)
                                     .trigger('click')
+                                    .trigger('click')
                                     .find(':input,[tabindex=0]')
+                                    .filter(':visible')
+                                    .first()
                                     .focus();
                             });
                         }
