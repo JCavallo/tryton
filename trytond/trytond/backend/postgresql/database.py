@@ -4,6 +4,7 @@ import json
 import logging
 import os
 import time
+import urllib.parse
 import warnings
 from collections import defaultdict
 from datetime import datetime
@@ -11,10 +12,16 @@ from decimal import Decimal
 from itertools import chain, repeat
 from threading import RLock
 
+try:
+    from psycopg2cffi import compat
+    compat.register()
+except ImportError:
+    pass
+
 from psycopg2 import Binary, connect
 from psycopg2.extensions import (
-    ISOLATION_LEVEL_REPEATABLE_READ, UNICODE, AsIs, cursor, register_adapter,
-    register_type)
+    ISOLATION_LEVEL_REPEATABLE_READ, ISOLATION_LEVEL_AUTOCOMMIT, UNICODE, AsIs,
+    cursor, register_adapter, register_type)
 from psycopg2.pool import PoolError, ThreadedConnectionPool
 from psycopg2.sql import SQL, Identifier
 from sql.operators import NotEqual
@@ -27,7 +34,11 @@ from psycopg2 import DataError as DatabaseDataError
 from psycopg2 import IntegrityError as DatabaseIntegrityError
 from psycopg2 import InterfaceError
 from psycopg2 import OperationalError as DatabaseOperationalError
-from psycopg2.errors import QueryCanceled as DatabaseTimeoutError
+try:
+    from psycopg2.errors import QueryCanceled as DatabaseTimeoutError
+except ModuleNotFoundError:
+    # Pypy
+    from psycopg2 import QueryCanceledError as DatabaseTimeoutError
 from psycopg2.errors import UndefinedColumn
 from psycopg2.extras import register_default_json, register_default_jsonb
 from sql import Cast, Flavor, For, Literal, Table
@@ -252,13 +263,16 @@ class Database(DatabaseInterface):
 
     @classmethod
     def _connection_params(cls, name):
+        # JCA: psycopg2cff does not support mixing dsn and other parameters
         uri = parse_uri(config.get('database', 'uri'))
+        qs = urllib.parse.parse_qs(uri.query)
+        qs['fallback_application_name'] = os.environ.get(
+            'TRYTOND_APPNAME', 'trytond')
+        query = urllib.parse.urlencode(qs, doseq=True)
         if uri.path and uri.path != '/':
             warnings.warn("The path specified in the URI will be overridden")
         params = {
-            'dsn': uri._replace(path='/' + name).geturl(),
-            'fallback_application_name': os.environ.get(
-                'TRYTOND_APPNAME', 'trytond'),
+            'dsn': uri._replace(path='/' + name, query=query).geturl(),
             }
         return params
 
@@ -282,21 +296,33 @@ class Database(DatabaseInterface):
                     'connection to "%s" failed', self.name, exc_info=True)
                 raise
             try:
-                conn.set_session(
-                    isolation_level=ISOLATION_LEVEL_REPEATABLE_READ,
-                    readonly=readonly,
-                    autocommit=autocommit)
                 with conn.cursor() as cur:
-                    if statement_timeout:
-                        cur.execute('SET statement_timeout=%s' %
-                            (statement_timeout * 1000))
-                    else:
-                        # Detect disconnection
-                        cur.execute('SELECT 1')
+                    # Detect disconnection
+                    cur.execute('SELECT 1')
             except DatabaseOperationalError:
                 self._connpool.putconn(conn, close=True)
                 continue
             break
+
+        # We do not use set_session because psycopg2 < 2.7 and psycopg2cffi
+        # change the default_transaction_* attributes which breaks external
+        # pooling at the transaction level.
+        if autocommit:
+            conn.set_isolation_level(ISOLATION_LEVEL_AUTOCOMMIT)
+        else:
+            conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
+        statements = []
+        # psycopg2cffi does not have the readonly property
+        if hasattr(conn, 'readonly'):
+            conn.readonly = readonly
+        elif not autocommit and readonly:
+            statements.append('SET TRANSACTION READ ONLY')
+        if statement_timeout:
+            statements.append(
+                'SET statement_timeout=%s' % (statement_timeout * 1000))
+        if statements:
+            cursor = conn.cursor()
+            cursor.execute(';'.join(statements))
         return conn
 
     def put_connection(self, connection, close=False):
