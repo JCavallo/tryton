@@ -12,6 +12,7 @@ from trytond.i18n import gettext
 from trytond.pool import Pool
 from trytond.pyson import PYSONEncoder
 from trytond.rpc import RPC, RPCReturnException
+from trytond.server_context import ServerContext
 from trytond.tools import is_instance_method, likify
 from trytond.transaction import Transaction, check_access, without_check_access
 
@@ -929,12 +930,16 @@ class ModelView(Model):
                                     target_changed['id'] = target.id
                                     value['update'].append(target_changed)
                         else:
-                            if isinstance(target, ModelView):
-                                added_values = target._changed_values()
-                            else:
-                                added_values = target._default_values
-                            added_values['id'] = target.id
-                            value['add'].append((i, added_values))
+                            # automatically get a one2Many rec_name
+                            # to limit number of requests
+                            with ServerContext().set_context(
+                                    _default_rec_names=True):
+                                if isinstance(target, ModelView):
+                                    added_values = target._changed_values()
+                                else:
+                                    added_values = target._default_values
+                                added_values['id'] = target.id
+                                value['add'].append((i, added_values))
                     finally:
                         if t_values:
                             target._values = t_values
