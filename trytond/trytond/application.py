@@ -27,6 +27,7 @@ if os.environ.get('TRYTOND_COROUTINE'):
 from trytond.pool import Pool  # noqa: E402
 from trytond.wsgi import app  # noqa: E402
 
+Pool.start_app_initialization()
 Pool.start()
 # TRYTOND_CONFIG it's managed by importing config
 db_names = os.environ.get('TRYTOND_DATABASE_NAMES')
@@ -41,4 +42,26 @@ if db_names:
     for thread in threads:
         thread.join()
 
+
+# JCA: if for some reason the server works properly when starting with
+# "trytond" but not with "uwsgi", you may be in the right place.
+#
+# When the pool initialization is completed (above), there should be no
+# busy threads in the main process (psycopg2 threads can probably be ignored
+# since they have no reason to be running if the server is doing nothing).
+#
+# If there are, uwsgi may fork the "wrong" one at the wrong time, and become
+# unresponsive. Typical cause (what led me here the first time) would be a
+# cache invalidation triggered in the side MemoryCache listeners. There should
+# be NO CACHE INVALIDATION when the pool is initialized.
+#
+# If this is not the cause, good luck
+#
+# [EDIT]
+# Now with gunicorn integration python file are imported after forking, no need
+# to implement a post_fork
+
+application = app
+
+Pool.app_initialization_completed()
 assert len(threads := threading.enumerate()) == 1, f"len({threads}) != 1"
