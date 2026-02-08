@@ -310,6 +310,22 @@ class TableHandler(TableHandlerInterface):
                 cursor.execute('DROP INDEX %s' % _escape_identifier(name))
         self.__indexes = None
 
+    def dump_indexes(self, indexes, file, concurrently=False):
+        for index in indexes:
+            translator = self.index_translator_for(index)
+            if translator:
+                name, query, params = translator.definition(index)
+                name = '_'.join([self.table_name, name])
+                name = 'idx_' + self.convert_name(name, reserved=len('idx_'))
+                if not params:
+                    file.write(
+                        'CREATE INDEX IF NOT EXISTS %s ON %s %s;' % (
+                            _escape_identifier(name),
+                            _escape_identifier(self.table_name),
+                            query).encode('utf8'))
+                else:
+                    warnings.warn("Can not create index with parameters")
+
     def drop_column(self, column_name):
         if not self.column_exist(column_name):
             return
