@@ -6,6 +6,8 @@ import os
 import urllib.parse
 from getpass import getuser
 
+import __main__ as main
+
 __all__ = ['config', 'get_hostname', 'get_port', 'split_netloc',
     'parse_listen', 'parse_uri']
 logger = logging.getLogger(__name__)
@@ -45,11 +47,13 @@ def parse_uri(uri):
 
 class TrytonConfigParser(configparser.ConfigParser):
 
-    def __init__(self):
+    def __init__(self, overrides=None):
         super().__init__(interpolation=None)
         self.add_section('web')
         self.set('web', 'listen', 'localhost:8000')
-        self.set('web', 'root', os.path.join(os.path.expanduser('~'), 'www'))
+        self.set('web', 'root',
+            os.environ.get('TRYTOND_WEB_ROOT',
+                os.path.join(os.path.expanduser('~'), 'www')))
         self.set('web', 'num_proxies', '0')
         self.set('web', 'cache_timeout', str(60 * 60 * 12))
         self.add_section('database')
@@ -77,6 +81,14 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('cache', 'ir.translation', '10240')
         self.set('cache', 'clean_timeout', '300')
         self.set('cache', 'select_timeout', '60')
+        # AKE: cache config from env vars
+        self.set('cache', 'class', os.environ.get('TRYTOND_CACHE_CLASS', ''))
+        self.set('cache', 'uri', os.environ.get('TRYTOND_CACHE_URI', ''))
+        self.set('cache', 'coog_cache_size', '1024')
+
+        self.add_section('report')
+        self.set('report', 'unoconv_retry', '2')
+
         self.add_section('queue')
         self.set('queue', 'worker', 'False')
         self.add_section('ssl')
@@ -99,8 +111,11 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('bus', 'long_polling_timeout', str(5 * 60))
         self.set('bus', 'cache_timeout', '5')
         self.set('bus', 'select_timeout', '5')
-        self.add_section('report')
         self.add_section('html')
+        self.add_section('custom')
+        self.set('custom', 'enable_stat_thread', 'False')
+        if overrides:
+            self.update_etc(configfile=overrides)
         self.update_environ()
         self.update_etc()
 
@@ -114,6 +129,9 @@ class TrytonConfigParser(configparser.ConfigParser):
                 continue
             if section.startswith('wsgi_'):
                 section = section.replace('wsgi_', 'wsgi ')
+            if section.startswith('authentication_saml'):
+                section = section.replace(
+                    'authentication_saml_', 'authentication_saml ')
             if not self.has_section(section):
                 self.add_section(section)
             self.set(section, option, value)
@@ -170,5 +188,11 @@ class TrytonConfigParser(configparser.ConfigParser):
                 AttributeError):
             return default
 
+    def apply_overriden_defaults(self):
+        overrides = self.get('admin', 'config_default_overrides')
+        if not overrides:
+            return self
+        return TrytonConfigParser(overrides=overrides)
 
-config = TrytonConfigParser()
+
+config = TrytonConfigParser().apply_overriden_defaults()
