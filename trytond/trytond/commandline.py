@@ -6,6 +6,9 @@ import logging
 import logging.config
 import logging.handlers
 import os
+import signal
+import sys
+import traceback
 import os.path
 from contextlib import contextmanager
 from io import StringIO
@@ -229,3 +232,25 @@ def pidfile(options):
             fd.write('%d' % os.getpid())
         yield
         os.unlink(path)
+
+
+# AKE: generates a callback to clean process before stop
+def generate_signal_handler(pidfile):
+    def shutdown(signum, frame):
+        logger.info('shutdown')
+        logging.shutdown()
+        if pidfile:
+            os.unlink(pidfile)
+        if signum != 0:
+            traceback.print_stack(frame)
+        sys.exit(signum)
+    return shutdown
+
+
+# AKE: attach handler to common term signals
+def handle_signals(handler):
+    sig_names = ('SIGINT', 'SIGTERM', 'SIGQUIT')
+    for sig_name in sig_names:
+        sig = getattr(signal, sig_name, None)
+        if sig is not None:
+            signal.signal(sig, handler)
