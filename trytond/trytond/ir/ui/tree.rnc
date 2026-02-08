@@ -88,6 +88,7 @@ attlist.button &= attribute help { text }?
 attlist.button &= attribute string { text }?
 attlist.button &= attribute confirm { text }?
 attlist.button &= attribute name { text }
+attlist.button &= attribute icon { text }?
 attlist.button &= attribute states { text }?
 attlist.button &=
     [ a:defaultValue="action" ]
