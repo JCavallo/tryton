@@ -197,8 +197,7 @@ class Many2One(Field):
         return expression
 
     @inactive_records
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         pool = Pool()
         Rule = pool.get('ir.rule')
         Target = self.get_target()
@@ -257,8 +256,7 @@ class Many2One(Field):
                 return expression
 
             if not isinstance(value, str):
-                return super().convert_domain(domain, tables,
-                    Model)
+                return super()._convert_domain(domain, tables, Model)
             else:
                 warnings.warn(
                     f"Missing target field in operand of domain {domain}")
