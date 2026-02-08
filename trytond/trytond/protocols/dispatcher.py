@@ -198,6 +198,17 @@ def _dispatch(request, pool, *args, **kwargs):
         return (time.monotonic() - started) * 1000
     started = time.monotonic()
 
+    # AKE: add session to transaction context
+    token, session = None, None
+    if request.authorization.type == 'session':
+        session = request.authorization.get('session')
+    elif request.authorization.type == 'token':
+        token = {
+            'key': request.authorization.get('token'),
+            'user': user,
+            'party': request.authorization.get('party_id'),
+            }
+
     retry = config.getint('database', 'retry')
     count = 0
     transaction_extras = {}
@@ -211,6 +222,11 @@ def _dispatch(request, pool, *args, **kwargs):
             try:
                 c_args, c_kwargs, transaction.context, transaction.timestamp \
                     = rpc.convert(obj, *args, **kwargs)
+                # AKE: add session to transaction context
+                transaction.context.update({
+                        'session': session,
+                        'token': token,
+                        })
                 transaction.context['_request'] = request.context
                 meth = rpc.decorate(getattr(obj, method))
                 if (rpc.instantiate is None
