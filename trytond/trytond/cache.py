@@ -300,6 +300,10 @@ class MemoryCache(BaseCache):
                     cursor.execute(
                         'NOTIFY "%s", %%s' % cls._channel,
                         (json.dumps(list(sub_reset), separators=(',', ':')),))
+                for name in reset:
+                    if name in cls._instances:
+                        inst = cls._instances[name]
+                        inst._clear(dbname)
         else:
             connection = database.get_connection(
                 readonly=False, autocommit=True)
@@ -418,13 +422,18 @@ class MemoryCache(BaseCache):
                 selector.select(timeout=_select_timeout)
                 conn.poll()
                 while conn.notifies:
+                    pool = Pool(dbname)
+                    callbacks = pool._notification_callbacks.get(dbname, {})
                     notification = conn.notifies.pop()
                     payload = notification.payload
                     if payload and payload.startswith(REFRESH_POOL_MSG):
                         remote_id = payload[len(REFRESH_POOL_MSG) + 1:]
                         process_id = cls._local.portable_id
                         if remote_id != process_id:
-                            Pool.refresh(dbname, _get_modules(cursor))
+                            Pool.refresh(dbname, _get_modules(cursor),
+                                force=True)
+                    elif isinstance(payload, str) and payload in callbacks:
+                        callbacks[payload](pool)
                     elif payload:
                         for name in json.loads(payload):
                             try:

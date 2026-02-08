@@ -114,7 +114,7 @@ def is_module_to_install(module, update):
     return False
 
 
-def load_translations(pool, node, languages):
+def load_translations(pool, node, languages, prefix):
     module = node.name
     localedir = '%s/%s' % (node.info['directory'], 'locale')
     lang2filenames = defaultdict(list)
@@ -129,7 +129,7 @@ def load_translations(pool, node, languages):
     base_path_position = len(node.info['directory']) + 1
     for language, files in lang2filenames.items():
         filenames = [f[base_path_position:] for f in files]
-        logger.info('%s load %s', module, ','.join(filenames))
+        logger.info('%s:loading %s', prefix, ','.join(filenames))
         Translation = pool.get('ir.translation')
         Translation.translation_import(language, module, files)
 
@@ -174,10 +174,14 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                     [ir_module.name, ir_module.state],
                     [[m, 'not activated'] for m in new_modules]))
 
-        def register_classes(classes, module):
+        count = len(modules)
+
+        def register_classes(classes, module, idx=0):
+            logging_prefix = '%i%% (%i/%i):%s' % (
+                int(idx * 100 / (count + 1)), idx, count, module)
             for type in list(classes.keys()):
                 for cls in classes[type]:
-                    logger.info('%s register %s', module, cls.__name__)
+                    logger.info('%s:register %s', logging_prefix, cls.__name__)
                     cls.__register__(module)
 
         to_install_states = {'to activate', 'to upgrade'}
@@ -188,16 +192,23 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
         if update:
             for module in early_modules:
                 pool.setup(early_classes[module])
+                pool.post_init(module)
             for module in early_modules:
                 if (is_module_to_install(module, update)
                         or module2state[module] in to_install_states):
                     register_classes(early_classes[module], module)
 
+        idx = 0
         for node in graph:
             module = node.name
             if module not in MODULES:
                 continue
-            logger.info('%s load', module)
+
+            # JCA: Add loading indicator in the logs
+            idx += 1
+            logging_prefix = '%i%% (%i/%i):%s' % (
+                int(idx * 100 / (count + 1)), idx, count, module)
+            logger.info(logging_prefix)
             if module in early_modules:
                 classes = early_classes[module]
             else:
@@ -207,6 +218,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                     # linger
                     transaction.cache.clear()
                     pool.setup(classes)
+                    pool.post_init(module)
             package_state = module2state[module]
             if (is_module_to_install(module, update)
                     or (update and package_state in to_install_states)):
@@ -218,7 +230,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                 for child in node:
                     module2state[child.name] = package_state
                 if module not in early_modules:
-                    register_classes(classes, module)
+                    register_classes(classes, module, idx)
                 for model in classes['model']:
                     if hasattr(model, '_history'):
                         models_to_update_history.add(model.__name__)
@@ -231,7 +243,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
 
                 for filename in node.info.get('xml', []):
                     filename = filename.replace('/', os.sep)
-                    logger.info('%s load %s', module, filename)
+                    logger.info('%s:loading %s', logging_prefix, filename)
                     # Feed the parser with xml content:
                     with tools.file_open(
                             os.path.join(module, filename), 'rb') as fp:
@@ -239,7 +251,7 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
 
                 modules_todo.append((module, list(tryton_parser.to_delete)))
 
-                load_translations(pool, node, lang)
+                load_translations(pool, node, lang, logging_prefix)
 
                 if package_state == 'to remove':
                     continue
@@ -264,17 +276,31 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
         if not update:
             pool.setup()
         else:
+            class Options:
+                pass
+
+            options = Options()
+            options.indexes = indexes
+
+            pool.final_migrations(options)
             # As the caches are cleared at the end of the process there's
             # no need to do it here.
             # It may deadlock on the ir_cache SELECT if the table schema has
             # been modified
             Cache._reset.clear()
+            # The log model may have changed between when the log object was
+            # created and now (if there was an override of the model), so we
+            # cannot save any logs
+            transaction._clear_log_records()
             transaction.commit()
             # Remove unknown models and fields
             Model = pool.get('ir.model')
             Model.clean()
             ModelField = pool.get('ir.model.field')
             ModelField.clean()
+
+        # JCA: Add update parameter to post init hooks
+        pool.post_init(None)
 
         pool.setup_mixin()
 
@@ -294,8 +320,6 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
                     [ir_configuration.series], [__series__]))
             if indexes or indexes is None:
                 create_indexes(concurrently=False)
-            else:
-                logger.info('skip indexes creation')
             for model_name in models_to_update_history:
                 model = pool.get(model_name)
                 if model._history:
@@ -317,6 +341,8 @@ def load_module_graph(graph, pool, update=None, lang=None, indexes=None):
             # Ensure cache is clear for other instances
             Cache.clear_all()
             Cache.refresh_pool(transaction)
+
+        pool.setup_complete(update)
     logger.info('all modules loaded')
 
 
