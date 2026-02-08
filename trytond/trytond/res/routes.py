@@ -6,11 +6,24 @@ import time
 
 from trytond.config import config
 from trytond.protocols.wrappers import (
-    abort, allow_null_origin, with_pool, with_transaction)
+    allow_null_origin, with_pool, with_pool_by_config, with_transaction)
 from trytond.transaction import Transaction
 from trytond.wsgi import app
 
 logger = logging.getLogger(__name__)
+
+
+@app.route('/liveness', methods=['GET'])
+@with_pool_by_config
+@with_transaction(readonly=True)
+def livenessness(request, pool):
+    return 'alive\n'
+
+
+@app.route('/<database_name>/readiness', methods=['GET'])
+@with_pool
+def readiness(request, pool):
+    return 'ready\n'
 
 
 @app.route('/<database_name>/user/application/', methods=['POST', 'DELETE'])
