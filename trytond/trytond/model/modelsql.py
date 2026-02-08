@@ -2,7 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import datetime
 from collections import defaultdict
-from functools import wraps
+from functools import cache, wraps
 from itertools import chain, groupby, islice, product, repeat
 
 from sql import (
@@ -278,6 +278,7 @@ def no_table_query(func):
     return wrapper
 
 
+@cache
 def apply_sorting(keywords):
     order_types = {
         'DESC': Desc,
@@ -803,7 +804,8 @@ class ModelSQL(ModelStorage):
                 to_delete.append(id_)
             else:
                 to_update.append(id_)
-                values = list(values)
+                values = [fields.dict.dumps(x) if isinstance(x, dict) else x
+                    for x in values]
                 cursor.execute(*table.update(columns, values,
                         where=table.id == id_))
                 rowcount = cursor.rowcount
@@ -1252,6 +1254,8 @@ class ModelSQL(ModelStorage):
                         else:
                             for fname in field_list:
                                 row[fname] = cache[row['id']][fname]
+                    if not sub_ids:
+                        continue
                     getter_results = field.get(
                         sub_ids, cls, field_list, values=sub_values)
                     for fname in field_list:
@@ -1282,7 +1286,10 @@ class ModelSQL(ModelStorage):
                 value = row[name]
                 if value is not None:
                     add(value)
-            related_read_limit = transaction.context.get('related_read_limit')
+            # JCA: Deactivate related limit for now, it leads to cache
+            # corrution
+            # related_read_limit = transaction.context.get('related_read_limit')
+            related_read_limit = None
             rows = Target.read(target_ids[:related_read_limit], fields)
             if related_read_limit is not None:
                 rows += [{'id': i} for i in target_ids[related_read_limit:]]
@@ -1817,6 +1824,7 @@ class ModelSQL(ModelStorage):
     @classmethod
     def search(cls, domain, offset=0, limit=None, order=None, count=False,
             query=False):
+        domain = domain if domain is not None else []
         transaction = Transaction()
         cursor = transaction.connection.cursor()
 
