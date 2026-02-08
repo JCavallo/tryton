@@ -364,8 +364,7 @@ class Many2Many(Field):
             return ~expression
         return expression
 
-    @domain_method
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         from ..modelsql import convert_from
         pool = Pool()
         Rule = pool.get('ir.rule')

@@ -131,11 +131,11 @@ class Char(FieldTranslate):
             value = database.unaccent(value)
         return value
 
-    def convert_domain(self, domain, tables, Model):
+    def _convert_domain(self, domain, tables, Model):
         transaction = Transaction()
         context = transaction.context
         database = transaction.database
-        expression = super().convert_domain(domain, tables, Model)
+        expression = super()._convert_domain(domain, tables, Model)
         name, operator, value = domain
         if operator.endswith('ilike'):
             table, _ = tables[None]
@@ -152,7 +152,7 @@ class Char(FieldTranslate):
             threshold = context.get(
                 '%s.%s.search_similarity' % (Model.__name__, name),
                 context.get('search_similarity'))
-            if database.has_similarity() and is_full_text(value) and threshold:
+            if threshold and database.has_similarity() and is_full_text(value):
                 sim_value = unescape_wildcard(value)
                 sim_value = self._domain_value(operator, sim_value)
                 expression = (
