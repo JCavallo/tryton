@@ -6,7 +6,7 @@ from trytond.model.exceptions import (
     DomainValidationError, RequiredValidationError, SizeValidationError)
 from trytond.pool import Pool
 from trytond.tests.test_tryton import (
-    TestCase, activate_module, with_transaction)
+    TestCase, activate_module, drop_db, with_transaction)
 
 
 class SearchTestCaseMixin:
@@ -69,6 +69,46 @@ class SearchTestCaseMixin:
                 ])
 
         self.assertListEqual(one2manys, [one2many2])
+
+    @with_transaction()
+    def test_search_equals_none_inactive(self):
+        "Test search one2many equals None when the target is inactive"
+        One2Many = self.One2ManyActive()
+        one2many1, one2many2, one2many3 = One2Many.create([{
+                    'targets': [('create', [{'name': "Target1"}])],
+                    }, {
+                    'targets': [
+                        ('create', [{'name': "Target2", 'active': False}]),
+                        ],
+                    }, {
+                    'targets': None,
+                    }])
+
+        one2manys = One2Many.search([
+                ('targets', '=', None),
+                ])
+
+        self.assertEqual(one2manys, [one2many2, one2many3])
+
+    @with_transaction()
+    def test_search_not_equals_none_inactive(self):
+        "Test search one2many not equals None when the target is inactive"
+        One2Many = self.One2ManyActive()
+        one2many1, one2many2, one2many3 = One2Many.create([{
+                    'targets': [('create', [{'name': "Target1"}])],
+                    }, {
+                    'targets': [
+                        ('create', [{'name': "Target2", 'active': False}]),
+                        ],
+                    }, {
+                    'targets': None,
+                    }])
+
+        one2manys = One2Many.search([
+                ('targets', '!=', None),
+                ])
+
+        self.assertEqual(one2manys, [one2many1])
 
     @with_transaction()
     def test_search_non_equals_none(self):
@@ -459,11 +499,19 @@ class FieldOne2ManyTestCase(
         super().setUpClass()
         activate_module('tests')
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
+
     def One2Many(self):
         return Pool().get('test.one2many')
 
     def One2ManyTarget(self):
         return Pool().get('test.one2many.target')
+
+    def One2ManyActive(self):
+        return Pool().get('test.one2many.active')
 
     @with_transaction()
     def test_create_required_with_value(self):
@@ -729,11 +777,19 @@ class FieldOne2ManyReferenceTestCase(
         super().setUpClass()
         activate_module('tests')
 
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
+
     def One2Many(self):
         return Pool().get('test.one2many_reference')
 
     def One2ManyTarget(self):
         return Pool().get('test.one2many_reference.target')
+
+    def One2ManyActive(self):
+        return Pool().get('test.one2many_reference.active')
 
 
 class FieldOne2ManyExistsTestCase(TestCase, SearchTestCaseMixin):
@@ -744,6 +800,11 @@ class FieldOne2ManyExistsTestCase(TestCase, SearchTestCaseMixin):
     def setUpClass(cls):
         super().setUpClass()
         activate_module('tests')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
 
     def setUp(self):
         from trytond.model.fields import one2many
@@ -759,6 +820,9 @@ class FieldOne2ManyExistsTestCase(TestCase, SearchTestCaseMixin):
     def One2ManyTarget(self):
         return Pool().get('test.one2many.target')
 
+    def One2ManyActive(self):
+        return Pool().get('test.one2many.active')
+
 
 class FieldOne2ManyReferenceExistsTestCase(
         TestCase, SearchTestCaseMixin):
@@ -769,6 +833,11 @@ class FieldOne2ManyReferenceExistsTestCase(
     def setUpClass(cls):
         super().setUpClass()
         activate_module('tests')
+
+    @classmethod
+    def tearDownClass(cls):
+        super().tearDownClass()
+        drop_db()
 
     def setUp(self):
         from trytond.model.fields import one2many
@@ -783,6 +852,9 @@ class FieldOne2ManyReferenceExistsTestCase(
 
     def One2ManyTarget(self):
         return Pool().get('test.one2many_reference.target')
+
+    def One2ManyActive(self):
+        return Pool().get('test.one2many_reference.active')
 
     def assert_strategy(self, query):
         self.assertIn('EXISTS', query)
