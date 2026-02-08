@@ -6,6 +6,7 @@ import csv
 import datetime
 import decimal
 import math
+import logging
 import random
 import time
 import warnings
@@ -660,7 +661,9 @@ class ModelStorage(Model):
         return new_records
 
     @classmethod
-    def search(cls, domain, offset=0, limit=None, order=None, count=False):
+    def search(
+            cls, domain, offset=0, limit=None, order=None, count=False,
+            query=True):
         '''
         Return a list of records that match the domain.
         '''
@@ -1767,11 +1770,11 @@ class ModelStorage(Model):
                 vals[field] = []
                 for defaults2 in defaults[field]:
                     vals2 = obj._clean_defaults(defaults2)
-                    if vals2:
+                    if vals2 is not None:
                         vals[field].append(('create', [vals2]))
             elif fld_def._type in ('many2many',):
                 vals2 = defaults[field]
-                if vals2:
+                if vals2 is not None:
                     vals[field] = [('add', vals2)]
             elif fld_def._type in ('boolean',):
                 vals[field] = bool(defaults[field])
@@ -1969,7 +1972,9 @@ class ModelStorage(Model):
 
         def instantiate(field, value, data):
             if field._type in ('many2one', 'one2one', 'reference'):
-                if value is None or value is False:
+                # ABDC: Fix when data is an empty string, we should return
+                # None
+                if value is None or value is False or value == '':
                     return None
             elif field._type in ('one2many', 'many2many'):
                 if not value:
