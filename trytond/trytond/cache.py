@@ -26,6 +26,7 @@ _clean_timeout = config.getint('cache', 'clean_timeout')
 _select_timeout = config.getint('cache', 'select_timeout')
 _default_size_limit = config.getint('cache', 'default')
 logger = logging.getLogger(__name__)
+show_debug_logs = logger.isEnabledFor(logging.DEBUG)
 
 REFRESH_POOL_MSG = "refresh pool"
 
@@ -205,9 +206,12 @@ class MemoryCache(BaseCache):
             cache.move_to_end(key)
             self.hit += 1
             return deepcopy(result)
-        except (KeyError, TypeError):
+        except KeyError:
             self.miss += 1
             return default
+        except TypeError:
+            # JCA : Properly crash on type error
+            raise
 
     def set(self, key, value):
         key = self._key(key)
@@ -216,10 +220,17 @@ class MemoryCache(BaseCache):
             expire = dt.datetime.now() + self.duration
         else:
             expire = None
+
+        # JCA: Log cases where the cache size is exceeded
+        if show_debug_logs:
+            if len(cache) >= cache.size_limit:
+                logger.debug('Cache limit exceeded for %s' % self._name)
+
         try:
             cache[key] = (expire, deepcopy(value))
         except TypeError:
-            pass
+            # JCA : Do not silently fail when trying to use a non hashable key
+            raise
         return value
 
     def clear(self):
@@ -450,9 +461,10 @@ class MemoryCache(BaseCache):
                 # Keep connected
                 cursor.execute('SELECT 1')
         except Exception:
-            logger.error(
-                "cache listener on '%s' crashed", dbname, exc_info=True)
-            raise
+            if not config.getboolean('env', 'testing'):
+                logger.error(
+                    "cache listener on '%s' crashed", dbname, exc_info=True)
+                raise
         finally:
             if selector:
                 selector.close()
