@@ -640,14 +640,14 @@ class FieldTranslate(Field):
         if Model.__name__ == 'ir.model':
             name_ = Concat(Concat(table.name, ','), name)
             type_ = 'model'
-            res_id = -1
+            res_id = Null
         elif Model.__name__ == 'ir.model.field':
             name_ = Concat(Concat(table.model, ','), table.name)
             if name == 'string':
                 type_ = 'field'
             else:
                 type_ = 'help'
-            res_id = -1
+            res_id = Null
         else:
             name_ = '%s,%s' % (Model.__name__, name)
             type_ = 'model'
@@ -678,8 +678,7 @@ class FieldTranslate(Field):
 
     def _convert_domain(self, domain, tables, Model):
         if not self.translate:
-            return super()._convert_domain(
-                domain, tables, Model)
+            return super()._convert_domain(domain, tables, Model)
         table, _ = tables[None]
         name, operator, value = domain
         model, join, column = self._get_translation_column(Model, name)
