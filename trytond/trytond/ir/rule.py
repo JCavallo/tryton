@@ -234,6 +234,8 @@ class Rule(ModelSQL, ModelView):
 
         assert mode in cls.modes
 
+        # There won't be any need to check on the group active status as
+        # User.get_groups already does that
         groups = User.get_groups()
 
         model_names, model2field = _get_access_models(pool.get(model_name))
