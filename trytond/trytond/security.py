@@ -1,6 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import datetime as dt
+import ipaddress
 import logging
 import random
 import time
@@ -59,7 +60,7 @@ def login(dbname, loginname, parameters, cache=True, context=None):
         if not cache:
             session = user_id
         else:
-            with Transaction().start(dbname, user_id):
+            with Transaction().start(dbname, user_id, context=context):
                 Session = pool.get('ir.session')
                 session = user_id, Session.new()
         logger.info("login succeeded for '%s' from '%s' on database '%s'",
@@ -121,9 +122,11 @@ def reset_password(dbname, user, context=None):
 
 
 def check(dbname, user, session, context=None):
+    remote_addr = _get_remote_addr(context)
+
     for count in range(config.getint('database', 'retry'), -1, -1):
-        with Transaction().start(dbname, user, context=context) as transaction:
-            pool = _get_pool(dbname)
+        with Transaction().start(dbname, user, context=context) as t:
+            pool = Pool(dbname)
             Session = pool.get('ir.session')
             try:
                 find = Session.check(user, session)
@@ -133,18 +136,19 @@ def check(dbname, user, session, context=None):
                     continue
                 raise
             finally:
-                transaction.commit()
+                t.commit()
+
     if find is None:
         logger.error("session failed for '%s' from '%s' on database '%s'",
-            user, _get_remote_addr(context), dbname)
+            user, remote_addr, dbname)
         return
     elif not find:
         logger.info("session expired for '%s' from '%s' on database '%s'",
-            user, _get_remote_addr(context), dbname)
+            user, remote_addr, dbname)
         return
     else:
         logger.debug("session valid for '%s' from '%s' on database '%s'",
-            user, _get_remote_addr(context), dbname)
+            user, remote_addr, dbname)
         return user
 
 
