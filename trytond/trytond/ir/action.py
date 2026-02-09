@@ -133,9 +133,9 @@ class Action(DeactivableMixin, ModelSQL, ModelView):
         elif type_ == 'ir.action.act_window':
             columns += [
                 'views', 'domains', 'res_model', 'limit',
-                'context_model', 'context_domain',
+                'context_model', 'context_domain', 'show_filter',
                 'pyson_domain', 'pyson_context', 'pyson_order',
-                'pyson_search_value']
+                'pyson_search_value', 'window_name_field']
         elif type_ == 'ir.action.wizard':
             columns += ['wiz_name', 'window']
         elif type_ == 'ir.action.url':
@@ -186,6 +186,7 @@ class ActionKeyword(ModelSQL, ModelView):
             ('form_print', 'Print form'),
             ('form_action', 'Action form'),
             ('form_relate', 'Form relate'),
+            ('form_toolbar', 'Form Toolbar'),
             ('graph_open', 'Open Graph'),
             ], string='Keyword', required=True)
     model = fields.Reference('Model', selection='models_get')
@@ -777,6 +778,7 @@ class ActionActWindow(
     context_domain = fields.Char(
         "Context Domain",
         help="Part of the domain that will be evaluated on each refresh.")
+    show_filter = fields.Boolean("Show filter entry")
     act_window_views = fields.One2Many('ir.action.act_window.view',
             'act_window', 'Views')
     views = fields.Function(fields.Field('Views'), 'get_views')
@@ -792,6 +794,7 @@ class ActionActWindow(
     pyson_order = fields.Function(fields.Char('PySON Order'), 'get_pyson')
     pyson_search_value = fields.Function(fields.Char(
         'PySON Search Criteria'), 'get_pyson')
+    window_name_field = fields.Char("Window Name Field")
 
     @classmethod
     def __setup__(cls):
@@ -811,6 +814,10 @@ class ActionActWindow(
     @staticmethod
     def default_search_value():
         return '[]'
+
+    @classmethod
+    def default_show_filter(cls):
+        return True
 
     @classmethod
     def validate(cls, actions):
