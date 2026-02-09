@@ -289,6 +289,10 @@ class User(avatar_mixin(100, 'login'), DeactivableMixin, ModelSQL, ModelView):
                 datetime.datetime.now() + datetime.timedelta(
                     seconds=config.getint('password', 'reset_timeout')))
         cls.save(users)
+        cls.send_reset_password_email(users, from_)
+
+    @classmethod
+    def send_reset_password_email(cls, users, from_=None):
         _send_email(from_, users, cls.get_email_reset_password)
 
     def get_email_reset_password(self):
