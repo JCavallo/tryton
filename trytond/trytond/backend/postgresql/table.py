@@ -43,7 +43,7 @@ class TableHandler(TableHandlerInterface):
             (self.table_name, self.table_schema))
         self.is_owner, = cursor.fetchone()
 
-        if model.__doc__ and self.is_owner:
+        if not transaction.readonly and model.__doc__ and self.is_owner:
             cursor.execute(SQL('COMMENT ON TABLE {} IS %s').format(
                         Identifier(self.table_name)),
                 (model.__doc__,))

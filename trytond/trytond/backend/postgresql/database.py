@@ -306,6 +306,7 @@ class Database(DatabaseInterface):
                 logger.error(
                     'connection to "%s" failed', self.name, exc_info=True)
                 raise
+
             try:
                 with conn.cursor() as cur:
                     # Detect disconnection

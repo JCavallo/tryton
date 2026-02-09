@@ -143,6 +143,7 @@ def run(options):
             lang.add(main_lang)
         else:
             lang = set()
+
         lang |= set(options.languages)
 
         # XUNG

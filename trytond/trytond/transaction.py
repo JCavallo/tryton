@@ -98,8 +98,9 @@ class _AttributeManager(object):
         return Transaction()
 
     def __exit__(self, type, value, traceback):
+        t = Transaction()
         for name, value in self.kwargs.items():
-            setattr(Transaction(), name, value)
+            setattr(t, name, value)
 
 
 class _NoopManager(object):

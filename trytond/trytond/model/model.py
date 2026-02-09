@@ -189,7 +189,8 @@ class Model(URLMixin, PoolBase, metaclass=ModelMeta):
                             field_name + '.', {})['rec_name'] = target.rec_name
             elif field._type in 'many2many':
                 if value:
-                    value = [int(r) for r in value]
+                    if isinstance(value[0], Model):
+                        value = [int(r) for r in value]
             elif field._type == 'one2many':
                 if value:
                     if isinstance(value[0], Model):

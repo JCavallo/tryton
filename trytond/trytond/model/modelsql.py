@@ -384,7 +384,8 @@ class ModelSQL(ModelStorage):
         for field_name, field in cls._fields.items():
             Targets = []
             if isinstance(field, fields.Many2One):
-                Targets = [field.get_target()]
+                if field.model_name:
+                    Targets = [field.get_target()]
             elif isinstance(field, fields.Reference):
                 if isinstance(field.selection, (list, tuple)):
                     for target, _ in field.selection:

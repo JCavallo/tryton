@@ -272,7 +272,6 @@ def data(request, pool, model):
             writer.writerow(format_(row))
         data = data.getvalue().encode(encoding)
         filename = slugify(Model.__names__()['model']) + '.csv'
-        filename = filename.encode('latin-1', 'ignore')
         response = Response(data, mimetype='text/csv; charset=' + encoding)
         response.headers.add(
             'Content-Disposition', 'attachment', filename=filename)
