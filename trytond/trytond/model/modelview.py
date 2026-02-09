@@ -345,7 +345,11 @@ class ModelView(Model):
         # Update arch and compute fields from arch
         parser = etree.XMLParser(
             remove_blank_text=True, resolve_entities=False)
-        tree = etree.fromstring(result['arch'], parser)
+        try:
+            encoded_arch = result['arch'].encode('utf-8')
+        except UnicodeEncodeError:
+            encoded_arch = result['arch']
+        tree = etree.fromstring(encoded_arch, parser)
         result['arch'], result['fields'] = cls.parse_view(
             tree, result['type'], view_id=view_id,
             field_children=result['field_childs'], level=level)
@@ -369,7 +373,9 @@ class ModelView(Model):
         else:
             result['children_definitions'] = {}
 
-        cls._fields_view_get_cache.set(key, result)
+        if not config.getboolean('cache', 'disable_fields_view_get_cache',
+                default=False):
+            cls._fields_view_get_cache.set(key, result)
         return result
 
     @classmethod
@@ -649,6 +655,10 @@ class ModelView(Model):
                 view_ids = set_view_ids(element)
                 if type != 'form':
                     continue
+                # Coog Spec : Ignore fields which are not in the view, to allow
+                # dynamic sub_fields for Dict fields
+                if fname not in cls._fields:
+                    continue
                 field = cls._fields[fname]
                 relation = get_relation(field)
                 if not relation:
@@ -705,10 +715,11 @@ class ModelView(Model):
                 if cls.__rpc__[button_name].cache:
                     change.append('id')
                 element.set('change', encoder.encode(change))
-            if not is_instance_method(cls, button_name):
-                element.set('type', 'class')
-            else:
-                element.set('type', 'instance')
+            if element.get('type') != 'client_action':
+                if not is_instance_method(cls, button_name):
+                    element.set('type', 'class')
+                else:
+                    element.set('type', 'instance')
 
             for depend in states.get('depends', []):
                 fields_attrs.setdefault(depend, {})
@@ -910,9 +921,12 @@ class ModelView(Model):
                 if value:
                     if (isinstance(value, ModelStorage)
                             and value.id and value.id >= 0):
-                        changed['%s.' % fname] = {
-                            'rec_name': value.rec_name,
-                            }
+                        try:
+                            changed['%s.' % fname] = {
+                                'rec_name': value.rec_name,
+                                }
+                        except AttributeError:
+                            pass
                     if value.id is None:
                         # Don't consider temporary instance as a change
                         continue

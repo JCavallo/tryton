@@ -220,7 +220,20 @@ class View(
             xml = view.arch.strip()
             if not xml:
                 continue
-            tree = etree.fromstring(xml)
+            try:
+                try:
+                    encoded = xml.encode('utf-8')
+                except UnicodeEncodeError:
+                    encoded = xml
+                tree = etree.fromstring(encoded)
+            except Exception:
+                # JCA : print faulty xml
+                try:
+                    import pprint
+                    pprint.pprint(xml)
+                except Exception:
+                    print(xml)
+                raise
 
             if hasattr(etree, 'RelaxNG'):
                 validator = etree.RelaxNG(etree=cls.get_rng(view.rng_type))
@@ -238,7 +251,7 @@ class View(
             }
 
             def encode(element):
-                for attr in ('states', 'domain', 'spell'):
+                for attr in ('states', 'domain', 'spell', 'colors'):
                     if not element.get(attr):
                         continue
                     try:
@@ -314,7 +327,11 @@ class View(
         views.sort(
             key=lambda v: self._module_index.get(v.module, -1), reverse=True)
         parser = etree.XMLParser(remove_comments=True, resolve_entities=False)
-        tree = etree.fromstring(arch, parser=parser)
+        try:
+            encoded_arch = arch.encode('utf-8')
+        except UnicodeEncodeError:
+            encoded_arch = arch
+        tree = etree.fromstring(encoded_arch, parser=parser)
         decoder = PYSONDecoder({'context': Transaction().context})
         for view in views:
             if view.domain and not decoder.decode(view.domain):
@@ -340,9 +357,11 @@ class View(
     def inherit_apply(cls, tree, inherit):
         root_inherit = inherit.getroottree().getroot()
         for element in root_inherit:
-            expr = element.get('expr')
-            targets = tree.xpath(expr)
-            assert targets, "No elements found for expression %r" % expr
+            targets = tree.xpath(element.get('expr'))
+            if not targets:
+                raise AttributeError(
+                    'Couldn\'t find tag (%s: %s) in parent view!'
+                    % (element.tag, element.get('expr')))
             for target in targets:
                 position = element.get('position', 'inside')
                 new_tree = getattr(cls, '_inherit_apply_%s' % position)(
@@ -392,7 +411,7 @@ class View(
     def _translate(cls, element, model, language):
         pool = Pool()
         Translation = pool.get('ir.translation')
-        for attr in ['string', 'sum', 'confirm', 'help']:
+        for attr in ['string', 'confirm', 'help', 'empty_string']:
             if element.get(attr):
                 translation = Translation.get_source(
                     model, 'view', language, element.get(attr))
@@ -489,7 +508,9 @@ class ViewTreeWidth(
     @classmethod
     def on_modification(cls, mode, records, field_names=None):
         super().on_modification(mode, records, field_names=field_names)
-        ModelView._fields_view_get_cache.clear()
+        # JCA: Resetting the full view cache when a single user modifies the
+        # width of a column is not good
+        # ModelView._fields_view_get_cache.clear()
 
     @classmethod
     def get_width(cls, model, width):
@@ -662,7 +683,9 @@ class ViewTreeOptional(
     @classmethod
     def on_modification(cls, mode, record, field_names=None):
         super().on_modification(mode, record, field_names=field_names)
-        ModelView._fields_view_get_cache.clear()
+        # JCA: Resetting the full view cache when a single user modifies
+        # chooses to hide / show a column is not good
+        # ModelView._fields_view_get_cache.clear()
 
     @classmethod
     def set_optional(cls, view_id, fields):
