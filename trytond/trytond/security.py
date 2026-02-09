@@ -5,12 +5,15 @@ import ipaddress
 import logging
 import random
 import time
+from secrets import compare_digest
 
 try:
     from http import HTTPStatus
 except ImportError:
     from http import client as HTTPStatus
 
+from sql import Table
+from sql.conditionals import Coalesce
 from werkzeug.exceptions import abort
 
 from trytond import backend
@@ -18,6 +21,7 @@ from trytond.config import config
 from trytond.exceptions import LoginException, RateLimitException
 from trytond.pool import Pool
 from trytond.transaction import Transaction
+from trytond.tools import sqlite_apply_types
 
 logger = logging.getLogger(__name__)
 
@@ -124,19 +128,53 @@ def reset_password(dbname, user, context=None):
 def check(dbname, user, session, context=None):
     remote_addr = _get_remote_addr(context)
 
-    for count in range(config.getint('database', 'retry'), -1, -1):
-        with Transaction().start(dbname, user, context=context) as t:
-            pool = Pool(dbname)
-            Session = pool.get('ir.session')
-            try:
-                find = Session.check(user, session)
-                break
-            except backend.DatabaseOperationalError:
-                if count:
-                    continue
-                raise
-            finally:
-                t.commit()
+    database_list = Pool.database_list()
+    if dbname in database_list:
+        for count in range(config.getint('database', 'retry'), -1, -1):
+            with Transaction().start(dbname, user, context=context) as t:
+                pool = Pool(dbname)
+                Session = pool.get('ir.session')
+                try:
+                    find = Session.check(user, session)
+                    break
+                except backend.DatabaseOperationalError:
+                    if count:
+                        continue
+                    raise
+                finally:
+                    t.commit()
+    else:
+        database = backend.Database(dbname)
+        now = dt.datetime.now()
+        timeout = dt.timedelta(config.getint('session', 'max_age'))
+        conn = database.get_connection(readonly=True)
+        if remote_addr:
+            ip_addr = str(ipaddress.ip_address(remote_addr))
+        else:
+            ip_addr = None
+        try:
+            ir_session = Table('ir_session')
+            cursor = conn.cursor()
+            session_query = ir_session.select(
+                Coalesce(
+                    ir_session.write_date, ir_session.create_date).as_('date'),
+                ir_session.key,
+                where=((ir_session.create_uid == user)
+                    & (ir_session.ip_address == ip_addr)))
+            sqlite_apply_types(session_query, ['DATETIME', None])
+            cursor.execute(*session_query)
+            bad_session = False
+            for session_date, session_key in cursor:
+                if abs(session_date - now) < timeout:
+                    if compare_digest(session_key, session):
+                        find = session
+                        break
+                    else:
+                        bad_session = True
+            else:
+                find = None if bad_session else ''
+        finally:
+            database.put_connection(conn)
 
     if find is None:
         logger.error("session failed for '%s' from '%s' on database '%s'",
