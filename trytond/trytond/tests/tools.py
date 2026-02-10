@@ -6,6 +6,7 @@ from functools import partial
 
 from proteus import Model, Wizard
 from proteus import config as pconfig
+from trytond.server_context import ServerContext, TEST_CONTEXT
 
 from .test_tryton import backup_db_cache, drop_create, restore_db_cache
 
@@ -20,10 +21,10 @@ def _func_name(func):
         return func.__qualname__
 
 
-def activate_modules(modules, *setup):
+def activate_modules(modules, *setup, cache_file_name=None):
     if isinstance(modules, str):
         modules = [modules]
-    cache_name = '-'.join(sorted(modules))
+    cache_name = cache_file_name or '-'.join(modules)
     if setup_name := '|'.join(_func_name(f) for f in setup):
         cache_name += f'--{setup_name}'
     if restore_db_cache(cache_name):
@@ -37,7 +38,8 @@ def activate_modules(modules, *setup):
             ])
     assert len(records) == len(modules)
     Module.click(records, 'activate')
-    Wizard('ir.module.activate_upgrade').execute('upgrade')
+    with ServerContext().set_context(**TEST_CONTEXT):
+        Wizard('ir.module.activate_upgrade').execute('upgrade')
 
     for func in setup:
         func(config=cfg)
