@@ -35,6 +35,7 @@ module.exports = function(grunt) {
       'node_modules/bootstrap',
       'node_modules/bootstrap/less',
       'node_modules/bootstrap-rtl-ondemand/less',
+      'src/theme/coog',
   ];
 
   // Project configuration.
@@ -94,7 +95,11 @@ module.exports = function(grunt) {
             tasks: ['concat']
         },
         styles: {
-            files: ['src/*.less'],
+            files: [
+                'src/*.less',
+                'src/theme/coog/*.less',
+                'src/theme/coog/elements/*.less'
+            ],
             tasks: 'less'
         },
         translations: {

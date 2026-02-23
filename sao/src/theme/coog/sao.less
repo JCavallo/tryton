@@ -1,0 +1,1216 @@
+@color-white:           rgb(255, 255, 255); // #ffffff
+@color-lightest-grey:   rgb(249, 249, 249); // #f9f9f9
+@color-button-hover:    rgb(240, 240, 240); // #f0f0f0;
+@color-lighter-grey:    rgb(192, 192, 192); // #c0c0c0
+@color-grey:            rgb(140, 140, 140); // #8c8c8c
+@color-median-grey:     rgb(119, 119, 119); // #777
+@color-black:           rgb(70, 66, 61); // #46423d
+@color-blue:            rgb(0, 148, 210); // #0094d2
+@color-light-blue:      rgb(0, 174, 229); // #00aee5
+@color-lighter-blue:    rgb(162, 218, 244); // #a2daf4
+@color-lightest-blue:   rgb(231, 244, 252); // #E7F4FC
+@color-hint-blue:       rgb(247, 252, 255); // #F7FCFF
+@color-lightest-red:    rgb(255, 208, 205); // #ffd0cd
+
+@coog-background:       @color-white;
+
+@coog-base-blur:        0px;
+@coog-box-opacity:      0.3;
+@coog-background-opacity: 1;
+@coog-main-opacity:     1;
+@coog-header-opacity:   1;
+@coog-panel-opacity:    1;
+@coog-incremental-opacity: 1;
+@coog-incremental-blur: 0px;
+@coog-background-image: none;
+@coog-background-color: @color-white;
+
+@tree-line-border-top:  0px;
+
+@brand-primary:         @color-blue;
+@coog-box-shadow:       0 1px 4px rgba(0, 0, 0, 0.3);
+@coog-max-menu-width:   28em;
+@coog-card-bottom-padding: 5px;
+
+// header colors for groups
+.coog-group-header-colors {
+    color:                  @color-black;
+    background-color:       @color-lightest-blue;
+}
+
+.coog-group-contrast-colors {
+    color:              @color-black;
+    background-color:   rgba(@color-lighter-blue, @coog-header-opacity);
+}
+
+// Simple fields readonly styles
+.coog-readonly-field-mixin {
+    background-color:     @color-lightest-grey;
+    border-top-left-radius:   5px !important;
+    border-top-right-radius:  5px !important;
+}
+
+// XXX2Many Mixin
+.coog-xxx2many-mixin {
+    padding-bottom:             @coog-card-bottom-padding;
+
+    // No padding if the toolbar is disabled
+    :has(> div > div.coog-hidden-toolbar) {
+        padding:                0px;
+    }
+
+    // Remove background if there is no toolbar
+    > div.panel:has(> div.panel-body.coog-hidden-toolbar) {
+        box-shadow:         none;
+        background-color:   transparent;
+    }
+
+    > div.panel {
+        background-color:       rgba(@coog-background-color, @coog-panel-opacity);
+        margin-bottom:          0px;
+
+        > div.panel-heading {
+            color:              @color-black;
+            background-color:   rgba(@color-lighter-blue, @coog-header-opacity);
+            border-radius:      2px;
+            border-width:       0px;
+            border-left:        unset;
+            border-top:         unset;
+            border-right:       unset;
+            box-shadow:         @coog-box-shadow;
+            padding:            0px;
+            display:            flex;
+            align-items:        center;
+            > div.form-many2many-toolbar, div.form-one2many-toolbar {
+                margin-left:    auto;
+            }
+        }
+
+        > div.panel-body {
+            background-color:       transparent;
+
+            .panel {
+                margin:         0px 15px 0px 15px;
+            }
+
+            // Remove padding from panel-body so trees are more compact
+            padding:                0px;
+
+            // Hide selection column of non-act window trees
+            * > col.selection-state {
+                width:              0px;
+            }
+            * > th.selection-state {
+                ::before, ::after {
+                    display:              none;
+                }
+            }
+
+            > div.panel {
+                margin:             0px 15px 0px 15px;
+                background-color:   rgba(@coog-background-color, @coog-panel-opacity);
+            }
+        }
+
+        > div.panel-body:has(> div.screen-container > div.content-box > div.form) {
+            // When displaying a form inside a XXX2Many we want to keep the top/bottom
+            // padding so the fields of the enclosed form are not displayed slightly
+            // over the panel-heading
+            padding:            5px 0px 5px 0px;
+        }
+
+        > div.panel-body.coog-hidden-toolbar {
+            margin:             0px 0px 0px 0px;
+        }
+
+        > div.panel-body.coog-hidden-toolbar:has(> div.screen-container > div.content-box > div > div.treeview),
+        > div.panel-body.coog-hidden-toolbar:has(> div.screen-container > div.content-box > div > div.form-item:has( > div.form-one2many)) {
+            box-shadow:         @coog-box-shadow;
+            margin-bottom: 5px;
+            margin-top: 5px;
+        }
+    }
+}
+
+.coog-x2m-expander {
+    float: left;
+    margin: 5px 0;
+}
+
+// Links without a border are not obviously clickable for users
+.coog-highlight-link-button {
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Main view
+///////////////////////////////////////////////////////////////////////////////
+#tabs {
+    padding-left:       0px;
+    padding-right:      0px;
+}
+#tabcontent > div.tab-pane.active {
+    box-shadow:         @coog-box-shadow;
+    padding-left:       @coog-card-bottom-padding;
+    padding-right:      @coog-card-bottom-padding;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Tree views
+///////////////////////////////////////////////////////////////////////////////
+
+div.screen-container > div.content-box > div.tree-container {
+    height: 100%;
+    height: -moz-available;
+    height: -webkit-fill-available;
+    height: fill-available;
+}
+
+div.wizard-form {
+    display: flex;
+    flex-direction: column;
+
+    > div.wizard {
+        flex-grow: 1;
+        overflow-y: auto;
+    }
+}
+
+// Tree view title bar : align contents
+.treeview > table.tree > thead > tr > th,
+.treeview > table.tree > thead > tr > th:hover {
+    padding-top:        5px;
+    padding-bottom:     1px;
+}
+.treeview > table.tree > thead > tr > th.selection-state {
+    padding-top:        3px;
+    padding-bottom:     3px;
+}
+.treeview > table.tree > thead > tr > th.tree-menu {
+    padding-top:        1px;
+    padding-bottom:     5px;
+}
+
+// Fix to avoid list content appearing behind the header
+.treeview > table.tree {
+    border-top:         0px solid black !important;
+}
+.treeview > table.tree > thead > tr > th,
+.treeview > table.tree > thead > tr > th:hover {
+    border:             1px solid @color-lightest-grey !important;
+    border-top:         0px solid black !important;
+}
+
+// Use variable for border width
+.treeview > table.tree > tbody > tr > td {
+    border-top-width:   @tree-line-border-top;
+}
+
+// Smaller lines in tree views
+.treeview > table.tree > tbody > tr > td {
+    padding-top:        2px;
+    padding-bottom:     2px;
+}
+
+// More discrete checkboxes for selection in trees
+.treeview > table.tree,table.tree-condensed > thead,tbody > tr > td.selection-state > input {
+    & :after {
+        border-color:   @color-lightest-blue !important;
+    }
+
+    & tr:hover :after {
+        border-color:   @color-grey !important;
+    }
+
+    & tr.selected,thead :after {
+        border-color:   @color-grey !important;
+    }
+
+    & tr.selected :after {
+        border-color:   @color-grey !important;
+    }
+
+}
+
+// Align select all checkbox in trees headers
+.table > thead > tr > th.selection-state {
+    vertical-align:     middle;
+    > input:before {
+        margin-top:    2px;
+    }
+}
+
+// Make tree view headers a little more visible
+.treeview > table.tree > thead > tr:first-child th {
+    .coog-group-header-colors();
+}
+
+// Remove small scrollbar div above list header
+div.scrollbar:has(+ div.treeview) {
+    display:                none;
+}
+
+// Highlight boolean fields in editable trees
+td.editable > div.cell > span.widget > input[type="checkbox"]:before {
+    border-color:     @color-light-blue !important;
+}
+
+// Remove horizontal lines for editable trees
+.table-bordered > tbody > tr > td
+{
+    border-top:       none;
+    border-bottom:    none;
+}
+
+// Minimum column size for binary columns editable trees
+table > colgroup > col.binary {
+    min-width:         170px;
+}
+table > thead > tr > th.binary > div {
+    min-width:         170px;
+}
+
+// the expander in the th should be set outside of the normal flow because
+// resizing the column makes the span and the div into the th to stack
+.treeview {
+    th {
+        .expander {
+            position: absolute;
+            top: 0;
+            // A negative offset for the case so that the text inside the title
+            // does not mangle with the expander
+            left: -3px;
+        }
+    }
+    th:has(> .expander) {
+        > div > label {
+            padding-left:       9px;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Top Menu
+///////////////////////////////////////////////////////////////////////////////
+//      - lighter color
+//      - less vertical padding
+nav.toolbar.panel-heading {
+    .coog-group-header-colors();
+    padding:                0px 10px 0px 0px;
+
+    div.container-fluid.navbar-inverse {
+        .coog-group-header-colors();
+        padding-left:           0px;
+
+        // Main tab menu: highlight tab title to show that it is clicable
+        > div.navbar-left {
+            background-color:           @color-white;
+            :hover, :focus-within {
+                background-color:       @color-button-hover;
+            }
+            margin:                     5px;
+            > .navbar-brand.dropdown-toggle {
+                height:                 40px;
+                padding:                10px;
+                border-radius:          5px;
+                color:                  @color-black;
+                box-shadow:             @coog-box-shadow;
+                :hover {
+                    color:              @color-black;
+                }
+                > span.caret {
+                    margin-left:        10px;
+                    font-size:          50px;
+                    padding:            2px 1px;
+                }
+            }
+            > ul:hover {
+                background-color:       @color-white;
+            }
+        }
+    }
+}
+
+// Global search
+#global-search-entry {
+    box-shadow: none;
+}
+
+
+// top left menu
+.navbar-inverse .navbar-brand, .navbar-inverse .navbar-nav > li > a {
+    :hover {
+        color: @color-white;
+    }
+}
+
+#tablist {
+    > li {
+        // limit tab sizes
+        max-width:                20em;
+        padding-top:              4px;
+        > a {
+            padding-bottom:       14px;
+            padding-top:          13px;
+            border-top-left-radius:   3px;
+            border-top-right-radius:  3px;
+            border-bottom-left-radius: 0px;
+            border-bottom-right-radius:0px;
+            .coog-group-header-colors();
+            :hover {
+                color:              @color-median-grey;
+            }
+
+            // "Close" buttons on tabs
+            > button {
+                .coog-group-header-colors();
+                color: black;
+                border-radius: 3px;
+                margin-top: -3px;
+
+                > span {
+                    font-size: 33px;
+                }
+            }
+        }
+    }
+
+    // other colors for non-focused tabs
+    > li:not(.active) {
+        > a {
+            color:                  @color-median-grey;
+            background-color:       @color-lighter-blue;
+
+            > button {
+                background-color:   @color-lighter-blue;
+                color:              @color-median-grey;
+            }
+        }
+        :hover {
+            .coog-group-header-colors();
+            > button {
+                background-color:   @color-lightest-blue;
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Left menu
+///////////////////////////////////////////////////////////////////////////////
+
+#menu {
+    padding-right: 0px;
+    padding-left: 0px;
+
+    * > .table-hover > tbody > tr:hover {
+        background-color:   @color-lighter-blue;
+    }
+
+    col.selection-state {
+        // The computation of the columns width when resizing sets a width
+        width: 0px;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Buttons
+///////////////////////////////////////////////////////////////////////////////
+
+// Lighter colors
+html[theme="default"] .btn-primary {
+    color:                      @color-black;
+    background-color:           @color-lightest-blue;
+
+    // Do not invert button icons since we use a lighter style
+    .icon {
+        filter:                 none;
+    }
+
+    &:focus,
+    &:hover,
+    &:active:hover {
+        background-color:       @color-lighter-blue;
+    }
+}
+
+.form .form-item > .btn {
+    margin:                    1px 2px 1px 2px;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Act Window list
+///////////////////////////////////////////////////////////////////////////////
+
+// Search pop-up
+form.modal-content > div.modal-body > div.screen-container,
+// Act window tab
+div.tab-form > div.panel-body > div > div.screen-container {
+    // highlight filter button
+    > form.filter-box > div.row > div {
+        padding-left:           @coog-card-bottom-padding;
+        padding-right:          @coog-card-bottom-padding;
+        > div.input-group > span > button.btn-link {
+            .coog-highlight-link-button();
+            border-radius: 3px;
+            margin-right: 5px
+        }
+    }
+    // Slightly round corner on main list view
+    > div.content-box > div > div.treeview {
+        border-top-left-radius: 3px;
+        border-top-right-radius: 3px;
+    }
+}
+
+div.tab-pane {
+    height: 100%;
+    height: -moz-available;          /* WebKit-based browsers will ignore this. */
+    height: -webkit-fill-available;
+
+    > div.tab-form {
+        padding-bottom:    0px;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Dropdowns
+///////////////////////////////////////////////////////////////////////////////
+//
+ul.dropdown-menu {
+    overflow-y:                 auto;
+    background:                 @color-white;
+    // more compact items
+    > li > a {
+        padding:                2px 8px;
+        > div > img {
+            margin-right:       2px;
+            width:              1.5em;
+            height:             1.5em;
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// One2Many
+///////////////////////////////////////////////////////////////////////////////
+div.form-item:has(> div.form-one2many) {
+    .coog-xxx2many-mixin();
+}
+
+ul.list-group.list-form {
+    margin-bottom:          0px;
+
+    > li.list-group-item.list-group-item-selected {
+        color:                  @color-black;
+        // background-color:       rgba(@coog-background-color, @coog-main-opacity);
+        background-color:       rgba(@color-lightest-blue, 0.6);
+    }
+}
+
+// Make room for box-shadows
+fieldset:has(div.form-one2many,div.form-many2many) {
+    padding:               2px 4px 4px 2px;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Many2Many
+///////////////////////////////////////////////////////////////////////////////
+div.form-item:has( > div.form-many2many) {
+    .coog-xxx2many-mixin();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Dict fields
+///////////////////////////////////////////////////////////////////////////////
+
+div.form-dict {
+    margin:                     2px 4px 4px 2px;
+    // margin-bottom:              @coog-card-bottom-padding;
+
+    // Apply readonly value of dict field to values
+    &.readonly {
+        input.form-control, select.form-control {
+            .coog-readonly-field-mixin();
+        }
+    }
+
+    // use same style than groups
+    > div.form-dict-heading {
+        .coog-group-header-colors();
+    }
+
+    // more compact design
+    > div.form-dict-body {
+        padding:                    5px 5px 0px 5px;
+
+        > div.form-dict-container {
+            > div.form-group {
+                margin-bottom:       5px;
+
+                > div.dict-label {
+                    padding-left:    5px;
+                    padding-right:   0px;
+                }
+            }
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////////////
+// Groups
+///////////////////////////////////////////////////////////////////////////////
+
+// Style group headers as dicts
+div.form-item:has(> fieldset.form-group_ > legend) {
+    padding-bottom:             5px;
+    padding-top:                2px;
+
+    // "legends" are special and default style is weird, transform the style to
+    // look like dicts
+    > fieldset.form-group_ {
+        display: flex;
+        flex-direction: column;
+        box-shadow:                     @coog-box-shadow;
+        padding-bottom:                 10px;
+
+        > div.form-container {
+            clear:                      both;
+            display:                    grid;
+            grid-template-columns:      1fr 1fr;
+        }
+
+        > legend {
+            float:                      left;
+            box-sizing:                 border-box;
+            width:                      100%;
+            border-top-left-radius:     3px;
+            border-top-right-radius:    3px;
+            border-bottom-width:        0px;
+            .coog-group-header-colors();
+            margin-bottom:              5px;
+            padding:                    2px 7px 2px 7px;
+        }
+
+        // Better space usage if there is only one text in the group
+        &:has(> div.form-container > div.form-text:only-child) {
+            padding-bottom:             0px;
+            > legend {
+                margin-bottom:          0px;
+            }
+            > div.form-container > div.form-text {
+                padding:                0px;
+
+                > div.form-text {
+                    padding:            0px;
+                    > div.input-group {
+                        margin-bottom: 0px;
+                        > textarea {
+                            margin-bottom: 0px;
+                        }
+                    }
+                }
+            }
+        }
+        // Better space usage if there is only one xxx2many in the group
+        &:has(> div.form-container > div.form-one2many:only-child,
+                > div.form-container > div.form-many2many:only-child) {
+            // Use extra contrast to differentiate with X2M tree view header
+            > legend {
+                .coog-group-contrast-colors();
+            }
+            // Remove bottom padding for groups with only a list inside
+            &:has(> div.form-container > div.form-one2many > div.panel
+                        > div.panel-body > div.screen-container > div.content-box
+                        > div.tree-container,
+                    > div.form-container > div.form-many2many) {
+                padding-bottom:             0px;
+                > legend {
+                    margin-bottom:          0px;
+                }
+            }
+            // Remove all padding in the xxx2many in tree view
+            > div.form-container > div.form-one2many:has(
+                div.panel > div.panel-body > div.screen-container > div.content-box, div.tree-container),
+            > div.form-container > div.form-many2many {
+                padding:                0px;
+                > div.panel > div.panel-body {
+                    margin:             0px;
+                }
+            }
+        }
+    }
+}
+
+// Improve vertical usage of groups with only one item
+div.form-item:not(.yfill):has(> *:only-child), div.form-item.form-dict {
+    align-items:                        center;
+    > * {
+        height:                         auto;
+    }
+}
+
+// Style expandable groups as dicts
+div.form-group-expandable {
+    height:                             min-content;
+    > div.panel-heading {
+        .coog-group-header-colors();
+
+        > label.panel-title {
+            font-size:                  14px;
+        }
+    }
+}
+
+// Remove all padding from groups without a legend
+div.form-item:not(:has(> fieldset.form-group_ > legend)) {
+    padding:                            0px;
+}
+
+fieldset {
+    :has(> div.form-container) {
+        padding:                2px 4px 4px 2px;
+        &:has(> legend) {
+            padding:                0px;
+            margin:                 2px 4px 4px 2px;
+        }
+    }
+}
+///////////////////////////////////////////////////////////////////////////////
+// Modals
+///////////////////////////////////////////////////////////////////////////////
+div.modal-header {
+    border-top-left-radius:     3px;
+    border-top-right-radius:    3px;
+    .coog-group-header-colors();
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Wizards
+///////////////////////////////////////////////////////////////////////////////
+
+// Tab wizards
+div.panel.tab-wizard {
+    box-shadow:        none;
+    div.modal-header {
+        padding:                    @coog-card-bottom-padding;
+        > button.close {
+            // .coog-group-header-colors();
+            color: black;
+            border-radius: 3px;
+            margin-top: -3px;
+            font-size:  30px;
+            > span {
+                font-size: 30px;
+            }
+        }
+        > .model-title {
+            padding-left:           5px;
+        }
+    }
+}
+
+div.wizard-dialog {
+    // For "small" state views, bump the window width from 600px
+    > div.modal-dialog.modal-md {
+        width:                  ~"calc(min(100%, 1200px) - 60px)";
+        margin:                 30px ~"max(30px, calc((100% - min(100%, 1140px)) / 2))";
+    }
+    // Slightly highlight non-default buttons
+    > div.modal-dialog > div.modal-footer > button.btn-link {
+        .coog-highlight-link-button();
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Vertical alignment
+///////////////////////////////////////////////////////////////////////////////
+
+label.form-label {
+    margin-bottom:         0px;
+}
+
+input[type="text"].form-control.input-sm {
+    padding-top:           2px;
+}
+
+span.expander > img.icon {
+    height:                33px;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Misc fields
+///////////////////////////////////////////////////////////////////////////////
+
+div.form-many2one, div.form-selection, div.form-date, div.form-datetime,
+div.form-char {
+    padding:                0px 10px 0px 0px;
+
+    &.readonly {
+        > div.input-group, select.form-control:disabled {
+            .coog-readonly-field-mixin();
+            background-image: none;
+            border-right: unset;
+            > input[type=text] {
+                padding-right: 5px;
+            }
+        }
+    }
+}
+
+div.form-float, div.form-integer {
+    padding:                0px 10px 0px 0px;
+
+    &.readonly {
+        .input-group > input {
+            .coog-readonly-field-mixin();
+        }
+    }
+}
+
+// Add a little space on the left of simple inputs
+div.form-date > div.input-group > input.form-control.input-date,
+div.form-item.form-selection > div.form-selection > select.form-control,
+div.form-item.form-char > div.form-char > div.input-group > input.form-control
+{
+    padding-left:           6px;
+}
+
+// Remove padding of numerics if there is a symbol after
+div.form-item.form-float:has(+ div.form-item.form-label) {
+    div.form-float {
+        padding-right:      0px;
+    }
+}
+
+div.form-selection {
+    select.form-control {
+        padding:            0px 5px 0px 5px;
+    }
+}
+
+div.form-text {
+    padding:                3px 10px 3px 10px;
+    textarea.form-control {
+        min-height: inherit !important;
+        max-height: 500px;
+        border: 1px solid rgba(@color-lighter-grey, @coog-box-opacity);
+        box-shadow:         @coog-box-shadow;
+        padding:            5px;
+        margin-bottom:      2px;
+
+        &:focus {
+            box-shadow: 0 1px 4px rgba(@color-blue, 0.6);
+        }
+    }
+    // highlight readonly text contents
+    &.readonly {
+        textarea.form-control {
+            .coog-readonly-field-mixin();
+        }
+    }
+}
+
+//Don't allow overflow on richtext resizing
+form-text, .form-richtext, textarea, .richtext {
+    max-height: 500px;
+}
+
+// Hide richtext selection if field is readonly
+div.form-richtext.readonly {
+    > div.panel-heading {
+        display:                none;
+    }
+}
+div.form-richtext.panel {
+    padding:                0px;
+    box-shadow:             none;
+    // > div.panel-body > div.input-group > div.richtext {
+    > div.panel-body {
+        padding:            0px;
+        box-shadow:         none;
+        min-height: inherit !important;
+        max-height: 500px;
+        border: 1px solid rgba(@color-lighter-grey, @coog-box-opacity);
+        box-shadow:         @coog-box-shadow;
+        margin-bottom:      2px;
+
+        &:focus {
+            box-shadow: 0 1px 4px rgba(@color-blue, 0.6);
+        }
+
+        > div.input-group > div.richtext {
+            padding:        5px;
+        }
+    }
+    // highlight readonly text contents
+    &.readonly {
+        > div.panel-body > div.input-group {
+            .coog-readonly-field-mixin();
+            margin:         0px;
+
+            > div.richtext {
+                user-select:       text;
+            }
+        }
+    }
+}
+
+// Make selections without any options look readonly
+select:empty, select:has(> option[value="null"]):not(:has(> option:not([value="null"]))) {
+    .coog-readonly-field-mixin();
+    background-image:       none;
+    pointer-events:         none;
+}
+
+// flatter checkboxes
+div.form-boolean > input[type=checkbox].input-checkbox {
+    box-shadow:            none;
+}
+
+// remove underline from checkboxes
+div.form-boolean > input[type=checkbox].input-checkbox.form-control[readonly] {
+    border-bottom:     none;
+}
+
+// increase minimum width of fields
+.form {
+    .form-char, .form-password, .form-integer, .form-float,
+    .form-datetime, .form-time, .form-timedelta, .form-selection,
+    .form-multiselection, .form-url, .form-email, .form-callto, .form-sip,
+    .form-pyson {
+        input, select {
+            & :not( .with-size ) {
+                min-width: 17ch;
+            }
+        }
+    }
+    .form-many2one, .form-one2one, .form-reference, form-binary {
+        select {
+            min-width: 15ch;
+        }
+        input {
+            min-width: 17ch;
+        }
+    }
+    .form-date, .form-datetime {
+        input {
+            min-width: 17ch;
+        }
+        div.icon-input > input {
+            min-width: unset;
+        }
+    }
+}
+
+// Use all space for XXX2Many which are the sole item in a notebook page
+.tab-pane.active > div.form-container:has(> div.form-one2many:only-child) {
+    > div.form-item:has( > div.form-one2many) {
+        padding-top:               0px;
+        > div.form-one2many.panel {
+            margin-left:           0px;
+            margin-right:          0px;
+        }
+    }
+}
+.tab-pane.active > div.form-container:has(> div.form-many2many:only-child) {
+    > div.form-item:has( > div.form-many2many) {
+        padding-top:               0px;
+        > div.form-many2many.panel {
+            margin-left:           0px;
+            margin-right:          0px;
+        }
+    }
+}
+
+// Attachment preview
+
+div.attachment-preview {
+    div.content-box > div.form > div.form-container {
+        // coopengo's sao do not take into account the yexpand value set on any
+        // widget. In this specific case we override it.
+        grid-template-rows: minmax(min-content, 1fr) !important;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Rule engine
+///////////////////////////////////////////////////////////////////////////////
+
+@coog-rule-engine-height:         500px;
+
+div.form-item > div.form-source {
+    display: flex;
+    gap: 5px;
+
+    // This is the tree view with all the rule engine functions, we want it
+    // a little more compact
+    > div:first-child {
+        resize:                       horizontal;
+        overflow:                     auto;
+        margin-bottom:                10px;
+        box-shadow:                   @coog-box-shadow;
+        min-width:                    240px;
+        border-radius:                2px;
+
+        > div.treeview {
+            height:                   calc(@coog-rule-engine-height + 42px);
+
+            > table.tree > tbody > tr > td > td > table > tbody > tr > td {
+                span {
+                    font-size:        10px;
+                    padding-bottom:   3px;
+                }
+
+                > p {
+                    margin:           1px 1px 2px 0px;
+                }
+            }
+        }
+    }
+
+    > div.panel {
+        flex:                     2;
+        margin-bottom:            10px;
+
+        > div.panel-heading {
+            background-color:     @color-lighter-blue;
+            padding:              5px;
+        }
+        > div.panel-body {
+            padding:              0px 15px 0px 0px;
+        }
+    }
+}
+
+div.readonly div.CodeMirror-sizer {
+    background-color: lightgrey;
+}
+
+div.CodeMirror {
+    height: @coog-rule-engine-height;
+}
+
+ul.CodeMirror-hints {
+    padding:                    2px;
+    > li {
+        padding:                3px 5px;
+        &:hover {
+            background-color:   @color-lightest-blue;
+            color:              @color-black;
+        }
+    }
+
+    > li.CodeMirror-hint-active {
+        background-color:   @color-lightest-blue;
+        color:              @color-black;
+    }
+}
+
+div.CodeMirror-foldgutter-open,div.CodeMirror-foldgutter-folded {
+    font-size:              x-large;
+    margin-top:             -5px;
+    margin-left:            -2px;
+
+    &.CodeMirror-foldgutter-open {
+        color:                  @color-lighter-grey;
+    }
+    &.CodeMirror-foldgutter-folded {
+        color:                  @color-blue;
+    }
+    &:hover {
+        color:                  @color-light-blue;
+        text-shadow:            @color-lighter-blue 1px 1px 2px, @color-lighter-blue -1px -1px 2px, @color-lighter-blue 1px -1px 2px, @color-lighter-blue -1px 1px 2px;
+    }
+}
+
+span.CodeMirror-foldmarker {
+    font-size:              xx-large;
+    color:                  @color-median-grey;
+    text-shadow:            @color-lighter-grey 1px 1px 2px, @color-lighter-grey -1px -1px 2px, @color-lighter-grey 1px -1px 2px, @color-lighter-grey -1px 1px 2px;
+    &:hover {
+        color:                  @color-light-blue;
+        text-shadow:            @color-lighter-blue 1px 1px 2px, @color-lighter-blue -1px -1px 2px, @color-lighter-blue 1px -1px 2px, @color-lighter-blue -1px 1px 2px;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Notebooks
+///////////////////////////////////////////////////////////////////////////////
+div.form-notebook {
+    border-width:                   0px !important;
+}
+div.form-notebook > ul.nav.nav-tabs {
+    margin-bottom:                  8px;
+    border-color:                   @color-lighter-blue;
+    background-color:               @color-white;
+    > li {
+        > a {
+            padding:                    8px 8px;
+            border-top-left-radius:     8px;
+            border-top-right-radius:    8px;
+            border:                     solid @color-lighter-blue 1px;
+            &:hover {
+                .coog-group-header-colors();
+            }
+            > span.badge-empty {
+                min-width:          0px;
+                padding:            0px 0px;
+            }
+        }
+
+        &:not(active) &:not(focus) > a {
+            box-shadow: none;
+        }
+    }
+    > li.active {
+        > a {
+            .coog-group-header-colors();
+            border:                     solid @color-light-blue 1px;
+            &:hover {
+                border-bottom:          none;
+                border:                 solid @color-light-blue 1px;
+                background-color:       @color-lighter-blue;
+                .coog-group-header-colors();
+            }
+        }
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Pop up menu
+///////////////////////////////////////////////////////////////////////////////
+#popup-menu {
+    // Show pop-up below processing overlay and error pop-ups
+    z-index:                1030;
+    * > li.divider {
+        margin-top:         2px;
+        margin-bottom:      2px;
+    }
+
+    * > li > a:hover {
+        background-color:   @color-lightest-blue;
+        color:              @color-black;
+    }
+
+    > ul.dropdown-menu.contextual {
+        // Show pop-up above modals if they are triggered inside it
+        z-index:                2001;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Fixes
+///////////////////////////////////////////////////////////////////////////////
+
+// bottom alignment of menu / main tab ////////////////////////////////////////
+#menu {
+    padding-bottom: 5px;
+    height: calc(100% - 2px) !important;
+}
+#tabs {
+    padding-bottom: 0px;
+}
+
+// Remove shadowing of disabled buttons, it looks weird
+.btn[disabled] {
+    box-shadow: none !important;
+}
+
+// Hide line of notebooks with all tabs hidden
+ul.nav.nav-tabs:empty {
+    border-bottom:    none;
+}
+
+// Properly apply min-height
+div.form-text:has(> div.input-group > textarea.form-control) {
+    min-height: 200px;
+    > div.input-group {
+        min-height: inherit;
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Information Messages
+///////////////////////////////////////////////////////////////////////////////
+
+div.infobar {
+    position:                   sticky;
+    top:                        unset;
+    text-align:                 left;
+    bottom:                     0;
+    left:                       10px;
+    min-width:                  max-content;
+    max-width:                  50%;
+    transform:                  unset;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Scrollbars
+///////////////////////////////////////////////////////////////////////////////
+
+// Does not work on firefox for now
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+/* Track */
+::-webkit-scrollbar-track {
+    background: var(--lightestgrey);
+}
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: @color-lighter-grey;
+    border-radius: 3px;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: @color-grey;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Spinner for processing
+///////////////////////////////////////////////////////////////////////////////
+// from https://loading.io/css/
+#processing {
+    padding-top:   300px;
+    padding-bottom: 100%;
+    background-color: rgba(@color-black, 0.6);
+    cursor: wait;
+    .label-info {
+        display: inline-block;
+        width: 80px;
+        height: 80px;
+        background: transparent;
+    }
+    .label-info:after {
+        content: " ";
+        display: block;
+        width: 60px;
+        height: 60px;
+        // margin: 8px;
+        border-radius: 50%;
+        border: 6px solid #fff;
+        border-color: #fff transparent #fff transparent;
+        animation: label-info 1.2s linear infinite;
+    }
+    @keyframes label-info {
+        0% {
+            transform: rotate(0deg);
+        }
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+}
+
+// scrollbar in windowed wizards
+.tab-wizard {
+    max-width: 100%;
+
+    .panel-body > div {
+        max-width: 100%;
+    }
+}

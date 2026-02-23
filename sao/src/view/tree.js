@@ -1262,6 +1262,8 @@
                     to_show = to_show.add(this.tbody.find(selector));
                 }
             }
+            // Take into account the selection or optional column
+            var offset = 2;
 
             to_hide.addClass('invisible').sao_hide();
             to_show.removeClass('invisible').sao_show();
