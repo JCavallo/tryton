@@ -51,6 +51,7 @@
   ],
   "dependencies": {
     "billboard.js": "^3.17",
+    "codemirror": "^5.38",
     "d3": "^7.9",
     "jquery": "^3",
     "bootstrap": "^3.3.7",
