@@ -128,7 +128,7 @@
         xml_parser: Sao.View.TreeXMLViewParser,
         draggable: false,
         display_size: null,
-        init: function(view_id, screen, xml, children_field) {
+        init: function(view_id, screen, xml, children_field, children_definitions) {
             this.children_field = children_field;
             this.optionals = {};
             this.sum_widgets = new Map();
@@ -163,6 +163,10 @@
             this.expanded = new Set();
 
             Sao.View.Tree._super.init.call(this, view_id, screen, xml);
+            //
+            // [Coog specific]
+            //      > used for multi_mixed_view , expand_children (?)
+            this.children_definitions = children_definitions;
 
             // Table of records
             this.rows = [];
@@ -933,6 +937,10 @@
                     if (Sao.common.contains(expanded, path)) {
                         const children = record.field_get_client(
                             this.children_field);
+                        // JMO add_fields here is to prevent error
+                        // in field_get_client with 'multi_mixed_view'
+                        // on loan contracts. Not sure this is exactly right.
+                        children.model.add_fields(this.children_definitions[children.model.name]);
                         Array.prototype.push.apply(
                             records, group_records(children, path));
                     }
@@ -1491,8 +1499,10 @@
             return row;
         },
         n_children: function(row) {
-            if (!row || !this.children_field) {
-                return this.rows.length;
+            // [Coog specific]
+            //      > used for multi_mixed_view
+            if (!row || !this.children_field || !row.record._values[this.children_field] ) {
+                    return this.rows.length;
             }
             if (row.record.is_loaded(this.children_field)) {
                 return row.record.field_get_client(this.children_field).length;
@@ -1649,6 +1659,8 @@
             this.record = record;
             this.parent_ = parent;
             this.children_field = tree.children_field;
+            // [Coog specific] multi_mixed_view
+            this.children_definitions = tree.children_definitions;
             this.expander = null;
             this._group_position = null;
             this._path = null;
@@ -1990,6 +2002,9 @@
                 if (this.rows.length === 0) {
                     var children = this.record.field_get_client(
                         this.children_field);
+                    // [Coog Specific]  needed for multi_mixed_view
+                    if (children.model.name != this.record.model.name)
+                        children.model.add_fields(this.children_definitions[children.model.name]);
                     children.forEach((record, pos, group) => {
                         // The rows are added to the tbody after being rendered
                         // to minimize browser reflow
@@ -2018,6 +2033,13 @@
                 }
             }
             this.tree.switch_(this.path);
+        },
+        // [Coog specific] [Bug Sao] call set_selection on child rows as well
+        set_multi_level_selection: function(value){
+            this.set_selection(value);
+            this.rows.forEach(function(row){
+                row.set_multi_level_selection(value);
+            });
         },
         select_column: function(index) {
         },
