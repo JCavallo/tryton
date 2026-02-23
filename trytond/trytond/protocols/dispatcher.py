@@ -8,6 +8,7 @@ import time
 import traceback
 
 from trytond import __series__, backend, config, security
+from trytond.error_handling import error_wrap
 from trytond.exceptions import (
     ConcurrencyException, LoginException, RateLimitException, UserError,
     UserWarning)
@@ -236,6 +237,7 @@ def help_method(request, pool):
     return pydoc.getdoc(getattr(obj, method))
 
 
+@error_wrap
 @app.auth_required
 @with_pool
 def _dispatch(request, pool, *args, **kwargs):
