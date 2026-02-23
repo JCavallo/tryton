@@ -7,6 +7,7 @@ from threading import RLock, local
 from weakref import WeakSet
 
 from trytond.modules import load_modules, register_classes
+from trytond.server_context import ServerContext
 from trytond.transaction import Transaction
 
 __all__ = ['Pool', 'PoolMeta', 'PoolBase', 'isregisteredby']
@@ -228,9 +229,10 @@ class Pool(object):
             self._final_migrations[self.database_name] = []
             self._notification_callbacks[self.database_name] = {}
             try:
-                restart = not load_modules(
-                    self.database_name, self, update=update, lang=lang,
-                    activatedeps=activatedeps, indexes=indexes)
+                with ServerContext().set_context(disable_auto_cache=True):
+                    restart = not load_modules(
+                        self.database_name, self, update=update, lang=lang,
+                        activatedeps=activatedeps, indexes=indexes)
             except Exception:
                 self._modules = None
                 raise
