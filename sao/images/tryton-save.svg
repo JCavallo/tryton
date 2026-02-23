@@ -1,1 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 -960 960 960" width="24"><path d="M840-680v480q0 33-23.5 56.5T760-120H200q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h480l160 160Zm-80 34L646-760H200v560h560v-446ZM480-240q50 0 85-35t35-85q0-50-35-85t-85-35q-50 0-85 35t-35 85q0 50 35 85t85 35ZM240-560h360v-160H240v160Zm-40-86v446-560 114Z"/></svg>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 15.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN" "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 width="64px" height="64px" viewBox="0 0 64 64" enable-background="new 0 0 64 64" xml:space="preserve">
+<g>
+	<g>
+		<path fill="#0f93d1" d="M52.165,2.545H2.546v58.909h58.908V12.628L52.165,2.545z M49.41,59.935H14.59v-25.99h34.82V59.935z
+			 M50.707,27.037H13.293V8.558h37.414V27.037z"/>
+	</g>
+	<g>
+		<rect x="19.312" y="40.066" width="25.286" height="1.294" fill="#0094D2"/>
+	</g>
+	<g>
+		<rect x="19.312" y="49.187" width="25.286" height="1.297" fill="#0094D2"/>
+	</g>
+</g>
+</svg>

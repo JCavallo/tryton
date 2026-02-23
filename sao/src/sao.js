@@ -383,16 +383,9 @@ var Sao = {
     Sao.config = {};
     Sao.config.limit = 1000;
     Sao.config.display_size = 20;
-    var doc_version = Sao.__version__.split('.').slice(0, 2);
-    if (parseInt(doc_version[1], 10) % 2) {
-        doc_version = 'latest';
-    } else {
-        doc_version = doc_version.join('.');
-    }
-    Sao.config.doc_url = `https://docs.tryton.org/${doc_version}`;
-    Sao.config.bug_url = 'https://bugs.tryton.org/';
-    Sao.config.title = 'Tryton';
-    Sao.config.icon_colors = '#267f82,#3e4950,#e78e42'.split(',');
+    Sao.config.bug_url = 'https://support.coopengo.com/';
+    Sao.config.title = 'coog';
+    Sao.config.icon_colors = '#0094d2,#3e4950,#e78e42'.split(',');
     Sao.config.calendar_colors = '#fff,#267f82'.split(',');
     Sao.config.graph_color = '#267f82';
     Sao.config.bus_timeout = 10 * 60 * 1000;
@@ -1059,7 +1052,7 @@ var Sao = {
         format: function(content) {
             var el = jQuery('<div/>');
             Sao.common.ICONFACTORY.get_icon_img(
-                content.icon, {'class': 'global_search-icon'})
+                content.icon, {'class': 'global-search-icon'})
                 .appendTo(el);
             jQuery('<span/>', {
                 'class': 'global-search-text'
