@@ -167,6 +167,9 @@
             // [Coog specific]
             //      > used for multi_mixed_view , expand_children (?)
             this.children_definitions = children_definitions;
+            // [Coog specific]
+            //      > attribute always_expand (expand tree view)
+            this.always_expand = this.attributes.always_expand || null;
 
             // Table of records
             this.rows = [];
@@ -1501,8 +1504,8 @@
         n_children: function(row) {
             // [Coog specific]
             //      > used for multi_mixed_view
-            if (!row || !this.children_field || !row.record._values[this.children_field] ) {
-                    return this.rows.length;
+            if (!row || !this.children_field || row.is_leaf() || !row.record._values[this.children_field] ) {
+                return this.rows.length;
             }
             if (row.record.is_loaded(this.children_field)) {
                 return row.record.field_get_client(this.children_field).length;
@@ -1812,9 +1815,22 @@
             // take into account the selection and option column
             return jQuery(row.children()[column_index + 2]);
         },
+        // [Coog specific)
+        // > Used for always_expand
+        is_leaf: function(){
+            return !this.record.model.fields.hasOwnProperty(this.children_field);
+        },
         redraw: function(selected, expanded) {
             selected = selected || [];
             expanded = expanded || [];
+            var coog_update_expander = function() {
+                // [Coog Specific]  needed for multi_mixed_view
+                // MAB: not sure we still need this
+                if (this.is_leaf()  || !this.record.field_get_client(
+                    this.children_field).length) {
+                    this.expander.css('visibility', 'hidden');
+                }
+            };
 
             switch(this.tree.selection_mode) {
                 case Sao.common.SELECTION_NONE:
@@ -1843,6 +1859,16 @@
 
             if (this._drawed_record !== this.record.identity) {
                 for (var i = 0; i < this.tree.columns.length; i++) {
+                    if ((i === 0) && this.children_field) {
+                        // [Coog Specific]  needed for multi_mixed_view
+                        // MAB: not sure we still need this
+                        if (!this.is_leaf())
+                            this.record.load(this.children_field).done(
+                                coog_update_expander.bind(this));
+                        else
+                            this.record.load('*').done(
+                                coog_update_expander.bind(this));
+                    }
                     var column = this.tree.columns[i];
                     var td = this._get_column_td(i);
                     var cell = td.find('.cell');

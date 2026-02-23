@@ -5994,6 +5994,7 @@ function eval_pyson(value){
             this.el = jQuery('<div/>', {
                 'class': this.class_ + ' panel panel-default'
             });
+
             var heading = jQuery('<div/>', {
                 'class': this.class_ + '-heading panel-heading'
             }).appendTo(this.el);

@@ -1014,7 +1014,6 @@
                 e.preventDefault();
                 this.response('RESPONSE_OK');
             });
-
             this.screen = new Sao.Screen(model, {
                 mode: ['tree'],
                 context: this.context,
