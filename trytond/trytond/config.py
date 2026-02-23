@@ -79,6 +79,7 @@ class TrytonConfigParser(configparser.ConfigParser):
         self.set('cache', 'ir.translation', '10240')
         self.set('cache', 'clean_timeout', '300')
         self.set('cache', 'select_timeout', '60')
+        self.set('cache', 'coog_cache_size', '1024')
 
         self.add_section('report')
         self.set('report', 'unoconv_retry', '2')

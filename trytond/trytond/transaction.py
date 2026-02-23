@@ -257,6 +257,7 @@ class Transaction(object):
             instance.savepoints = []
             instance.timestamp = None
             instance.started_at = None
+            instance.coog_cache = None
             instance.cache = WeakValueDictionary()
             instance._cache_deque = deque(maxlen=_cache_transaction)
             transactions.append(instance)
@@ -526,6 +527,8 @@ class Transaction(object):
             self.started_at = self.monotonic_time()
             for cache in self.cache.values():
                 cache.clear()
+            if self.coog_cache:
+                self.coog_cache.clear()
             Cache.commit(self)
             self.connection.commit()
         except Exception:
@@ -544,6 +547,8 @@ class Transaction(object):
         from trytond.cache import Cache
         for cache in self.cache.values():
             cache.clear()
+        if self.coog_cache:
+            self.coog_cache.clear()
         for sub_transaction in self._sub_transactions:
             sub_transaction.rollback()
         for datamanager in self._datamanagers:
