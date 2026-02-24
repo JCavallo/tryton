@@ -224,7 +224,7 @@ msgid "View Logs..."
 msgstr "Voir les journaux..."
 
 msgid "Attachments..."
-msgstr "Attachements..."
+msgstr "Pièces jointes..."
 
 msgid "Notes..."
 msgstr "Notes..."
@@ -528,7 +528,7 @@ msgstr ""
 
 #, python-format
 msgid "Attachments (%s)"
-msgstr "Attachements (%s)"
+msgstr "Pièces jointes (%s)"
 
 msgid "Code Scanner"
 msgstr "Scanner de codes"
@@ -822,7 +822,7 @@ msgid "Show revisions..."
 msgstr "Afficher les révisions..."
 
 msgid "A_ttachments..."
-msgstr "_Pièce jointes..."
+msgstr "_Pièces jointes..."
 
 msgid "Add an attachment to the record"
 msgstr "Ajouter un attachement à l'enregistrement"
