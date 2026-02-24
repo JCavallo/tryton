@@ -2,7 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import gettext
 
-from gi.repository import Gdk, Gtk
+from gi.repository import Gdk, GLib, Gtk
 
 import tryton.common as common
 from tryton.common.completion import get_completion, update_completion
@@ -38,7 +38,27 @@ class Many2Many(Widget):
         self.title = Gtk.Label(
             label=set_underline(attrs.get('string', '')),
             use_underline=True, halign=Gtk.Align.START)
-        hbox.pack_start(self.title, expand=True, fill=True, padding=0)
+        if not attrs.get('expand_toolbar'):
+            if attrs.get('collapse_body'):
+                click_catcher = Gtk.EventBox.new()
+                click_catcher.set_above_child(True)
+                click_catcher.connect('button-press-event', self._toggle_body)
+
+                collapse_hbox = Gtk.HBox()
+                self.title_expander = Gtk.Image()
+                self.title_expander.set_from_pixbuf(
+                    common.IconFactory.get_pixbuf('tryton-arrow-down'))
+                collapse_hbox.pack_start(
+                    self.title_expander, expand=False, fill=False, padding=0)
+                collapse_hbox.pack_start(
+                    self.title, expand=False, fill=False, padding=0)
+
+                click_catcher.add(collapse_hbox)
+                click_catcher.show()
+                hbox.pack_start(
+                    click_catcher, expand=True, fill=True, padding=0)
+            else:
+                hbox.pack_start(self.title, expand=True, fill=True, padding=0)
 
         hbox.pack_start(Gtk.VSeparator(), expand=False, fill=True, padding=0)
 
@@ -127,6 +147,15 @@ class Many2Many(Widget):
 
         self._popup = False
 
+        if (not attrs.get('expand_toolbar')
+                and attrs.get('collapse_body') == '1'):
+            def hide_body():
+                self.screen.widget.hide()
+                self.widget.set_vexpand(False)
+                self.title_expander.set_from_pixbuf(
+                    common.IconFactory.get_pixbuf('tryton-arrow-right'))
+            GLib.idle_add(hide_body)
+
     def _color_widget(self):
         if hasattr(self.screen.current_view, 'treeview'):
             return self.screen.current_view.treeview
@@ -181,6 +210,18 @@ class Many2Many(Widget):
     @property
     def create_access(self):
         return int(self.attrs.get('create', 1)) and self.get_access('create')
+
+    def _toggle_body(self, eventbox, event):
+        if self.screen.widget.props.visible:
+            self.screen.widget.hide()
+            self.widget.set_vexpand(False)
+            self.title_expander.set_from_pixbuf(
+                common.IconFactory.get_pixbuf('tryton-arrow-right'))
+        else:
+            self.screen.widget.show()
+            self.widget.set_vexpand(True)
+            self.title_expander.set_from_pixbuf(
+                common.IconFactory.get_pixbuf('tryton-arrow-down'))
 
     def _sig_add(self, *args):
         domain = self.field.domain_get(self.record)
