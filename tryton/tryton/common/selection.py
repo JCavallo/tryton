@@ -82,7 +82,9 @@ class SelectionMixin(object):
             if isinstance(result, list):
                 selection = [(x['id'], x['rec_name']) for x in result]
                 if self.nullable_widget:
-                    selection.append((None, ''))
+                    selection.append(
+                        (None, self.attrs.get('empty_string', ''))
+                        )
                 if help_field:
                     help_ = {x['id']: x[help_field] for x in result}
                 else:
