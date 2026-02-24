@@ -288,6 +288,7 @@ html[theme="default"] {
     display: flex;
     flex: 1;
     width: 100%;
+    overflow-x: auto;
 
     > .tab-pane > .panel {
         display: flex;
@@ -295,13 +296,15 @@ html[theme="default"] {
         flex: 1;
         margin-bottom: 5px;
         padding-bottom: 0;
+        max-width: 100%;
 
         > .panel-body {
             display: flex;
             flex: 1;
             flex-direction: row;
-            padding: 5px 0;
+            padding: 0;
             min-height: 0;
+            overflow-y: auto;
 
             > div {
                 display: inline-flex;
