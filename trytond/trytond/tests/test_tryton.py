@@ -43,6 +43,7 @@ from trytond.tools import file_open, find_dir, find_path, is_instance_method
 from trytond.transaction import Transaction, TransactionError
 from trytond.wizard import StateAction, StateView
 from trytond.wsgi import app
+from trytond.server_context import ServerContext, TEST_CONTEXT
 
 __all__ = [
     'CONTEXT',
@@ -121,7 +122,8 @@ def activate_module(modules, lang='en', cache_name=None):
                 type='wizard')
             instance_id, _, _ = ActivateUpgrade.create()
             transaction.commit()
-            ActivateUpgrade(instance_id).transition_upgrade()
+            with ServerContext().set_context(**TEST_CONTEXT):
+                ActivateUpgrade(instance_id).transition_upgrade()
             ActivateUpgrade.delete(instance_id)
             transaction.commit()
     backup_db_cache(name)

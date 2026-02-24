@@ -6,6 +6,7 @@ from functools import partial
 
 from proteus import Model, Wizard
 from proteus import config as pconfig
+from trytond.server_context import ServerContext, TEST_CONTEXT
 
 from .test_tryton import backup_db_cache, drop_create, restore_db_cache
 
@@ -38,7 +39,8 @@ def activate_modules(modules, *setup, cache_file_name=None):
     assert len(records) == len(modules), (
         f"Not found: {', '.join(set(modules) - {r.name for r in records})}")
     Module.click(records, 'activate')
-    Wizard('ir.module.activate_upgrade').execute('upgrade')
+    with ServerContext().set_context(**TEST_CONTEXT):
+        Wizard('ir.module.activate_upgrade').execute('upgrade')
 
     for func in setup:
         func(config=cfg)
