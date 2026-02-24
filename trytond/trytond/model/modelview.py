@@ -715,10 +715,11 @@ class ModelView(Model):
                 if cls.__rpc__[button_name].cache:
                     change.append('id')
                 element.set('change', encoder.encode(change))
-            if not is_instance_method(cls, button_name):
-                element.set('type', 'class')
-            else:
-                element.set('type', 'instance')
+            if element.get('type') != 'client_action':
+                if not is_instance_method(cls, button_name):
+                    element.set('type', 'class')
+                else:
+                    element.set('type', 'instance')
 
             for depend in states.get('depends', []):
                 fields_attrs.setdefault(depend, {})

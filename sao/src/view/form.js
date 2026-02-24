@@ -440,7 +440,9 @@ function eval_pyson(value){
         },
         button_clicked: function(event) {
             var button = event.data;
-            button.el.prop('disabled', true);  // state will be reset at display
+            if (button.attributes.type != 'client_action') {
+                button.el.prop('disabled', true);  // state will be reset at display
+            }
             this.screen.button(button.attributes);
         },
         on_scan_code: function(code) {

@@ -966,6 +966,7 @@
         <choice>
           <value>class</value>
           <value>instance</value>
+          <value>client_action</value>
         </choice>
       </attribute>
     </optional>

@@ -534,6 +534,8 @@ class ModuleTestCase(_DBTestCase):
                                     fields_to_check.add(field)
                         elif element.tag == 'button':
                             button_name = element.get('name')
+                            if button_name == 'refresh parent':
+                                continue
                             self.assertIn(button_name, Model._buttons.keys(),
                                 msg="Missing button %r in %r" % (
                                     button_name, Model.__name__))
