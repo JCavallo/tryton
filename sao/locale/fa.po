@@ -47,6 +47,9 @@ msgstr ""
 msgid "Favorites"
 msgstr "علاقه مندی ها"
 
+msgid "Close"
+msgstr "بسته"
+
 msgid "Action"
 msgstr "اقدام"
 
@@ -112,9 +115,6 @@ msgstr ""
 
 msgid "Help"
 msgstr ""
-
-msgid "Close"
-msgstr "بسته"
 
 msgid "Documentation..."
 msgstr ""
@@ -215,9 +215,6 @@ msgstr "t"
 msgid "False"
 msgstr "غلط"
 
-msgid "Always ignore this warning."
-msgstr "همیشه این هشدار را نادیده بگیرید."
-
 msgid "Do you want to proceed?"
 msgstr "آیا می خواهید پردازش شود؟"
 
@@ -309,6 +306,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "ویرایش"
+
+#, fuzzy
+msgid "Relation"
+msgstr "مربوط"
+
+#, fuzzy
+msgid "Report"
+msgstr "گزارش باگ"
 
 msgid "Switch view"
 msgstr "تعویض نمایه"
@@ -489,6 +498,10 @@ msgstr "\"%1\" با توجه به دامنه آن معتبر نیست"
 
 #, fuzzy
 msgid "The values of \"%1\" are not valid."
+msgstr "مقادیر \"%1\" معتبر نیستند"
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "مقادیر \"%1\" معتبر نیستند"
 
 msgid "Pre-validation"
@@ -883,3 +896,6 @@ msgstr "خروج"
 
 msgid "Translate view"
 msgstr ""
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "همیشه این هشدار را نادیده بگیرید."

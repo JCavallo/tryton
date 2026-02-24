@@ -98,9 +98,6 @@ msgstr "Afficher/Masquer les touches d'accès"
 msgid "Help"
 msgstr "Aide"
 
-msgid "Close"
-msgstr "Fermer"
-
 msgid "Documentation..."
 msgstr "Documentation..."
 
@@ -201,13 +198,9 @@ msgstr "v"
 msgid "False"
 msgstr "Faux"
 
-<<<<<<< HEAD
 msgid "Always ignore this warning."
 msgstr "Toujours ignorer cet avertissement."
-||||||| parent of a1b64239f1 (sao: Add fr translations [CUSTOM])
-msgid "Show / Hide more"
-msgstr ""
-=======
+
 msgid "Show / Hide more"
 msgstr "Afficher / Masquer la suite"
 
@@ -216,7 +209,6 @@ msgstr "Copier"
 
 msgid "Copied!"
 msgstr "Copié !"
->>>>>>> a1b64239f1 (sao: Add fr translations [CUSTOM])
 
 msgid "Do you want to proceed?"
 msgstr "Souhaitez-vous continuer ?"
@@ -229,8 +221,7 @@ msgstr "Avertissement de concurrence"
 
 msgid "This record has been modified while you were editing it."
 msgstr ""
-"Cet enregistrement a été modifié pendant que vous étiez en train de "
-"l'éditer."
+"Cet enregistrement a été modifié pendant que vous étiez en train de l'éditer."
 
 msgid "Choose:"
 msgstr "Choisissez :"
@@ -306,6 +297,15 @@ msgstr "Centré"
 
 msgid "Justify Full"
 msgstr "Justifié"
+
+msgid "Edit..."
+msgstr "Éditer …"
+
+msgid "Relation"
+msgstr "Relation"
+
+msgid "Report"
+msgstr "Rapports"
 
 msgid "Switch view"
 msgstr "Basculer la vue"
@@ -475,6 +475,9 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "« %1 » n'est pas valide selon son domaine."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "Les valeurs de « %1 » ne sont pas valides."
+
+msgid "The value of \"%1\" is not valid."
 msgstr "Les valeurs de « %1 » ne sont pas valides."
 
 msgid "Pre-validation"
@@ -844,3 +847,6 @@ msgstr "Déconnexion"
 
 msgid "Translate view"
 msgstr "Traduire la vue"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Toujours ignorer cet avertissement."

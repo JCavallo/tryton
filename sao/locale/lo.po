@@ -34,6 +34,9 @@ msgstr ""
 msgid "Favorites"
 msgstr "ທີ່ມັກ"
 
+msgid "Close"
+msgstr "ອັດ"
+
 msgid "Action"
 msgstr "ດຳເນີນການ"
 
@@ -99,9 +102,6 @@ msgstr ""
 
 msgid "Help"
 msgstr ""
-
-msgid "Close"
-msgstr "ອັດ"
 
 msgid "Documentation..."
 msgstr ""
@@ -202,9 +202,6 @@ msgstr "ຈ"
 msgid "False"
 msgstr "ເທັດ"
 
-msgid "Always ignore this warning."
-msgstr "ບໍ່ສົນກັບຄຳເຕືອນນີ້."
-
 msgid "Do you want to proceed?"
 msgstr "ທ່ານຕ້ອງການດຳເນີນບໍ່?"
 
@@ -296,6 +293,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "ແກ້ໄຂ"
+
+#, fuzzy
+msgid "Relation"
+msgstr "ກ່ຽວພັນກັບ"
+
+#, fuzzy
+msgid "Report"
+msgstr "ລາຍງານຂໍ້ຜິດພາດ"
 
 msgid "Switch view"
 msgstr "ສະຫຼັບໜ້າເບິ່ງ"
@@ -476,6 +485,10 @@ msgstr "\"%1\" ບໍ່ມີຄ່າທີ່ຖຶກຕ້ອງກັບ �
 
 #, fuzzy
 msgid "The values of \"%1\" are not valid."
+msgstr "ຄ່າ ຂອງ \"%1\" ນີ້ ບໍ່ຖືກຕ້ອງ"
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "ຄ່າ ຂອງ \"%1\" ນີ້ ບໍ່ຖືກຕ້ອງ"
 
 msgid "Pre-validation"
@@ -865,3 +878,6 @@ msgstr "ອອກລະບົບ"
 
 msgid "Translate view"
 msgstr ""
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "ບໍ່ສົນກັບຄຳເຕືອນນີ້."
