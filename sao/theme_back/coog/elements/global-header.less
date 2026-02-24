@@ -1,0 +1,129 @@
+@import 'colors.less';
+
+/* Header */
+    @global-header-static-top-color:        @color_blue;
+    @global-header-static-top-hover-color:  @color_light_blue;
+    @global-header-color:                   @color_white;
+    @global-header-text-color:              @color_white;
+
+    @global-header-menu-btn-text-mode:      true;
+    @hr-border-top-color:                   @color_light_blue;
+
+    @global-header-menu-btn-text-color:     @color_white;
+    @global-header-menu-btn-text-size:      none;
+    @global-header-menu-btn-color:          @color_light_blue;
+    @global-header-menu-btn-border-color:   @color_light_blue;
+
+    @global-header-menu-btn-padding:        1px 5px;
+    @global-header-menu-btn-margin-top:     10px;
+
+/* custom button */
+    @global-header-menu-btn-text-mode:      false;
+    @global-header-menu-btn-text-color:     @color_light_blue;
+    @global-header-menu-btn-color:          @color_white;
+    @global-header-menu-btn-border-color:   @color_lightest_grey;
+    @global-header-menu-btn-padding:        5px 10px;
+    @global-header-menu-btn-margin-top:     10px;
+
+
+/* style */
+a.navbar-brand.dropdown-toggle {
+    padding:            15px 5px;
+    height:             2em;
+}
+body > .navbar-default {
+    margin-bottom: 0px!important;
+    border-bottom-width: 0px;
+    .navbar-header > a {
+        color:          @global-header-text-color;
+    }
+    #user_menu_collapse > ul > li > a {
+        color:          @global-header-text-color;
+    }
+
+    /* menu toggle button */
+    .button-default-color {
+        color:              @global-header-menu-btn-text-color;
+        background-color:   @global-header-menu-btn-color;
+        border-color:       @global-header-menu-btn-border-color;
+        outline:            none;
+    }
+    .navbar-header > p {
+        margin-top:         0;
+        margin-bottom:      0;
+        > .btn-primary {
+            .button-default-color;
+            padding:        @global-header-menu-btn-padding;
+            margin-top:     @global-header-menu-btn-margin-top;
+            font-size:      @global-header-menu-btn-text-size;
+            &:active, &:focus {
+                .button-default-color;
+                outline:    none;
+            }
+            &:hover {
+                color:              @global-header-menu-btn-color;
+                background-color:   @global-header-menu-btn-text-color;
+                border-color:       @global-header-menu-btn-text-color;
+            }
+            & when (@global-header-menu-btn-text-mode = false) {
+                .glyphicon {
+                    display: inline-block !important;
+                }
+                #toggle-text {
+                    display: none;
+                }
+            }
+        }
+    }
+    .navbar-nav > li > a {
+        color:          @global-header-text-color;
+    }
+}
+nav.navbar.navbar-default.navbar-static-top {
+    background-color: @global-header-static-top-color;
+}
+.navbar-default .navbar-nav > li > a:focus, .navbar-default .navbar-nav>li>a:hover {
+        background-color:   @global-header-static-top-hover-color;
+        color:              @global-header-text-color;
+    }
+
+.navbar-default {
+    /* colors */
+    background-color:   @global-header-color;
+    border-color:       @global-header-menu-btn-border-color;
+    margin-bottom:      0px;
+    border:             0px;
+}
+
+.navbar-default .navbar-brand {
+    font-size:              1.75em;
+    color:                  @global-header-static-top-color;
+    &:hover {
+        color:              @global-header-color;
+        background-color:   @global-header-static-top-hover-color;
+        border-radius:      3px;
+    }
+}
+
+.close {
+    color:              unset;
+    text-shadow:        none;
+    margin-left:        10px;
+    margin-top:         -10px;
+    opacity:            unset;
+}
+
+hr {
+    border-top-width: 1px;
+    border-top-style: solid;
+    border-top-color: @hr-border-top-color;
+}
+
+
+@media screen and (min-width: @screen-sm-min) {
+    #global-search-entry {
+        min-height: 33px;
+        margin-left: -5px;
+        box-shadow: none;
+    }
+}

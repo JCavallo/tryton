@@ -1,0 +1,106 @@
+@import 'colors.less';
+
+/* attributes */
+    @panel-heading-text-color:      @color_black;
+    @panel-heading-color:           transparent;
+    @panel-border-color:            @color_light_blue;
+    @panel-icons-color:             @color_blue;
+
+    @panel-btn-hover-color:         @color_light_blue;
+    @panel-btn-hover-text-color:    @color_white;
+    @panel-btn-active-color:        @color_lighter_blue;
+    @panel-btn-active-text-color:   none;
+    @panel-btn-color:               @color_white;
+
+
+/* style */
+.screen-container, .modal-body {
+    .panel-default {
+        border-color:               @panel-border-color;
+        /* header */
+        & >.panel-heading {
+            background-color:       @panel-heading-color;
+            color:                  @panel-heading-text-color;
+            .form-control {
+                z-index:            3;
+                border-radius:      2px;
+            }
+        }
+    }
+}
+
+.form {
+    .panel-default {
+        border: 0px;
+    }
+    .panel-heading {
+        background-color:       @panel-heading-color;
+        color:                  @panel-heading-text-color;
+        border-color:           @panel-border-color;
+    }
+    .panel-heading > div > .input-group > .input-group-btn > .btn{
+        background-color:       @panel-heading-color;
+        border:                 0!important;
+        margin-right:           2px;
+
+        .glyphicon {
+            color:              @panel-icons-color !important;
+        }
+        &:active {
+            background-color:   @panel-btn-active-color;
+            .glyphicon {
+                color:          @panel-btn-active-text-color !important;
+            }
+        }
+        &:focus { outline: 0; }
+        &:hover {
+            background-color:   @panel-btn-hover-color;
+            color:              @panel-btn-hover-text-color;
+            .glyphicon {
+                color:          @panel-btn-hover-text-color !important;
+            }
+        }
+        &.disabled, &[disabled] {
+            background-color:   @panel-heading-color !important;
+            .glyphicon{
+                color:          @color_black !important;
+            }
+        }
+    }
+    .panel-body {
+        padding: 5px;
+    }
+    .form-control {
+        border: 1px solid @color_light_blue;
+    }
+}
+
+
+.toolbar.panel-heading {
+    padding: 0 10px;
+}
+
+.navbar-nav {
+    background-color:       @color_blue;
+}
+
+.navbar-inverse {
+    background-color:       transparent;
+}
+
+.panel-default > .panel-heading {
+    background-color: @color_blue;
+}
+
+.toolbar.panel-heading {
+    background-color: white;
+}
+
+.navbar-static-top {
+    background-color: @color_blue !important;
+}
+
+.navbar-inverse .navbar-brand:hover, .navbar-inverse .navbar-brand:focus {
+    color: @color_blue !important;
+    background-color: transparent;
+}

@@ -1,0 +1,94 @@
+@import 'colors.less';
+
+/* variables */
+    @menu-item-spacing:         4px;
+    @menu-expander-color:       @color_light_blue;
+    @menu-line-color:           @color_white;
+    @menu-line-hover-color:     @color_light_blue;
+    @menu-line-hover-text-color:@color_white;
+    @menu-stripe-mode:          false;
+    @menu-striped-line-color:   @color_lighter_blue;
+
+    @menu-expander-size:        1em;
+    @menu-expander-width:       1em;
+    @menu-icons-size:           1.4em;
+    @menu-text-size:            @global-font-size;
+
+    @menu-padding:              0;
+    @menu-line-vertical-padding:2px;
+
+    @global-search-icons-size:  1.25em;
+    @global-search-text-size:   @global-font-size;
+
+/* style */
+#menu {
+    padding-right:                  @menu-padding;
+    padding-left:                   @menu-padding;
+
+    /* search input */
+    .global-search-container input {
+        box-shadow:                 none;
+        border:                     0;
+        border-bottom:              1px solid @color_light_blue;
+        border-radius:              0;
+    }
+
+    /* menu body */
+    .content-box {
+        .expander > span {
+            width:                  @menu-expander-width;
+            margin-left:            @menu-item-spacing;
+            margin-right:           @menu-item-spacing;
+            font-size:              @menu-expander-size;
+            color:                  @menu-expander-color;
+            &:focus {
+                outline:            0;
+            }
+        }
+        .prefix > img {
+            height:                 @menu-icons-size;
+            width:                  @menu-icons-size;
+            margin-right:           @menu-item-spacing;
+        }
+        .widget {
+            font-size:              @menu-text-size;
+        }
+        .table-striped>tbody>tr:nth-of-type(odd) {
+            background-color:       @menu-line-color;
+            & when (@menu-stripe-mode = true) {
+                background-color:   @menu-striped-line-color;
+            }
+        }
+        .table-hover > tbody > tr:hover {
+            background-color:       @menu-line-hover-color;
+            color:                  @menu-line-hover-text-color;
+            .glyphicon {
+                color:              @menu-line-hover-text-color;
+            }
+        }
+        .table > tbody > tr {
+            background-color:       @menu-line-color;
+            & > td {
+                padding-top:        @menu-line-vertical-padding;
+                padding-bottom:     @menu-line-vertical-padding;
+            }
+        }
+    }
+
+    /* global-search */
+    .open .dropdown-menu {
+        .completion {
+            .global-search-icon {
+                height:             @global-search-icons-size;
+                width:              @global-search-icons-size;
+                margin-right:       @menu-item-spacing;
+            }
+            .global-search-text {
+                font-size:          @global-search-text-size;
+            }
+        }
+    }
+}
+span.input-group-btn > button.btn-default, div.bnt-group {
+    border: 0px;
+}
