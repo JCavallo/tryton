@@ -814,7 +814,7 @@ infobar.question:backdrop,
     background-color: mix (@question_bg_color, @bg_color, 0.5);
 }
 
-.invalid entry {
+entry.invalid {
     border-style: solid;
     border-width: 1px;
 
@@ -2279,6 +2279,15 @@ switch:backdrop slider {
  ************/
 textview {
     background-color: @base_color;
+}
+
+box.readonly > * > textview,
+box.readonly > * > textview:focus {
+    background-color: none;
+    background-image: -gtk-gradient (linear, left top, left bottom,
+                                     from (shade (@readonly_bg_color, 0.98)),
+                                     to (shade (@readonly_bg_color, 1)));
+    color:@text_color;
 }
 
 textview.monospace {
