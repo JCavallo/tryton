@@ -4,7 +4,7 @@
     'use strict';
 
     Sao.ScreenContainer = Sao.class_(Object, {
-        init: function(screen, tab_domain) {
+        init: function(screen, tab_domain, show_filter) {
             this.screen = screen;
             this.alternate_viewport = jQuery('<div/>', {
                 'class': 'screen-container'
@@ -175,6 +175,11 @@
             .appendTo(jQuery('<div/>', {
                 'class': 'col-sm-2 pull-right'
             }).appendTo(search_row));
+
+            if (!show_filter && (show_filter !== undefined)) {
+                this.filter_box.css('margin', 0);
+                search_row.hide();
+            }
 
             this.content_box = jQuery('<div/>', {
                 'class': 'content-box'
@@ -831,7 +836,7 @@
             this.new_group(attributes.context || {});
             this.current_record = null;
             this.screen_container = new Sao.ScreenContainer(
-                this, attributes.tab_domain);
+                this, attributes.tab_domain, attributes.show_filter);
             this.breadcrumb = attributes.breadcrumb || [];
 
             this.context_screen = null;
