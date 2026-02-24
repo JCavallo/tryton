@@ -16,6 +16,9 @@ msgstr ""
 msgid "Logout"
 msgstr ""
 
+msgid "Close"
+msgstr ""
+
 msgid "Favorites"
 msgstr ""
 
@@ -187,6 +190,12 @@ msgid "False"
 msgstr ""
 
 msgid "Always ignore this warning."
+msgstr ""
+
+msgid "Copy"
+msgstr ""
+
+msgid "Copied!"
 msgstr ""
 
 msgid "Do you want to proceed?"

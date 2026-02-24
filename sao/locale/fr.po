@@ -23,6 +23,9 @@ msgstr "Déconnexion"
 msgid "Favorites"
 msgstr "Favoris"
 
+msgid "Close"
+msgstr "Fermer"
+
 msgid "Action"
 msgstr "Action"
 
@@ -192,8 +195,22 @@ msgstr "v"
 msgid "False"
 msgstr "Faux"
 
+<<<<<<< HEAD
 msgid "Always ignore this warning."
 msgstr "Toujours ignorer cet avertissement."
+||||||| parent of a1b64239f1 (sao: Add fr translations [CUSTOM])
+msgid "Show / Hide more"
+msgstr ""
+=======
+msgid "Show / Hide more"
+msgstr "Afficher / Masquer la suite"
+
+msgid "Copy"
+msgstr "Copier"
+
+msgid "Copied!"
+msgstr "Copié !"
+>>>>>>> a1b64239f1 (sao: Add fr translations [CUSTOM])
 
 msgid "Do you want to proceed?"
 msgstr "Souhaitez-vous continuer ?"
@@ -352,8 +369,8 @@ msgid ""
 "This record has been modified\n"
 "do you want to save it?"
 msgstr ""
-"Cet entrée a été modifiée\n"
-"voulez-vous l'enregistrer ?"
+"Cette entrée a été modifiée.\n"
+"Voulez-vous l'enregistrer ?"
 
 msgid "Record saved."
 msgstr "Entrée enregistrée."
@@ -446,7 +463,7 @@ msgid "Modified at"
 msgstr "Modifié le"
 
 msgid "\"%1\" is required."
-msgstr "« %1 » est requis."
+msgstr "Le champ « %1 » est requis."
 
 msgid "\"%1\" is not valid according to its domain."
 msgstr "« %1 » n'est pas valide selon son domaine."
@@ -591,7 +608,7 @@ msgid "Apply changes"
 msgstr "Appliquer les modifications"
 
 msgid "Attachments (%1)"
-msgstr "Attachements (%1)"
+msgstr "Pièces jointes (%1)"
 
 msgid "Notes (%1)"
 msgstr "Notes (%1)"
