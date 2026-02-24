@@ -133,8 +133,9 @@
                 'method': 'wizard.' + this.action + '.delete',
                 'params': [this.session_id, this.session.context]
             }, this.session).then(action => {
-                this.destroy(action);
-                this.__prm.resolve();
+                this.destroy(action).done(() => {
+                    this.__prm.resolve();
+                });
             })
             .fail(() => {
                 Sao.Logger.warn(
@@ -272,6 +273,7 @@
                     Sao.Session.current_session.reload_context();
                     break;
             }
+            return jQuery.when();
         },
         end: function() {
             return Sao.Wizard.Form._super.end.call(this).always(
@@ -327,23 +329,29 @@
         },
         destroy: function(action) {
             Sao.Wizard.Dialog._super.destroy.call(this, action);
+            let modal_dialog_elem = this.dialog[0];
+            let is_menu = false;
+            // Don't use an arrow function as "this" will point to each element
+            // found by jQuery
+            let dialog = jQuery('.wizard-dialog').filter(function(idx) {
+                return this !== modal_dialog_elem;
+            }).filter(':visible')[0];
+            let screen;
+            if (!dialog) {
+                dialog = Sao.Tab.tabs.get_current();
+            }
+            if (!dialog ||
+                !this.model ||
+                (Sao.main_menu_screen &&
+                (Sao.main_menu_screen.model_name == this.model))) {
+                is_menu = true;
+                screen = Sao.main_menu_screen;
+            } else {
+                screen = dialog.screen;
+            }
+            let destroy_prm = jQuery.Deferred();
             const destroy = () => {
                 this.dialog.remove();
-                var dialog = jQuery('.wizard-dialog').filter(':visible')[0];
-                var is_menu = false;
-                var screen;
-                if (!dialog) {
-                    dialog = Sao.Tab.tabs.get_current();
-                }
-                if (!dialog ||
-                    !this.model ||
-                    (Sao.main_menu_screen &&
-                    (Sao.main_menu_screen.model_name == this.model))) {
-                    is_menu = true;
-                    screen = Sao.main_menu_screen;
-                } else {
-                    screen = dialog.screen;
-                }
                 if (screen) {
                     var prm = jQuery.when();
                     if (screen.current_record && !is_menu) {
@@ -360,8 +368,13 @@
                     if (action) {
                         prm.then(function() {
                             screen.client_action(action);
+                            destroy_prm.resolve();
                         });
+                    } else {
+                        destroy_prm.resolve();
                     }
+                } else {
+                    destroy_prm.resolve();
                 }
             };
             if ((this.dialog.data('bs.modal') || {}).isShown) {
@@ -370,6 +383,7 @@
             } else {
                 destroy();
             }
+            return destroy_prm.promise();
         },
         show: function() {
             var view = this.screen.current_view;

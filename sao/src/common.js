@@ -4573,6 +4573,27 @@
         return copy;
     };
 
+    Sao.common.list_modified = function(screen, depth = 0) {
+        if (!screen.modified) {
+            return;
+        }
+
+        if (screen.current_record && screen.current_record.modified) {
+            console.log(`${' '.repeat(depth)} ${screen.model_name}: current_record`);
+        } else if (screen.current_view && screen.current_view.modified) {
+            for (let [name, widgets] of Object.entries(screen.current_view.widgets)) {
+                for (let widget of widgets) {
+                    if (widget.modified) {
+                        console.log(`${' '.repeat(depth * 2)} ${screen.model_name}: ${name}`);
+                        if (widget.screen) {
+                            Sao.common.list_modified(widget.screen, depth + 1);
+                        }
+                    }
+                }
+            }
+        }
+    };
+
     Sao.common.PopupMenu = {
         initialize: (evt) => {
             let menu = jQuery('#popup-menu');

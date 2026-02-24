@@ -2300,7 +2300,12 @@
             } else if (action == 'previous') {
                 return this.display_previous();
             } else if (action == 'close') {
-                Sao.Tab.tabs.close_current();
+                for (let tab of Sao.Tab.tabs) {
+                    if (tab.screen === this) {
+                        tab.close();
+                        break;
+                    }
+                }
             } else if (action.startsWith('switch')) {
                 return this.switch_view.apply(this, action.split(' ', 3).slice(1));
             } else if (action == 'reload') {
