@@ -1081,7 +1081,7 @@ msgstr "« %s » n'est pas valide selon son domaine."
 
 #, python-format
 msgid "\"%s\" is required."
-msgstr "« %s » est requis."
+msgstr "Le champ « %s » est requis."
 
 #, python-format
 msgid "The values of \"%s\" are not valid."
