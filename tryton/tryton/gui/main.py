@@ -595,9 +595,11 @@ class Main(Gtk.Application):
             return False
         Preference(rpc._USER, self.get_preferences)
 
-    def sig_win_close(self, widget=None):
-        self._sig_remove_book(widget,
-            self.notebook.get_nth_page(self.notebook.get_current_page()))
+    def sig_win_close(self, widget=None, page_widget=None):
+        if page_widget is None:
+            page_widget = self.notebook.get_nth_page(
+                self.notebook.get_current_page())
+        self._sig_remove_book(widget, page_widget)
 
     def close_pages(self):
         if self.notebook.get_n_pages():

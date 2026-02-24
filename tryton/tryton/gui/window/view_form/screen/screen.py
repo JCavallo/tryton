@@ -1428,7 +1428,13 @@ class Screen:
             self.display_prev()
         elif action == 'close':
             from tryton.gui import Main
-            Main().sig_win_close()
+            main = Main()
+            for page in main.pages:
+                if page.screen is self:
+                    break
+            else:
+                page = None
+            main.sig_win_close(page_widget=page.widget if page else None)
         elif action.startswith('switch'):
             self.switch_view(*action.split(None, 2)[1:])
         elif action == 'reload':
