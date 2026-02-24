@@ -196,6 +196,20 @@
             this.screen.add_view(view);
             this.screen.switch_view();
             this.screen.windows.push(this);
+            var close_button = jQuery('<button/>', {
+                'type': 'button',
+                'class': 'close',
+                'aria-label': Sao.i18n.gettext("Close"),
+            }).append(jQuery('<span>', {
+                'aria-hidden': true,
+            }).append('&times;'));
+            close_button.click((e) => {
+                e.preventDefault();
+                if (this.end_state in this.states) {
+                    this.response(this.states[this.end_state].attributes);
+                }
+            });
+            this.header.append(close_button);
             this.header.append(jQuery('<h4/>', {
                 'class': 'model-title',
                 'title': this.name,

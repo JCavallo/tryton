@@ -978,7 +978,8 @@ var Sao = {
 
     Sao.Dialog = Sao.class_(Object, {
         init: function(
-            title, class_, size='sm', keyboard=true, small=null) {
+            title, class_, size='sm', keyboard=true, small=null,
+            closeable=false) {
             this.modal = jQuery('<div/>', {
                 'class': class_ + ' modal fade',
                 'role': 'dialog',
@@ -993,6 +994,17 @@ var Sao = {
             this.header = jQuery('<div/>', {
                 'class': 'modal-header'
             }).appendTo(this.content);
+            if (closeable) {
+                var close_button = jQuery('<button/>', {
+                    'type': 'button',
+                    'class': 'close',
+                    'data-dismiss': 'modal',
+                    'aria-label': Sao.i18n.gettext("Close"),
+                }).append(jQuery('<span>', {
+                    'aria-hidden': true,
+                }).append('&times;'));
+                this.header.append(close_button);
+            }
             if (title) {
                 this.add_title(title, small);
             }

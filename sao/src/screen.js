@@ -455,7 +455,8 @@
             };
             if (!this.search_modal) {
                 var dialog = new Sao.Dialog(
-                        Sao.i18n.gettext('Filters'), '', 'lg');
+                        Sao.i18n.gettext('Filters'), '', 'lg', true, null,
+                        true);
                 this.search_modal = dialog.modal;
                 this.search_form = dialog.content;
                 this.search_form.addClass('form-horizontal');
