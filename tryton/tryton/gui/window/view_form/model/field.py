@@ -18,6 +18,7 @@ from tryton.common import (
     eval_domain, extract_reference_models, filter_leaf, inverse_leaf,
     localize_domain, merge, prepare_reference_domain, simplify, tempfile,
     unique_value)
+from tryton.common.datetime_ import INVALID_DT_VALUE
 from tryton.common.htmltextbuffer import guess_decode
 from tryton.config import CONFIG
 from tryton.pyson import PYSONDecoder
@@ -293,6 +294,12 @@ class DateTimeField(Field):
 
     _default = None
 
+    def get_eval(self, record):
+        value = super().get_eval(record)
+        if value is INVALID_DT_VALUE:
+            value = None
+        return value
+
     def set_client(self, record, value, force_change=False):
         if isinstance(value, datetime.time):
             current_value = self.get_client(record)
@@ -325,10 +332,34 @@ class DateTimeField(Field):
     def time_format(self, record):
         return record.expr_eval(self.attrs['format'])
 
+    def validate(self, record, softvalidation=False, pre_validate=None):
+        valid = super().validate(record, softvalidation, pre_validate)
+        state_attrs = self.get_state_attrs(record)
+        if ((v := record.value.get(self.name))
+                and not isinstance(v, datetime.datetime)):
+            state_attrs['invalid'] = 'value'
+            valid = False
+        return valid
+
 
 class DateField(Field):
 
     _default = None
+
+    def get_eval(self, record):
+        value = super().get_eval(record)
+        if value is INVALID_DT_VALUE:
+            value = None
+        return value
+
+    def validate(self, record, softvalidation=False, pre_validate=None):
+        valid = super().validate(record, softvalidation, pre_validate)
+        state_attrs = self.get_state_attrs(record)
+        if ((v := record.value.get(self.name))
+                and not isinstance(v, datetime.date)):
+            state_attrs['invalid'] = 'value'
+            valid = False
+        return valid
 
     def set_client(self, record, value, force_change=False):
         if isinstance(value, datetime.datetime):
@@ -357,6 +388,21 @@ class TimeField(Field):
 
     def time_format(self, record):
         return record.expr_eval(self.attrs['format'])
+
+    def get_eval(self, record):
+        value = super().get_eval(record)
+        if value is INVALID_DT_VALUE:
+            value = None
+        return value
+
+    def validate(self, record, softvalidation=False, pre_validate=None):
+        valid = super().validate(record, softvalidation, pre_validate)
+        state_attrs = self.get_state_attrs(record)
+        if ((v := record.value.get(self.name))
+                and not isinstance(v, datetime.time)):
+            state_attrs['invalid'] = 'value'
+            valid = False
+        return valid
 
 
 class TimeDeltaField(Field):

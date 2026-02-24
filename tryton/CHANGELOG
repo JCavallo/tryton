@@ -1,3 +1,4 @@
+* Don't reset date/datetime/time to None when it is invalid
 
 Version 8.0.2 - 2026-05-02
 --------------------------
