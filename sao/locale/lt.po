@@ -26,6 +26,9 @@ msgstr ""
 msgid "Favorites"
 msgstr "Mėgstami"
 
+msgid "Close"
+msgstr "Užverti"
+
 msgid "Action"
 msgstr "Veiksmai"
 
@@ -93,9 +96,6 @@ msgstr ""
 
 msgid "Help"
 msgstr ""
-
-msgid "Close"
-msgstr "Užverti"
 
 msgid "Documentation..."
 msgstr ""
@@ -196,9 +196,6 @@ msgstr "t"
 msgid "False"
 msgstr "Netiesa"
 
-msgid "Always ignore this warning."
-msgstr "Daugiau nepaisyti šio pranešimo."
-
 msgid "Do you want to proceed?"
 msgstr "Ar tikrai norite vykdyti?"
 
@@ -287,6 +284,18 @@ msgstr ""
 
 msgid "Justify Full"
 msgstr ""
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Keisti"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Susijęs"
+
+#, fuzzy
+msgid "Report"
+msgstr "Pranešti apie klaidą"
 
 msgid "Switch view"
 msgstr "Perjungti rodymą"
@@ -461,6 +470,9 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr ""
 
 msgid "The values of \"%1\" are not valid."
+msgstr ""
+
+msgid "The value of \"%1\" is not valid."
 msgstr ""
 
 msgid "Pre-validation"
@@ -807,3 +819,6 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Išversti rodinį"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Daugiau nepaisyti šio pranešimo."

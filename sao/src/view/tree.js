@@ -1660,130 +1660,10 @@
             // Gruiiik
             var is_m2m = this.tbody.parents('.screen-container')
                 .parent().hasClass('form-many2many-content');
-
-            const populate = (menu, model_name, field_name) => {
-                var model = new Sao.Model(model_name);
-                var toolbar = model.execute(
-                    'view_toolbar_get', [], this.screen.context, false);
-
-                const popLocation = (e) => {
-                    var menu = e.data;
-                    if ((menu.offset().left + menu.width()) > window.innerWidth) {
-                        menu.css('left', (-1 * menu.width()) + 'px');
-                    }
-                };
-                const open_records = (records) => {
-                    return (evt) => {
-                        if (field_name) {
-                            for (const record of records) {
-                                record.load(field_name, false);
-                            }
-                        }
-
-                        var ids = records.map(
-                            (r) => {
-                                if (field_name) {
-                                    return r.get_eval()[field_name];
-                                } else {
-                                    return r.id;
-                                }
-                            });
-
-                        Sao.Tab.create({
-                            'model': model_name,
-                            'mode': ['form'],
-                            'context': this.screen.context,
-                            'res_id': ids,
-                        });
-                    };
-                };
-                const execute_action = (action, records) => {
-                    return (evt) => {
-                        if (field_name) {
-                            for (const record of records) {
-                                record.load(field_name, false);
-                            }
-                        }
-
-                        var ids = records.map(
-                            (r) => {
-                                if (field_name) {
-                                    return r.get_eval()[field_name];
-                                } else {
-                                    return r.id;
-                                }
-                            });
-                        var data = {
-                            model: model_name,
-                            id: ids[0],
-                            ids: ids,
-                        };
-                        Sao.Action.execute(
-                            jQuery.extend({}, action), data,
-                            jQuery.extend({}, this.screen.context));
-                    };
-                };
-
-                if (field_name || is_m2m) {
-                    jQuery('<li/>', {
-                        'role': 'presentation',
-                    }).append(jQuery('<a/>', {
-                        'role': 'menuitem',
-                        'href': '#',
-                        'tabindex': -1
-                    }).text(Sao.i18n.gettext("Edit...")).click(
-                        open_records(this.screen.selected_records))
-                    ).appendTo(menu);
-                }
-
-                for (const [action_type, action_name] of [
-                        ['action', Sao.i18n.gettext("Action")],
-                        ['relate', Sao.i18n.gettext("Relation")],
-                        ['print', Sao.i18n.gettext("Report")],
-                ]) {
-                    if (!(toolbar[action_type] || []).length) {
-                        continue;
-                    }
-                    if (menu.children().length) {
-                        jQuery('<li/>', {
-                            'role': 'presentation',
-                            'class': 'divider',
-                        }).appendTo(menu);
-                    }
-                    var action_li = jQuery('<li/>', {
-                        'role': 'presentation',
-                    }).append(jQuery('<a/>', {
-                        'class': 'contextual-submenu',
-                        'role': 'menuitem',
-                        'href': '#',
-                        'tabindex': -1
-                    }).text(action_name)).appendTo(menu);
-                    var action_menu = jQuery('<ul/>', {
-                        'class': 'dropdown-menu contextual contextual-submenu',
-                    }).appendTo(action_li);
-                    action_li.on('mouseenter', action_menu, popLocation);
-                    for (const action of (toolbar[action_type] || [])) {
-                        jQuery('<li/>', {
-                            'role': 'presentation',
-                        }).append(jQuery('<a/>', {
-                            'role': 'menuitem',
-                            'href': '#',
-                            'tabindex': -1,
-                        }).text(action.name).click(execute_action(
-                            action, this.screen.selected_records))
-                        ).appendTo(action_menu);
-                    }
-                }
-            };
-
-            var menu = jQuery('#popup-menu');
-            menu.empty();
-
-            var ul = jQuery('<ul/>', {
-                'class': 'dropdown-menu contextual',
-            }).appendTo(menu);
-
-            populate(ul, this.screen.model_name);
+            let ul = Sao.common.PopupMenu.initialize(evt);
+            Sao.common.PopupMenu.populate(
+                ul, this.screen.model_name, null, this.screen.context,
+                this.screen.selected_records, is_m2m);
 
             if (this.selected_records.length === 1) {
                 var m2os = this.screen.get_many2ones();
@@ -1805,19 +1685,12 @@
                     var submenu = jQuery('<ul/>', {
                         'class': 'dropdown-menu contextual contextual-submenu',
                     }).appendTo(item);
-                    populate(submenu, m2o.description.relation, m2o.description.name);
+                    Sao.common.PopupMenu.populate(
+                        submenu, m2o.description.relation,
+                        m2o.description.name, this.screen.context,
+                        this.screen.selected_records, is_m2m);
                 }
             }
-
-            $(document).one('click', () => {
-                menu.css('display', 'none');
-            });
-
-            menu.css({
-                'top': evt.pageY,
-                'left': evt.pageX,
-                'display': 'block',
-            });
         }
     });
 

@@ -23,6 +23,9 @@ msgstr "Abmelden"
 msgid "Favorites"
 msgstr "Favoriten"
 
+msgid "Close"
+msgstr "Schließen"
+
 msgid "Action"
 msgstr "Aktion"
 
@@ -88,9 +91,6 @@ msgstr "Zugriffstasten anzeigen/ausblenden"
 
 msgid "Help"
 msgstr "Hilfe"
-
-msgid "Close"
-msgstr "Schließen"
 
 msgid "Documentation..."
 msgstr "Dokumentation..."
@@ -192,9 +192,6 @@ msgstr "w"
 msgid "False"
 msgstr "Falsch"
 
-msgid "Always ignore this warning."
-msgstr "Diese Warnung künftig nicht mehr anzeigen."
-
 msgid "Do you want to proceed?"
 msgstr "Fortfahren?"
 
@@ -216,7 +213,8 @@ msgid "\"Cancel\" to cancel saving;"
 msgstr "\"Abbrechen\" um den Speichervorgang abzubrechen;"
 
 msgid "\"Compare\" to see the modified version;"
-msgstr "\"Vergleichen\" um die geänderte Version des Datensatzes zu betrachten;"
+msgstr ""
+"\"Vergleichen\" um die geänderte Version des Datensatzes zu betrachten;"
 
 msgid "\"Write Anyway\" to save your current version."
 msgstr ""
@@ -285,6 +283,18 @@ msgstr "Zentrieren"
 
 msgid "Justify Full"
 msgstr "Blocksatz"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Bearbeiten"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Beziehung"
+
+#, fuzzy
+msgid "Report"
+msgstr "Berichte"
 
 msgid "Switch view"
 msgstr "Ansicht wechseln"
@@ -454,6 +464,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "\"%1\" liegt nicht im gültigen Wertebereich (Domain)."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "Die Werte von \"%1\" sind ungültig."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "Die Werte von \"%1\" sind ungültig."
 
 msgid "Pre-validation"
@@ -789,3 +803,6 @@ msgstr "In interne Nachricht umwandeln"
 
 msgid "Translate view"
 msgstr "Aktuelle Sicht übersetzen"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Diese Warnung künftig nicht mehr anzeigen."

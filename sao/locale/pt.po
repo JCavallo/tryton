@@ -40,6 +40,9 @@ msgstr "Sair"
 msgid "Favorites"
 msgstr "Favoritos"
 
+msgid "Close"
+msgstr "Fechar"
+
 msgid "Action"
 msgstr "Ação"
 
@@ -106,9 +109,6 @@ msgstr "Mostrar/Ocultar chaves de acesso"
 msgid "Help"
 msgstr "Ajuda"
 
-msgid "Close"
-msgstr "Fechar"
-
 msgid "Documentation..."
 msgstr "Documentação..."
 
@@ -150,6 +150,9 @@ msgstr "Envie um email para redefinir a sua senha."
 
 msgid "Reset forgotten password"
 msgstr "Redefinir senha esquecida"
+
+msgid "Reset forgotten password"
+msgstr ""
 
 msgid ""
 "A request to reset your password has been sent.\n"
@@ -208,9 +211,6 @@ msgstr "v"
 
 msgid "False"
 msgstr "Falso"
-
-msgid "Always ignore this warning."
-msgstr "Sempre ignorar este alerta."
 
 msgid "Do you want to proceed?"
 msgstr "Você deseja continuar?"
@@ -298,6 +298,18 @@ msgstr "Justificar ao Centro"
 
 msgid "Justify Full"
 msgstr "Justificar"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Editar"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Relacionar"
+
+#, fuzzy
+msgid "Report"
+msgstr "Relatar erro"
 
 msgid "Switch view"
 msgstr "Alternar a visão"
@@ -468,6 +480,10 @@ msgstr "\"%1\" não é válido de acordo com seu domínio."
 
 msgid "The values of \"%1\" are not valid."
 msgstr "Os valores de \"%1\" são inválidos."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
+msgstr "Os valores para \"%1\" não são válidos"
 
 msgid "Pre-validation"
 msgstr "Pré-validação"
@@ -800,3 +816,6 @@ msgstr "Faça disso uma mensagem interna"
 
 msgid "Translate view"
 msgstr "Traduzir tela"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Sempre ignorar este alerta."

@@ -23,8 +23,12 @@ msgstr "连接错误"
 msgid "Logout"
 msgstr "注销"
 
+
 msgid "Favorites"
 msgstr "收藏(_V)"
+
+msgid "Close"
+msgstr "关闭"
 
 msgid "Action"
 msgstr "操作"
@@ -92,9 +96,6 @@ msgstr "显示/隐藏访问关键字"
 
 msgid "Help"
 msgstr "帮助"
-
-msgid "Close"
-msgstr "关闭"
 
 msgid "Documentation..."
 msgstr "文档..."
@@ -195,9 +196,6 @@ msgstr "t"
 msgid "False"
 msgstr "假"
 
-msgid "Always ignore this warning."
-msgstr "下次不再提示."
-
 msgid "Do you want to proceed?"
 msgstr "继续此项操作 ?"
 
@@ -285,6 +283,18 @@ msgstr "居中"
 
 msgid "Justify Full"
 msgstr "两端对齐"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "编辑"
+
+#, fuzzy
+msgid "Relation"
+msgstr "关联"
+
+#, fuzzy
+msgid "Report"
+msgstr "报告(_R)"
 
 msgid "Switch view"
 msgstr "切换视图"
@@ -457,6 +467,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "根据域设置，\"%1\" 不可用."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "\"%1\" 的取值不可用."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "\"%1\" 的取值不可用."
 
 msgid "Pre-validation"
@@ -790,3 +804,6 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "翻译视图"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "下次不再提示."

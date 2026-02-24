@@ -4499,6 +4499,147 @@
         }
     };
 
+    Sao.common.PopupMenu = {
+        initialize: (evt) => {
+            let menu = jQuery('#popup-menu');
+            menu.empty();
+            let ul = jQuery('<ul/>', {
+                'class': 'dropdown-menu contextual',
+            }).appendTo(menu);
+
+            jQuery(document).one('click', () => {
+                menu.css('display', 'none');
+            });
+            menu.css({
+                'top': evt.pageY,
+                'left': evt.pageX,
+                'display': 'block',
+            });
+
+            return ul;
+        },
+        populate: (menu, model_name, field_name, context, records, edit_entry, view_ids) => {
+            var model = new Sao.Model(model_name);
+            var toolbar = model.execute(
+                'view_toolbar_get', [], context, false);
+
+            const popLocation = (e) => {
+                var menu = e.data;
+                if ((menu.offset().left + menu.width()) > window.innerWidth) {
+                    menu.css('left', (-1 * menu.width()) + 'px');
+                }
+            };
+            const open_records = (records) => {
+                return (evt) => {
+                    if (field_name) {
+                        for (const record of records) {
+                            record.load(field_name, false);
+                        }
+                    }
+
+                    var ids = records.map(
+                        (r) => {
+                            let id;
+                            if (field_name) {
+                                id = r.get_eval()[field_name];
+                            } else {
+                                id = r.id;
+                            }
+                            if (typeof id === 'string' || id instanceof String) {
+                                return parseInt(id.split(',')[1], 10);
+                            }
+                            return id;
+                        });
+
+                    Sao.Tab.create({
+                        'model': model_name,
+                        'mode': ['form'],
+                        'view_ids': view_ids || [],
+                        'context': context,
+                        'res_id': ids,
+                        'name': Sao.common.MODELNAME.get(model_name),
+                    });
+                };
+            };
+            const execute_action = (action, records) => {
+                return (evt) => {
+                    if (field_name) {
+                        for (const record of records) {
+                            record.load(field_name, false);
+                        }
+                    }
+
+                    var ids = records.map(
+                        (r) => {
+                            if (field_name) {
+                                return r.get_eval()[field_name];
+                            } else {
+                                return r.id;
+                            }
+                        });
+                    var data = {
+                        model: model_name,
+                        id: ids[0],
+                        ids: ids,
+                    };
+                    Sao.Action.execute(
+                        jQuery.extend({}, action), data,
+                        jQuery.extend({}, context));
+                };
+            };
+
+            if (field_name || edit_entry) {
+                jQuery('<li/>', {
+                    'role': 'presentation',
+                }).append(jQuery('<a/>', {
+                    'role': 'menuitem',
+                    'href': '#',
+                    'tabindex': -1
+                }).text(Sao.i18n.gettext("Edit...")).click(
+                    open_records(records))
+                ).appendTo(menu);
+            }
+
+            for (const [action_type, action_name] of [
+                    ['action', Sao.i18n.gettext("Action")],
+                    ['relate', Sao.i18n.gettext("Relation")],
+                    ['print', Sao.i18n.gettext("Report")],
+            ]) {
+                if (!(toolbar[action_type] || []).length) {
+                    continue;
+                }
+                if (menu.children().length) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                        'class': 'divider',
+                    }).appendTo(menu);
+                }
+                var action_li = jQuery('<li/>', {
+                    'role': 'presentation',
+                }).append(jQuery('<a/>', {
+                    'class': 'contextual-submenu',
+                    'role': 'menuitem',
+                    'href': '#',
+                    'tabindex': -1
+                }).text(action_name)).appendTo(menu);
+                var action_menu = jQuery('<ul/>', {
+                    'class': 'dropdown-menu contextual contextual-submenu',
+                }).appendTo(action_li);
+                action_li.on('mouseenter', action_menu, popLocation);
+                for (const action of (toolbar[action_type] || [])) {
+                    jQuery('<li/>', {
+                        'role': 'presentation',
+                    }).append(jQuery('<a/>', {
+                        'role': 'menuitem',
+                        'href': '#',
+                        'tabindex': -1,
+                    }).text(action.name).click(execute_action(action, records))
+                    ).appendTo(action_menu);
+                }
+            }
+        },
+    };
+
     Sao.common.transparent_png = document.createElement('img');
     Sao.common.transparent_png.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
 

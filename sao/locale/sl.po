@@ -23,8 +23,12 @@ msgstr "Napaka v povezavi"
 msgid "Logout"
 msgstr "Odjava"
 
+
 msgid "Favorites"
 msgstr "Priljubljene"
+
+msgid "Close"
+msgstr "Zapri"
 
 msgid "Action"
 msgstr "Ukrep"
@@ -93,9 +97,6 @@ msgstr "Prikaži/skrij ključe za dostop"
 msgid "Help"
 msgstr "Pomoč"
 
-msgid "Close"
-msgstr "Zapri"
-
 msgid "Documentation..."
 msgstr "Dokumentacija..."
 
@@ -138,6 +139,9 @@ msgstr "Pošljite e-poštno sporočilo za ponastavitev gesla."
 
 msgid "Reset forgotten password"
 msgstr "Ponastavite pozabljeno geslo"
+
+msgid "Reset forgotten password"
+msgstr ""
 
 msgid ""
 "A request to reset your password has been sent.\n"
@@ -196,9 +200,6 @@ msgstr "d"
 
 msgid "False"
 msgstr "Ne"
-
-msgid "Always ignore this warning."
-msgstr "Vedno prezri to opozorilo."
 
 msgid "Do you want to proceed?"
 msgstr "Ali želiš nadaljevati?"
@@ -287,6 +288,18 @@ msgstr "Poravnaj sredinsko"
 
 msgid "Justify Full"
 msgstr "Poravnaj obojestransko"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Uredi"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Veza"
+
+#, fuzzy
+msgid "Report"
+msgstr "Poročila"
 
 msgid "Switch view"
 msgstr "Preklopi pogled"
@@ -459,6 +472,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "Polje \"%1\" ni veljavno glede na svojo domeno."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "Vrednosti polja \"%1\" niso veljavne."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "Vrednosti polja \"%1\" niso veljavne."
 
 msgid "Pre-validation"
@@ -798,3 +815,6 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Prevedi pogled"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Vedno prezri to opozorilo."

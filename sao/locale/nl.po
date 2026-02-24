@@ -23,6 +23,9 @@ msgstr "Uitloggen"
 msgid "Favorites"
 msgstr "Favorieten"
 
+msgid "Close"
+msgstr "Sluiten"
+
 msgid "Action"
 msgstr "Actie"
 
@@ -88,9 +91,6 @@ msgstr "Toegangssleutels tonen/verbergen"
 
 msgid "Help"
 msgstr "Help"
-
-msgid "Close"
-msgstr "Sluiten"
 
 msgid "Documentation..."
 msgstr "Documentatie..."
@@ -192,9 +192,6 @@ msgstr "w (t)"
 msgid "False"
 msgstr "Onwaar"
 
-msgid "Always ignore this warning."
-msgstr "Deze waarschuwing altijd negeren."
-
 msgid "Do you want to proceed?"
 msgstr "Doorgaan?"
 
@@ -281,6 +278,18 @@ msgstr "Uitvullen centrum"
 
 msgid "Justify Full"
 msgstr "Volledig uitvullen"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Bewerken"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Gerelateerd"
+
+#, fuzzy
+msgid "Report"
+msgstr "Rapporten"
 
 msgid "Switch view"
 msgstr "Wissel van weergave"
@@ -450,6 +459,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "\"%1\" is niet geldig volgens zijn domein."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "De waarden van \"%1\" zijn niet geldig."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "De waarden van \"%1\" zijn niet geldig."
 
 msgid "Pre-validation"
@@ -783,3 +796,6 @@ msgstr "Maak dit een intern bericht"
 
 msgid "Translate view"
 msgstr "Vertaal weergave"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Deze waarschuwing altijd negeren."

@@ -23,6 +23,9 @@ msgstr "Sortir"
 msgid "Favorites"
 msgstr "Preferits"
 
+msgid "Close"
+msgstr "Tanca"
+
 msgid "Action"
 msgstr "Acció"
 
@@ -88,9 +91,6 @@ msgstr "Mostra/Amaga les tecles ràpides"
 
 msgid "Help"
 msgstr "Ajuda"
-
-msgid "Close"
-msgstr "Tanca"
 
 msgid "Documentation..."
 msgstr "Documentació..."
@@ -192,9 +192,6 @@ msgstr "v"
 msgid "False"
 msgstr "Fals"
 
-msgid "Always ignore this warning."
-msgstr "Ignora sempre aquest advertiment."
-
 msgid "Do you want to proceed?"
 msgstr "Voleu continuar?"
 
@@ -281,6 +278,18 @@ msgstr "Justificar al centre"
 
 msgid "Justify Full"
 msgstr "Justificar per complet"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Edita"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Relacionat"
+
+#, fuzzy
+msgid "Report"
+msgstr "Informes"
 
 msgid "Switch view"
 msgstr "Canvia la vista"
@@ -451,6 +460,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "\"%1\" no és vàlid segons el seu domini."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "Els valors de \"%1\" no són vàlids."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "Els valors de \"%1\" no són vàlids."
 
 msgid "Pre-validation"
@@ -784,3 +797,6 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Tradueix la vista"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Ignora sempre aquest advertiment."

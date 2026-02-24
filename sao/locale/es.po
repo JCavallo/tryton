@@ -23,6 +23,9 @@ msgstr "Cerrar sesión"
 msgid "Favorites"
 msgstr "Favoritos"
 
+msgid "Close"
+msgstr "Cerrar"
+
 msgid "Action"
 msgstr "Acción"
 
@@ -88,9 +91,6 @@ msgstr "Mostrar/Esconder las teclas rápidas"
 
 msgid "Help"
 msgstr "Ayuda"
-
-msgid "Close"
-msgstr "Cerrar"
 
 msgid "Documentation..."
 msgstr "Documentación..."
@@ -192,9 +192,6 @@ msgstr "v"
 msgid "False"
 msgstr "Falso"
 
-msgid "Always ignore this warning."
-msgstr "Ignorar siempre esta advertencia."
-
 msgid "Do you want to proceed?"
 msgstr "¿Desea continuar?"
 
@@ -281,6 +278,18 @@ msgstr "Justificar al centro"
 
 msgid "Justify Full"
 msgstr "Justificar por completo"
+
+#, fuzzy
+msgid "Edit..."
+msgstr "Editar"
+
+#, fuzzy
+msgid "Relation"
+msgstr "Relacionado"
+
+#, fuzzy
+msgid "Report"
+msgstr "Informes"
 
 msgid "Switch view"
 msgstr "Cambiar de vista"
@@ -450,6 +459,10 @@ msgid "\"%1\" is not valid according to its domain."
 msgstr "\"%1\" no es válido según su dominio."
 
 msgid "The values of \"%1\" are not valid."
+msgstr "Los valores de \"%1\" no son válidos."
+
+#, fuzzy
+msgid "The value of \"%1\" is not valid."
 msgstr "Los valores de \"%1\" no son válidos."
 
 msgid "Pre-validation"
@@ -783,3 +796,6 @@ msgstr "Convierte esto en un mensaje interno"
 
 msgid "Translate view"
 msgstr "Traducir vista"
+
+#~ msgid "Always ignore this warning."
+#~ msgstr "Ignorar siempre esta advertencia."
