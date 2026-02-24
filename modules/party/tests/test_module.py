@@ -494,18 +494,19 @@ class PartyTestCase(PartyCheckEraseMixin, ModuleTestCase):
 
         self.assertEqual(address, address2)
 
-    @with_transaction()
-    def test_party_label_report(self):
-        'Test party label report'
-        pool = Pool()
-        Party = pool.get('party.party')
-        Label = pool.get('party.label', type='report')
-        party1, = Party.create([{
-                    'name': 'Party 1',
-                    }])
-        oext, content, _, _ = Label.execute([party1.id], {})
-        self.assertEqual(oext, 'odt')
-        self.assertTrue(content)
+    # Coog Specific: Remove report "Labels" on party
+    # @with_transaction()
+    # def test_party_label_report(self):
+    #     'Test party label report'
+    #     pool = Pool()
+    #     Party = pool.get('party.party')
+    #     Label = pool.get('party.label', type='report')
+    #     party1, = Party.create([{
+    #                 'name': 'Party 1',
+    #                 }])
+    #     oext, content, _, _ = Label.execute([party1.id], {})
+    #     self.assertEqual(oext, 'odt')
+    #     self.assertTrue(content)
 
     @with_transaction()
     def test_party_without_name(self):

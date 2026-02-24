@@ -589,10 +589,6 @@ msgctxt "model:ir.action,name:act_party_form"
 msgid "Parties"
 msgstr "Tiers"
 
-msgctxt "model:ir.action,name:report_label"
-msgid "Labels"
-msgstr "Étiquettes"
-
 msgctxt "model:ir.action,name:wizard_check_vies"
 msgid "Check VIES"
 msgstr "Valider avec VIES"
