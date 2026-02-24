@@ -2,7 +2,6 @@
 # this repository contains the full copyright notices and license terms.
 import datetime
 import gettext
-import re
 
 from dateutil.parser import parse
 from dateutil.relativedelta import relativedelta
@@ -11,10 +10,28 @@ from gi.repository import Gdk, GObject, Gtk
 from .common import IconFactory
 
 __all__ = [
-    'Date', 'CellRendererDate', 'Time', 'CellRendererTime', 'DateTime',
-    'date_parse']
+    'Date', 'CellRendererDate', 'InvalidDateTime', 'Time', 'CellRendererTime',
+    'DateTime', 'date_parse']
 
 _ = gettext.gettext
+
+
+class InvalidDateTime:
+    _instance = None
+
+    def __new__(cls):
+        if cls._instance:
+            return cls._instance
+        return super().__new__(cls)
+
+    __gt__ = lambda self, other: False  # noqa: E731
+    __lt__ = lambda self, other: False  # noqa: E731
+    __le__ = lambda self, other: False  # noqa: E731
+    __ge__ = lambda self, other: False  # noqa: E731
+    __eq__ = lambda self, other: False  # noqa: E731
+
+
+INVALID_DT_VALUE = InvalidDateTime()
 
 
 def _fix_format(format_):
@@ -40,22 +57,9 @@ def date_parse(text, format_='%x'):
     except ValueError:
         monthfirst = False
     yearfirst = not dayfirst and not monthfirst
-    text = re.sub('/+', '/', text)
-    if len(text) == 6 and re.search('[0-9]{6}', text):
-        text = '%s/%s/%s' % (text[:2], text[2:4], text[4:6])
-    elif len(text) == 8 and re.search('[0-9]{8}', text):
-        if yearfirst:
-            text = '%s/%s/%s' % (text[:4], text[4:6], text[6:8])
-        else:
-            text = '%s/%s/%s' % (text[:2], text[2:4], text[4:8])
-    elif text.endswith('/'):
-        text = text.strip('/')
-    # Try catch below avoid client crash when the parse method fails
-    try:
-        return parse(text, dayfirst=dayfirst, yearfirst=yearfirst,
-            ignoretz=True)
-    except Exception:
-        return datetime.datetime.now()
+    if len(text) == 8 and dayfirst:
+        return datetime.datetime.strptime(text, '%d%m%Y')
+    return parse(text, dayfirst=dayfirst, yearfirst=yearfirst, ignoretz=True)
 
 
 class Date(Gtk.Entry):
@@ -120,16 +124,21 @@ class Date(Gtk.Entry):
 
     def parse(self):
         text = self.get_text()
-        date = None
+        style_context = self.get_style_context()
         if text:
             try:
-                date = date_parse(text, self.__format).date()
+                self.__date = date_parse(text, self.__format).date()
+                style_context.remove_class('invalid')
             except (ValueError, OverflowError):
-                pass
-
-        self.__date = date
+                self.__date = INVALID_DT_VALUE
+                style_context.add_class('invalid')
+        else:
+            self.__date = None
+            style_context.remove_class('invalid')
 
     def update_label(self):
+        if self.__date is INVALID_DT_VALUE:
+            return
         if not self.__date:
             self.set_text('')
             return
@@ -213,7 +222,7 @@ class Date(Gtk.Entry):
                 self.set_text(value)
                 self.parse()
                 value = self.__date
-            if value:
+            if value and value is not INVALID_DT_VALUE:
                 if isinstance(value, datetime.datetime):
                     value = value.date()
                 assert isinstance(value, datetime.date), value
@@ -337,16 +346,21 @@ class Time(Gtk.ComboBox):
 
     def parse(self):
         text = self.__entry.get_text()
-        time = None
+        style_context = self.get_style_context()
         if text:
             try:
-                time = date_parse(text).time()
+                self.__time = date_parse(text).time()
+                style_context.remove_class('invalid')
             except (ValueError, OverflowError):
-                pass
-
-        self.__time = time
+                self.__time = INVALID_DT_VALUE
+                style_context.add_class('invalid')
+        else:
+            self.__time = None
+            style_context.remove_class('invalid')
 
     def update_label(self):
+        if self.__time is INVALID_DT_VALUE:
+            return
         if self.__time is None:
             self.__entry.set_text('')
             return
@@ -386,7 +400,7 @@ class Time(Gtk.ComboBox):
                 self.__entry.set_text(value)
                 self.parse()
                 value = self.__time
-            if value:
+            if value and value is not INVALID_DT_VALUE:
                 if isinstance(value, datetime.datetime):
                     value = value.time()
             self.__time = value
@@ -520,7 +534,9 @@ class DateTime(Gtk.HBox):
         if prop.name == 'value':
             date = self.__date.props.value
             time = self.__time.props.value or datetime.time()
-            if date:
+            if (date is INVALID_DT_VALUE or time is INVALID_DT_VALUE):
+                return INVALID_DT_VALUE
+            elif date:
                 return datetime.datetime.combine(date, time)
             else:
                 return

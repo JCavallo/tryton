@@ -1262,6 +1262,8 @@ class Screen:
                 fields.append(domain_string % string)
             elif invalid == 'children':
                 fields.append(_('The values of "%s" are not valid.') % string)
+            elif invalid == 'value':
+                fields.append(_('The value of "%s" is not valid.') % string)
             else:
                 if domain_parser.stringable(invalid):
                     fields.append(domain_parser.string(invalid))
