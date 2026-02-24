@@ -2451,7 +2451,9 @@
                     }
                 }
                 // Trigger modified only once
-                group.record_modified();
+                if (modified || default_) {
+                    group.record_modified();
+                }
             }
         },
         set: function(record, value, _default=false, data=null) {
