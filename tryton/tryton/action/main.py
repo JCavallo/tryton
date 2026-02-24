@@ -146,6 +146,7 @@ class Action(object):
             params['res_id'] = action.get('res_id', data.get('res_id'))
             params['context_model'] = action.get('context_model')
             params['context_domain'] = action.get('context_domain')
+            params['show_filter'] = action.get('show_filter')
             limit = action.get('limit')
             if limit is not None:
                 params['limit'] = limit
