@@ -1,0 +1,73 @@
+@import 'colors.less';
+
+/* attributes */
+    @main-screen-font-size:     @global-font-size;
+    @main-screen-font-color:    @color_black;
+    @main-screen-icons-color:   @color_blue;
+
+    @header-nav-color:          @color_lightest_grey;
+    @header-nav-icons-color:    @main-screen-icons-color;
+
+    @filter-box-font-size:      1.16em;
+    @filter-box-height:         2.8em;
+
+/* custom */
+    @filter-box-font-size:      @global-font-size;
+    @filter-box-height:         3em;
+    @main-screen-legend-color:  @color_light_blue;
+
+/* style */
+.main-screen-offcanvas > #tabs > .tab-content > .tab-pane > .tab-form, .modal-body {
+/* header */
+    & > .nav-wrapper > .toolbar > .container-fluid {
+        background-color:   @header-nav-color;
+        .glyphicon {
+            color:          @header-nav-icons-color;
+        }
+    }
+
+    .navbar-btn {
+        border:             0px;
+        font-size:          2.5rem;
+        .glyphicon {
+            color:          @header-nav-icons-color;
+        }
+        .badge {
+            position:           absolute;
+            background-color:   @main-screen-font-color;
+            right:              -1em;
+         }
+    }
+img.toolbar-menu {
+    height:                 1em;
+    position:               relative;
+    top:                    -4px;
+}
+/* body */
+    & > .screen-container {
+        font-size:          @main-screen-font-size;
+        color:              @main-screen-font-color;
+        .glyphicon {
+            color:          @main-screen-icons-color;
+        }
+    }
+
+/* dictionary */
+    .form-container {
+        .row {
+            margin-bottom:  5px;
+        }
+        .dict-label {
+            padding-top:    5px;
+            padding-bottom: 5px;
+        }
+
+    }
+}
+.form fieldset.form-group_ > legend {
+  border-bottom:            1px solid @main-screen-legend-color;
+}
+
+.filter-box {
+  margin:                   0px 0px;
+}
