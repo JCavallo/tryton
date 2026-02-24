@@ -2442,7 +2442,15 @@ function eval_pyson(value){
                 'name': attributes.name,
             }).appendTo(group);
             this.date.uniqueId();
-            this.date.on('keydown', this.send_modified.bind(this));
+            this.date.on('keydown', () => {
+                var value = this.get_value();
+                if (value && !value.isValid()) {
+                    this._invalid_el().addClass('has-error');
+                } else {
+                    this._invalid_el().removeClass('has-error');
+                }
+                this.send_modified();
+            });
             this.input = jQuery('<input/>', {
                 'type': this._input,
                 'role': 'button',
@@ -2538,10 +2546,32 @@ function eval_pyson(value){
             if (this.record && this.field) {
                 var field_value = this.cast(
                     this.field.get_client(this.record));
-                return (JSON.stringify(field_value) !=
-                    JSON.stringify(this.get_value()));
+                return this._cmp(field_value, this.get_value());
             }
             return false;
+        },
+        send_modified: function() {
+            window.setTimeout(() => {
+                var value = this.get_value();
+                window.setTimeout(() => {
+                    if (this.record &&
+                        this._cmp(this.get_value(), value) &&
+                        this.modified) {
+                        this.view.screen.record_modified(false);
+                    }
+                }, 300);
+            });
+        },
+        _cmp: function(dt1, dt2) {
+            if ((dt1 && !dt1.isValid()) &&
+                (dt2 && !dt2.isValid())) {
+                return dt1.invalid_value != dt2.invalid_value;
+            } else if ((dt1 && !dt1.isValid()) ||
+                (dt2 && !dt2.isValid())) {
+                return true;
+            } else {
+                return JSON.stringify(dt1) != JSON.stringify(dt2);
+            }
         },
         set_value: function() {
             this.field.set_client(this.record, this.get_value());

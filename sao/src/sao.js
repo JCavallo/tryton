@@ -288,9 +288,12 @@ var Sao = {
         }
     };
 
-    Sao.Date = function(year, month, day) {
+    Sao.Date = function(year, month, day, valid=true, value=null) {
         var date;
-        if (month === undefined) {
+        if (!valid) {
+            date = moment.invalid();
+            date.invalid_value = value;
+        } else if (month === undefined) {
             date = moment(year);
             year = undefined;
         }
@@ -315,9 +318,13 @@ var Sao = {
 
     Sao.DateTime = function(
         year, month, day,
-        hour=0, minute=0, second=0, millisecond=0, utc=false) {
+        hour=0, minute=0, second=0, millisecond=0, utc=false,
+        valid=true, value=null) {
         var datetime;
-        if (month === undefined) {
+        if (!valid) {
+            datetime = moment.invalid();
+            datetime.invalid_value = value;
+        } else if (month === undefined) {
             datetime = moment(year);
             year = undefined;
         }
@@ -359,9 +366,20 @@ var Sao = {
     Sao.DateTime.max = moment(new Date(100000000 * 86400000)).local();
     Sao.DateTime.max.isDateTime = true;
 
-    Sao.Time = function(hour, minute, second, millisecond) {
-        var time = moment({hour: hour, minute: minute, second: second,
-           millisecond: millisecond || 0});
+    Sao.Time = function(hour, minute, second, millisecond, value=null) {
+        var time;
+        if ((hour === undefined) && (minute === undefined) &&
+            (second === undefined) && (millisecond === undefined)) {
+            time = moment.invalid();
+        } else {
+            time = moment({
+                hour: hour, minute: minute, second: second,
+                millisecond: millisecond || 0
+            });
+        }
+        if (!time.isValid()) {
+            time.invalid_value = value;
+        }
         time.isTime = true;
         return time;
     };
