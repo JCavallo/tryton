@@ -293,6 +293,9 @@
         if (!date) {
             return '';
         }
+        if (!date.isValid()) {
+            return date.invalid_value;
+        }
         return date.format(Sao.common.moment_format(format));
     };
 
@@ -302,7 +305,22 @@
             date = Sao.Time(
                 date.hour(), date.minute(), date.second(), date.millisecond());
         } else {
-            date = null;
+            if (!value) {
+                date= null;
+            } else {
+                var getNumber = function(pattern) {
+                    var i = format.indexOf(pattern);
+                    if (~i) {
+                        var number = parseInt(value.slice(i, i + pattern.length), 10);
+                        if (!isNaN(number)) {
+                            return number;
+                        }
+                    }
+                    return undefined;
+                };
+                date = Sao.Time(getNumber('%H'), getNumber('%M'), getNumber('%S'),
+                        getNumber('%f'), value);
+            }
         }
         return date;
     };
@@ -311,16 +329,24 @@
         if (!date) {
             return '';
         }
+        if (!date.isValid()) {
+            return date.invalid_value;
+        }
         return date.format(Sao.common.moment_format(date_format));
     };
 
     Sao.common.parse_date = function(date_format, value) {
-        var date = moment(value,
-               Sao.common.moment_format(date_format));
+        if (!value) {
+            return null;
+        }
+        if (value && value.length <= 5) {
+            return Sao.Date(undefined, undefined, undefined, false, value);
+        }
+        var date = moment(value, Sao.common.moment_format(date_format));
         if (date.isValid()) {
             date = Sao.Date(date.year(), date.month(), date.date());
         } else {
-            date = null;
+            date = Sao.Date(undefined, undefined, undefined, false, value);
         }
         return date;
     };
@@ -329,17 +355,25 @@
         if (!date) {
             return '';
         }
+        if (!date.isValid()) {
+            return date.invalid_value;
+        }
         return date.format(Sao.common.moment_format(datetime_format));
     };
 
     Sao.common.parse_datetime = function(datetime_format, value) {
+        if (!value) {
+            return null;
+        }
         var date = moment(value, Sao.common.moment_format(datetime_format));
         if (date.isValid()) {
             date = Sao.DateTime(date.year(), date.month(), date.date(),
                     date.hour(), date.minute(), date.second(),
                     date.millisecond());
         } else {
-            date = null;
+            date = Sao.DateTime(undefined, undefined, undefined,
+                undefined, undefined, undefined, undefined,
+                false, false, value);
         }
         return date;
     };

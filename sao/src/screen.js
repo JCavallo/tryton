@@ -2050,6 +2050,9 @@
                 } else if (invalid == 'children') {
                     fields.push(Sao.i18n.gettext(
                         'The values of "%1" are not valid.', string));
+                } else if (invalid == 'value') {
+                    fields.push(Sao.i18n.gettext(
+                        'The value of "%1" is not valid.', string));
                 } else {
                     if (domain_parser.stringable(invalid)) {
                         fields.push(domain_parser.string(invalid));
