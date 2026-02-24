@@ -823,7 +823,7 @@
                         selection.push([x.id, x.rec_name]);
                     }
                     if (this.nullable_widget) {
-                        selection.push([null, '']);
+                        selection.push([null, this.attributes.empty_string || '']);
                     }
                     var help = {};
                     if (help_field){

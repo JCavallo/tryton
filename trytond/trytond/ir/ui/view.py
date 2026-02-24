@@ -411,7 +411,7 @@ class View(
     def _translate(cls, element, model, language):
         pool = Pool()
         Translation = pool.get('ir.translation')
-        for attr in ['string', 'sum', 'confirm', 'help']:
+        for attr in ['string', 'sum', 'confirm', 'help', 'empty_string']:
             if element.get(attr):
                 translation = Translation.get_source(
                     model, 'view', language, element.get(attr))
