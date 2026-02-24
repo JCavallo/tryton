@@ -12,6 +12,7 @@ from sql.aggregate import Max
 from sql.conditionals import Case
 from sql.operators import Equal
 
+from trytond import backend
 from trytond.cache import Cache
 from trytond.config import config
 from trytond.i18n import gettext
@@ -344,9 +345,9 @@ class ModelField(
         table_h.column_rename('field_description', 'string')
         # This migration must be done before any translation creation takes
         # place
-        cursor = Transaction().connection.cursor()
-        cursor.execute(
-            "ALTER TABLE ir_translation ALTER COLUMN res_id DROP NOT NULL")
+        if backend.name != 'sqlite':
+            cursor.execute(
+                "ALTER TABLE ir_translation ALTER COLUMN res_id DROP NOT NULL")
 
         super().__register__(module)
 
