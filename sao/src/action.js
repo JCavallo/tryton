@@ -102,6 +102,7 @@
                 params.model = action.res_model || data.res_model;
                 params.res_id = action.res_id || data.res_id;
                 params.context_model = action.context_model;
+                params.show_filter = action.show_filter;
                 params.context_domain = action.context_domain;
                 params.window_name_field = action.window_name_field;
                 if ((action.limit !== undefined) && (action.limit !== null)) {
