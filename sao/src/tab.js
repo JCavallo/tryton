@@ -760,6 +760,13 @@
                             })
                             .appendTo(menu);
                     });
+                    // Display can't be none for getBoundingCliendRect to work
+                    menu.css('display', 'block');
+                    let menu_size = menu.get(0).getBoundingClientRect();
+                    if (menu_size.bottom > window.innerHeight) {
+                        menu.css('max-height', window.innerHeight - 5 - menu_size.top);
+                    }
+                    menu.css('display', '');
                 });
 
                 toolbars[menu_action[0]].forEach(action => {

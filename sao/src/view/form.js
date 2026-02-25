@@ -3820,6 +3820,7 @@ function hide_x2m_body(widget) {
             Sao.common.PopupMenu.populate(
                 ul, model_name, null, context, [m2o_record], true,
                 view_ids);
+            Sao.common.PopupMenu.updateLocation(ul);
         },
     });
 
