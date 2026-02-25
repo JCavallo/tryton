@@ -1072,11 +1072,7 @@ function eval_pyson(value){
             var data = {},
                 context = {},
                 pyson_ctx = {};
-            if (record) {
-                if (record.id < 0) {
-                    this.hide();
-                    return;
-                }
+            if (record && (record.id >= 0)) {
                 data = {
                     model: record.model.name,
                     id: record.id,
@@ -1089,6 +1085,9 @@ function eval_pyson(value){
                     active_ids: [record.id],
                 };
                 this._current = record.id;
+            } else if (record && (record.id < 0)) {
+                context = record.get_context();
+                this._current = null;
             } else {
                 this._current = null;
             }
@@ -1134,32 +1133,35 @@ function eval_pyson(value){
                 var current = this._current;
                 if (tab_domains.length) {
                     tab_domains.map(function(d, i) {
-                        var tab_domain = d[1];
-                        const prm = Sao.rpc({
-                            'method': (
-                                'model.' + action.res_model + '.search_count'),
-                            'params': [
-                                ['AND', domain, tab_domain], 0, 100, context],
-                        }, Sao.Session.current_session, true, false).then(
-                            value => {
-                                this._set_count(
-                                    value, i, current, counter,
-                                    action.name, tab_domains);
-                        });
-                        promesses.push(prm);
+                        let tab_domain = ['AND', domain, d[1]];
+                        let context_vars = Sao.common.domain_context_vars(tab_domain);
+                        if ((record.id >= 0) || !context_vars.has('active_id')) {
+                            const prm = Sao.rpc({
+                                'method': `model.${action.res_model}.search_count`,
+                                'params': [tab_domain, 0, 100, context],
+                            }, Sao.Session.current_session, true, false).then(
+                                value => {
+                                    this._set_count(
+                                        value, i, current, counter,
+                                        action.name, tab_domains);
+                            });
+                            promesses.push(prm);
+                        }
                     }, this);
                 } else {
-                    const prm = Sao.rpc({
-                        'method': (
-                            'model.' + action.res_model + '.search_count'),
-                        'params': [domain, 0, 100, context],
-                    }, Sao.Session.current_session, true, false
-                    ).then(value => {
-                        this._set_count(
-                            value, 0, current, counter,
-                            action.name, tab_domains);
-                    });
-                    promesses.push(prm);
+                    let context_vars = Sao.common.domain_context_vars(domain);
+                    if ((record.id >= 0) || !context_vars.has('active_id')) {
+                        const prm = Sao.rpc({
+                            'method': `model.${action.res_model}.search_count`,
+                            'params': [domain, 0, 100, context],
+                        }, Sao.Session.current_session, true, false
+                        ).then(value => {
+                            this._set_count(
+                                value, 0, current, counter,
+                                action.name, tab_domains);
+                        });
+                        promesses.push(prm);
+                    }
                 }
             }
             return jQuery.when.apply(jQuery, promesses);

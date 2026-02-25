@@ -3062,6 +3062,33 @@
         }
     });
 
+    Sao.common.domain_context_vars = function(domain) {
+        function* _iter_eval_fields(value) {
+            if (value instanceof Sao.PYSON.Get) {
+                let origin = value._obj;
+                if ((origin instanceof Sao.PYSON.Eval) && (origin._value == 'context')) {
+                    yield value._key;
+                }
+            } else if (value instanceof Sao.PYSON.PYSON) {
+                yield* _iter_eval_fields(value.pyson())
+            } else if (value instanceof Array) {
+                for (let part of value) {
+                    yield* _iter_eval_fields(part);
+                }
+            } else if (value instanceof Object) {
+                for (let v of Object.values(value)) {
+                    yield* _iter_eval_fields(v);
+                }
+            }
+        }
+
+        let vars = new Set();
+        for (let var_ of _iter_eval_fields(domain)) {
+            vars.add(var_);
+        }
+        return vars
+    };
+
     Sao.common.mimetypes = {
         'csv': 'text/csv',
         'doc': 'application/msword',
