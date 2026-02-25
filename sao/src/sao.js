@@ -409,6 +409,7 @@ var Sao = {
     Sao.config.bus_timeout = 10 * 60 * 1000;
     Sao.config.image_max_size = Math.pow(10, 6);
     Sao.config.mount_point = '';
+    Sao.config.developer_help = false;
 
     Sao.i18n = i18n();
     Sao.i18n.setlang = function(lang) {

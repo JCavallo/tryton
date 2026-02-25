@@ -250,7 +250,10 @@
                         label.addClass('editable');
                     }
                 }
-                if (column.attributes.help) {
+                if ((Sao.config.developer_help) && (
+                        column.attributes.developer_help)) {
+                    label.attr('title', column.attributes.developer_help);
+                } else if (column.attributes.help) {
                     label.attr('title', column.attributes.help);
                 }
                 if (column.sortable) {

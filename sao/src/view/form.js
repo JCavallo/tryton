@@ -659,7 +659,9 @@ function eval_pyson(value){
                 }
             }
 
-            if (attributes.help) {
+            if ((Sao.config.developer_help) && (attributes.developer_help)) {
+                widget.el.attr('title', attributes.developer_help);
+            } else if (attributes.help) {
                 widget.el.attr('title', attributes.help);
             }
         },
