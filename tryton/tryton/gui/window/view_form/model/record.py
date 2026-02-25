@@ -476,6 +476,8 @@ class Record:
                 continue
             if field_name == self.group.exclude_field:
                 continue
+            if field_name == self.group.parent_name:
+                continue
             if not field.validate(self, softvalidation, pre_validate):
                 res = False
         return res
