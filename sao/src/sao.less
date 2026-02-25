@@ -619,6 +619,14 @@ html.accesskey {
 .modal-body {
     overflow-x: auto;
     max-height: calc(100vh - 200px);
+
+    .copy-content {
+        display: none;
+    }
+
+    &:hover .copy-content {
+        display: block;
+    }
 }
 
 @media screen and (max-height: 500px) {
@@ -640,6 +648,17 @@ html.accesskey {
         margin: 30px;
     }
 }
+
+.copy-content {
+    position: absolute;
+    top: @padding-base-vertical;
+    right: @padding-base-vertical;
+    padding: @padding-xs-vertical @padding-xs-horizontal;
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 10%;
+    text-align: center;
+}
+
 
 input[type='number'] {
     text-align: right;

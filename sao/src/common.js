@@ -3428,12 +3428,30 @@
         build_dialog: function(message, title, prm) {
             var dialog = Sao.common.WarningDialog._super.build_dialog.call(
                 this);
+            let copy_text = '&#128203; ' + Sao.i18n.gettext("Copy");
+            let copied_text = '&#9989; ' + Sao.i18n.gettext("Copied!");
+            let copy_handler = jQuery('<div/>', {
+                'class': 'copy-content',
+            }).html(copy_text).click(() => {
+                if (!navigator.clipboard) {
+                    console.log("The clipboard can only be accessed in a secure context");
+                    return
+                }
+                copy_handler.html(copy_text);
+                navigator.clipboard.writeText(title + '\n' + message).then(() => {
+                    copy_handler.html(copied_text);
+                });
+                window.setTimeout(() => {
+                    copy_handler.html(copy_text);
+                }, 1.5 * 1000);
+            });
             var content = jQuery('<div/>', {
                 'class': 'alert alert-warning',
                 role: 'alert'
             }).append(jQuery('<h4/>')
                 .text(title)
-                .css('white-space', 'pre-wrap'));
+                .css('white-space', 'pre-wrap'))
+            .append(copy_handler);
             if (message) {
                 content.append(jQuery('<span/>')
                     .text(message)
@@ -3710,6 +3728,24 @@
             }).append(jQuery('<pre/>', {
                 'class': 'pre-scrollable',
             }).text(details)));
+            let copy_text = '&#128203; ' + Sao.i18n.gettext("Copy");
+            let copied_text = '&#9989; ' + Sao.i18n.gettext("Copied!");
+            let copy_handler = jQuery('<div/>', {
+                'class': 'copy-content',
+            }).html(copy_text).click(() => {
+                if (!navigator.clipboard) {
+                    console.log("The clipboard can only be accessed in a secure context");
+                    return
+                }
+                copy_handler.html(copy_text);
+                navigator.clipboard.writeText(title + '\n' + details).then(() => {
+                    copy_handler.html(copied_text);
+                });
+                window.setTimeout(() => {
+                    copy_handler.html(copy_text);
+                }, 1.5 * 1000);
+            });
+            alert_.append(copy_handler);
             jQuery('<a/>', {
                 'class': 'btn btn-link',
                 href: Sao.config.bug_url,
