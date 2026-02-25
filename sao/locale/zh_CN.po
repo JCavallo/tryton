@@ -68,6 +68,10 @@ msgstr "查找"
 msgid "Close Tab"
 msgstr "关闭标签"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "关闭标签"
+
 msgid "Attachment"
 msgstr "附件"
 
@@ -200,6 +204,9 @@ msgstr "t"
 
 msgid "False"
 msgstr "假"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "继续此项操作 ?"
@@ -487,6 +494,9 @@ msgstr ":"
 msgid "Scan"
 msgstr "扫码"
 
+msgid "Clear"
+msgstr "清除"
+
 msgid "Translate"
 msgstr "翻译"
 
@@ -546,9 +556,6 @@ msgstr "选择"
 
 msgid "Select..."
 msgstr "选择..."
-
-msgid "Clear"
-msgstr "清除"
 
 msgid "Open..."
 msgstr "打开..."
@@ -849,6 +856,22 @@ msgstr "注销"
 
 msgid "Translate view"
 msgstr "翻译视图"
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "复制"
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "下次不再提示."

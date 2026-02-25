@@ -61,6 +61,9 @@ msgstr ""
 msgid "Close Tab"
 msgstr ""
 
+msgid "Undo close tab"
+msgstr ""
+
 msgid "Attachment"
 msgstr ""
 
@@ -199,6 +202,9 @@ msgid "Copy"
 msgstr ""
 
 msgid "Copied!"
+msgstr ""
+
+msgid "Show / Hide more"
 msgstr ""
 
 msgid "Do you want to proceed?"
@@ -475,6 +481,9 @@ msgstr ""
 msgid "Scan"
 msgstr ""
 
+msgid "Clear"
+msgstr ""
+
 msgid "Translate"
 msgstr ""
 
@@ -533,9 +542,6 @@ msgid "Select"
 msgstr ""
 
 msgid "Select..."
-msgstr ""
-
-msgid "Clear"
 msgstr ""
 
 msgid "Open..."
@@ -832,4 +838,19 @@ msgid "Logout"
 msgstr ""
 
 msgid "Translate view"
+msgstr ""
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+msgid "Duplicate the tab"
+msgstr ""
+
+msgid "Open in a new browser tab"
 msgstr ""

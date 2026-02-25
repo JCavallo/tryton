@@ -81,6 +81,10 @@ msgstr "Buscar"
 msgid "Close Tab"
 msgstr "Fechar aba"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "Fechar aba"
+
 msgid "Attachment"
 msgstr "Anexo"
 
@@ -216,6 +220,9 @@ msgstr "v"
 
 msgid "False"
 msgstr "Falso"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "Você deseja continuar?"
@@ -498,6 +505,9 @@ msgstr ":"
 
 msgid "Scan"
 msgstr "Escaneamento"
+
+msgid "Clear"
+msgstr "Limpar"
 
 msgid "Translate"
 msgstr "Traduzir"
@@ -861,6 +871,22 @@ msgstr "Sair"
 
 msgid "Translate view"
 msgstr "Traduzir tela"
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "Duplicar"
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Sempre ignorar este alerta."
