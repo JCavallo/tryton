@@ -52,6 +52,8 @@
     "tryton"
   ],
   "dependencies": {
+    "d3": "^7.9",
+    "billboard.js": "^3.17",
     "bower": "^1.8.14",
     "grunt": "^1.6",
     "grunt-cli": "^1.5",
