@@ -26,7 +26,8 @@ module.exports = function(grunt) {
       'src/chat.js',
       'src/notification.js',
       'src/plugins.js',
-      'src/html_sanitizer.js'
+      'src/html_sanitizer.js',
+      'src/view/coog.js',
   ];
   var less_paths = [
       'src',
