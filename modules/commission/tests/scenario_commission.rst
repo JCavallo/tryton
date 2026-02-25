@@ -244,6 +244,6 @@ Check commission reporting per agent::
     >>> reporting_agent_timeseries.base_amount
     Decimal('100.00')
     >>> reporting_agent_timeseries.amount
-    Decimal('10.0000')
+    Decimal('10.000000')
     >>> reporting_agent_timeseries.number
     1
