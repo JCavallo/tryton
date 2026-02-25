@@ -24,6 +24,7 @@ from .form_gtk.document import Document
 from .form_gtk.float import Float
 from .form_gtk.image import Image as Image2
 from .form_gtk.integer import Integer
+from .form_gtk.json import JSON
 from .form_gtk.many2many import Many2Many
 from .form_gtk.many2one import Many2One
 from .form_gtk.multiselection import MultiSelection
@@ -178,6 +179,7 @@ class FormXMLViewParser(XMLViewParser):
         'html': HTML,
         'image': Image2,
         'integer': Integer,
+        'json': JSON,
         'many2many': Many2Many,
         'many2one': Many2One,
         'multiselection': MultiSelection,
