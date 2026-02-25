@@ -1349,6 +1349,9 @@
                 if (fname == this.group.exclude_field) {
                     continue;
                 }
+                if (fname == this.group.parent_name) {
+                    continue;
+                }
                 if (!field.validate(this, softvalidation, pre_validate)) {
                     result = false;
                 }
