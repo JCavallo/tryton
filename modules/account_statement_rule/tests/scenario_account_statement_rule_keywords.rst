@@ -92,7 +92,7 @@ Manually create a line for the origin::
     >>> line = origin.lines.new()
     >>> line.party = customer
     >>> origin.save()
-    >>> statement.click('validate_statement')
+    >>> statement.click('dummy_validate_method')
     >>> statement.click('post')
 
 

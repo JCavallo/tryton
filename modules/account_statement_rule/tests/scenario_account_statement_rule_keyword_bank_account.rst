@@ -109,7 +109,7 @@ Apply rules on statement match::
     >>> line, = statement.lines
     >>> assertEqual(line.party, customer)
 
-    >>> statement.click('validate_statement')
+    >>> statement.click('dummy_validate_method')
     >>> statement.click('post')
 
 Remove the bank account::
