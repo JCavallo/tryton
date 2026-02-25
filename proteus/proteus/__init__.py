@@ -3,6 +3,7 @@
 '''
 A library to access Tryton's models like a client.
 '''
+import copy
 import datetime
 import functools
 import threading
@@ -269,6 +270,24 @@ class DictDescriptor(FieldDescriptor):
         super().__set__(instance, value)
 
 
+class JSONDescriptor(FieldDescriptor):
+
+    def __get__(self, instance, owner):
+        value = super().__get__(instance, owner)
+        if value:
+            value = copy.deepcopy(value)
+        return value
+
+
+class JSONDescriptor(FieldDescriptor):
+
+    def __get__(self, instance, owner):
+        value = super().__get__(instance, owner)
+        if value:
+            value = copy.deepcopy(value)
+        return value
+
+
 class Many2OneDescriptor(FieldDescriptor):
     def __get__(self, instance, owner):
         Relation = Model.get(self.definition['relation'], instance._config)
@@ -452,6 +471,7 @@ class MetaModelFactory(object):
         'one2many': One2ManyDescriptor,
         'many2many': Many2ManyDescriptor,
         'one2one': One2OneDescriptor,
+        'json': JSONDescriptor,
     }
     value_descriptors = {
         'reference': ReferenceValueDescriptor,
@@ -938,7 +958,8 @@ class Model(object):
             if name in ['id', '_timestamp']:
                 continue
             definition = self._fields[name]
-            if definition.get('readonly') and definition['type'] != 'one2many':
+            if (definition.get('readonly')
+                    and definition['type'] not in {'one2many', 'json'}):
                 continue
             values[name] = getattr(self, '__%s_value' % name)
             # Sending an empty X2Many fields breaks ModelFieldAccess.check
