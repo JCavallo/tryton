@@ -802,6 +802,45 @@ message = MessageDialog()
 
 class WarningDialog(MessageDialog):
 
+    def build_dialog(self, parent, message, msg_type=Gtk.MessageType.INFO,
+            buttons=Gtk.ButtonsType.OK, secondary=None):
+        tooltips = Tooltips()
+        dialog = super().build_dialog(
+            parent, message, msg_type, buttons, secondary)
+
+        content_area = dialog.get_content_area()
+        content_parent = content_area.get_parent()
+        overlay = Gtk.Overlay()
+        content_area.reparent(overlay)
+        content_parent.add(overlay)
+
+        def fill_clipboard(*args):
+            clipboard = Gtk.Clipboard.get_default(Gdk.Display.get_default())
+            clipboard.set_text(message, -1)
+            clipboard.store()
+
+            copy_button.set_image(Gtk.Image.new_from_icon_name(
+                    'object-select-symbolic', Gtk.IconSize.BUTTON))
+            GLib.timeout_add(1.5 * 1000, reset_clipboard_icon)
+
+        def reset_clipboard_icon():
+            copy_button.set_image(Gtk.Image.new_from_icon_name(
+                    'edit-copy-symbolic', Gtk.IconSize.BUTTON))
+
+        copy_button = Gtk.Button()
+        copy_button.set_image(Gtk.Image.new_from_icon_name(
+                'edit-copy-symbolic', Gtk.IconSize.BUTTON))
+        copy_button.set_relief(Gtk.ReliefStyle.NONE)
+        copy_button.connect('clicked', fill_clipboard)
+        overlay.add_overlay(copy_button)
+        copy_button.set_halign(Gtk.Align.END)
+        copy_button.set_valign(Gtk.Align.START)
+        copy_button.set_margin_top(4)
+        copy_button.set_margin_end(4)
+        tooltips.set_tip(copy_button, _('Copy to clipboard'))
+
+        return dialog
+
     def __call__(self, message, title, buttons=Gtk.ButtonsType.OK, **kwargs):
         return super().__call__(
             title, Gtk.MessageType.WARNING, buttons, message, **kwargs)
@@ -954,6 +993,7 @@ concurrency = ConcurrencyDialog()
 class ErrorDialog(UniqueDialog):
 
     def build_dialog(self, parent, title, details):
+        tooltips = Tooltips()
         dialog = Gtk.MessageDialog(
             transient_for=parent, modal=True, destroy_with_parent=True,
             message_type=Gtk.MessageType.ERROR, buttons=Gtk.ButtonsType.NONE)
@@ -984,12 +1024,39 @@ class ErrorDialog(UniqueDialog):
 
         viewport.add(textview)
         scrolledwindow.add(viewport)
+        overlay = Gtk.Overlay()
+        overlay.add(scrolledwindow)
         expander = Gtk.Expander()
         expander.set_label(_("Details"))
-        expander.add(scrolledwindow)
+        expander.add(overlay)
         expander.set_resize_toplevel(True)
         dialog.vbox.pack_start(
             expander, expand=False, fill=True, padding=0)
+
+        def fill_clipboard(*args):
+            clipboard = Gtk.Clipboard.get_default(Gdk.Display.get_default())
+            clipboard.set_text(f'{title}\n{details}', -1)
+            clipboard.store()
+
+            copy_button.set_image(Gtk.Image.new_from_icon_name(
+                    'object-select-symbolic', Gtk.IconSize.BUTTON))
+            GLib.timeout_add(1.5 * 1000, reset_clipboard_icon)
+
+        def reset_clipboard_icon():
+            copy_button.set_image(Gtk.Image.new_from_icon_name(
+                    'edit-copy-symbolic', Gtk.IconSize.BUTTON))
+
+        copy_button = Gtk.Button()
+        copy_button.set_image(Gtk.Image.new_from_icon_name(
+                'edit-copy-symbolic', Gtk.IconSize.BUTTON))
+        copy_button.set_relief(Gtk.ReliefStyle.NONE)
+        copy_button.connect('clicked', fill_clipboard)
+        overlay.add_overlay(copy_button)
+        copy_button.set_halign(Gtk.Align.END)
+        copy_button.set_valign(Gtk.Align.START)
+        copy_button.set_margin_top(4)
+        copy_button.set_margin_end(4)
+        tooltips.set_tip(copy_button, _('Copy to clipboard'))
 
         button_roundup = Gtk.LinkButton.new_with_label(
             CONFIG['bug.url'], _("Report Bug"))
