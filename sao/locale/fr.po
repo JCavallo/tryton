@@ -59,6 +59,9 @@ msgstr "Rechercher"
 msgid "Close Tab"
 msgstr "Fermer l'onglet"
 
+msgid "Undo close tab"
+msgstr "Annuler la fermeture de l'onglet"
+
 msgid "Attachment"
 msgstr "Attachement"
 
@@ -483,6 +486,9 @@ msgstr " :"
 msgid "Scan"
 msgstr "Scanner"
 
+msgid "Clear"
+msgstr "Effacer"
+
 msgid "Translate"
 msgstr "Traduire"
 
@@ -542,9 +548,6 @@ msgstr "Sélectionner"
 
 msgid "Select..."
 msgstr "Sélectionner..."
-
-msgid "Clear"
-msgstr "Effacer"
 
 msgid "Open..."
 msgstr "Ouvrir..."
@@ -805,6 +808,21 @@ msgstr "En faire un message interne"
 
 msgid "Translate view"
 msgstr "Traduire la vue"
+
+msgid "Close all other tabs"
+msgstr "Fermer tous les autres onglets"
+
+msgid "Close tabs to the left"
+msgstr "Fermer les onglets à gauche"
+
+msgid "Close tabs to the right"
+msgstr "Fermer les onglets à droite"
+
+msgid "Duplicate the tab"
+msgstr "Dupliquer l'onglet"
+
+msgid "Open in a new browser tab"
+msgstr "Ouvrir l'onglet dans un nouvel onglet du navigateur"
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Toujours ignorer cet avertissement."

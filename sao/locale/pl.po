@@ -74,6 +74,10 @@ msgstr "Szukaj"
 msgid "Close Tab"
 msgstr "Zamknij kartę"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "Zamknij kartę"
+
 msgid "Attachment"
 msgstr "Załącznik"
 
@@ -207,6 +211,9 @@ msgstr "p"
 
 msgid "False"
 msgstr "Nie"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "Czy chcesz kontynuować?"
@@ -493,6 +500,9 @@ msgstr ":"
 msgid "Scan"
 msgstr "Skanuj"
 
+msgid "Clear"
+msgstr "Wyczyść"
+
 msgid "Translate"
 msgstr "Przetłumacz"
 
@@ -552,9 +562,6 @@ msgstr "Wybierz"
 
 msgid "Select..."
 msgstr "Wybierz..."
-
-msgid "Clear"
-msgstr "Wyczyść"
 
 msgid "Open..."
 msgstr "Otwórz..."
@@ -818,6 +825,22 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Widok tłumaczenia"
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "Duplikuj"
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Zawsze ignoruj takie ostrzeżenie."

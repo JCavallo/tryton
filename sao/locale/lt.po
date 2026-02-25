@@ -62,6 +62,10 @@ msgstr "Ieškoti"
 msgid "Close Tab"
 msgstr "Uždaryti kortelę"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "Uždaryti kortelę"
+
 msgid "Attachment"
 msgstr ""
 
@@ -195,6 +199,9 @@ msgstr "t"
 
 msgid "False"
 msgstr "Netiesa"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "Ar tikrai norite vykdyti?"
@@ -484,6 +491,9 @@ msgstr ":"
 msgid "Scan"
 msgstr ""
 
+msgid "Clear"
+msgstr "Valyti"
+
 msgid "Translate"
 msgstr ""
 
@@ -543,9 +553,6 @@ msgstr "Pasirinkti"
 
 msgid "Select..."
 msgstr "Pasirinkti..."
-
-msgid "Clear"
-msgstr "Valyti"
 
 #, fuzzy
 msgid "Open..."
@@ -819,6 +826,21 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Išversti rodinį"
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+msgid "Duplicate the tab"
+msgstr ""
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Daugiau nepaisyti šio pranešimo."

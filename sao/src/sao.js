@@ -1168,6 +1168,12 @@ var Sao = {
                 label: Sao.i18n.gettext('Close Tab'),
                 id: 'close',
             }, {
+                shortcut: 'alt+shift+w',
+                label: Sao.i18n.gettext('Undo close tab'),
+                callback: function() {
+                    Sao.Tab.undo_close();
+                },
+            }, {
                 shortcut: 'ctrl+shift+t',
                 label: Sao.i18n.gettext('Attachment'),
                 id: 'attach',

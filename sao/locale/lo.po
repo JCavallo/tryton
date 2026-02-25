@@ -64,6 +64,10 @@ msgstr "ຊອກຫາ"
 msgid "Close Tab"
 msgstr "ອັດແຖບງານ"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "ອັດແຖບງານ"
+
 msgid "Attachment"
 msgstr "ຄັດຕິດ"
 
@@ -195,6 +199,9 @@ msgstr "ຈ"
 
 msgid "False"
 msgstr "ເທັດ"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "ທ່ານຕ້ອງການດຳເນີນບໍ່?"
@@ -494,6 +501,9 @@ msgstr ":"
 msgid "Scan"
 msgstr ""
 
+msgid "Clear"
+msgstr "ລຶບອອກ"
+
 msgid "Translate"
 msgstr "ແປ"
 
@@ -553,9 +563,6 @@ msgstr "ເລືອກ"
 
 msgid "Select..."
 msgstr ""
-
-msgid "Clear"
-msgstr "ລຶບອອກ"
 
 #, fuzzy
 msgid "Open..."
@@ -833,6 +840,22 @@ msgid "Make this an internal message"
 msgstr ""
 
 msgid "Translate view"
+msgstr ""
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "ຊໍ້າກັນ"
+
+msgid "Open in a new browser tab"
 msgstr ""
 
 #~ msgid "Always ignore this warning."

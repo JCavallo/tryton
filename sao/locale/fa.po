@@ -76,6 +76,10 @@ msgstr "جستجو"
 msgid "Close Tab"
 msgstr "بستن برگه"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "بستن برگه"
+
 msgid "Attachment"
 msgstr "پیوست"
 
@@ -207,6 +211,9 @@ msgstr "t"
 
 msgid "False"
 msgstr "غلط"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "آیا می خواهید پردازش شود؟"
@@ -506,6 +513,9 @@ msgstr ":"
 msgid "Scan"
 msgstr ""
 
+msgid "Clear"
+msgstr "پاک کردن"
+
 msgid "Translate"
 msgstr "ترجمه"
 
@@ -567,9 +577,6 @@ msgstr "انتخاب"
 
 msgid "Select..."
 msgstr "انتخاب..."
-
-msgid "Clear"
-msgstr "پاک کردن"
 
 #, fuzzy
 msgid "Open..."
@@ -851,6 +858,22 @@ msgid "Make this an internal message"
 msgstr ""
 
 msgid "Translate view"
+msgstr ""
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "تکثیر"
+
+msgid "Open in a new browser tab"
 msgstr ""
 
 #~ msgid "Always ignore this warning."

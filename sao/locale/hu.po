@@ -62,6 +62,10 @@ msgstr "Keresés"
 msgid "Close Tab"
 msgstr "Lap bezárása"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "Lap bezárása"
+
 msgid "Attachment"
 msgstr "Melléklet"
 
@@ -194,6 +198,9 @@ msgstr "w"
 
 msgid "False"
 msgstr "Hamis"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "Akarja folyatni?"
@@ -483,6 +490,9 @@ msgstr ":"
 msgid "Scan"
 msgstr ""
 
+msgid "Clear"
+msgstr "Törlés"
+
 msgid "Translate"
 msgstr "Fordítás"
 
@@ -542,9 +552,6 @@ msgstr "Kiválaszt"
 
 msgid "Select..."
 msgstr ""
-
-msgid "Clear"
-msgstr "Törlés"
 
 #, fuzzy
 msgid "Open..."
@@ -815,6 +822,22 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Nézet fordítása."
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "Duplázás"
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Ne mutassa többet ezt a figyelmeztetést"

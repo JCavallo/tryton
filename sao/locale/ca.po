@@ -59,6 +59,10 @@ msgstr "Cerca"
 msgid "Close Tab"
 msgstr "Tanca pestanya"
 
+#, fuzzy
+msgid "Undo close tab"
+msgstr "Tanca pestanya"
+
 msgid "Attachment"
 msgstr "Adjunt"
 
@@ -191,6 +195,9 @@ msgstr "v"
 
 msgid "False"
 msgstr "Fals"
+
+msgid "Show / Hide more"
+msgstr ""
 
 msgid "Do you want to proceed?"
 msgstr "Voleu continuar?"
@@ -475,6 +482,9 @@ msgstr ":"
 msgid "Scan"
 msgstr "Escaneja"
 
+msgid "Clear"
+msgstr "Neteja"
+
 msgid "Translate"
 msgstr "Tradueix"
 
@@ -534,9 +544,6 @@ msgstr "Selecciona"
 
 msgid "Select..."
 msgstr "Selecciona..."
-
-msgid "Clear"
-msgstr "Neteja"
 
 msgid "Open..."
 msgstr "Obre..."
@@ -797,6 +804,22 @@ msgstr ""
 
 msgid "Translate view"
 msgstr "Tradueix la vista"
+
+msgid "Close all other tabs"
+msgstr ""
+
+msgid "Close tabs to the left"
+msgstr ""
+
+msgid "Close tabs to the right"
+msgstr ""
+
+#, fuzzy
+msgid "Duplicate the tab"
+msgstr "Duplica"
+
+msgid "Open in a new browser tab"
+msgstr ""
 
 #~ msgid "Always ignore this warning."
 #~ msgstr "Ignora sempre aquest advertiment."
