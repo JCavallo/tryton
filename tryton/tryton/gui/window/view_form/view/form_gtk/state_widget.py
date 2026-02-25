@@ -8,7 +8,7 @@ from gi.repository import Gtk, Pango
 import tryton.common as common
 from tryton.action import Action
 from tryton.config import CONFIG
-from tryton.pyson import PYSONDecoder
+from tryton.pyson import PYSONDecoder, domain_context_vars
 
 logger = logging.getLogger(__name__)
 
@@ -188,10 +188,7 @@ class Link(StateMixin, Gtk.Button):
         if CONFIG['client.modepda']:
             self.hide()
             return
-        if record:
-            if record.id < 0:
-                self.hide()
-                return
+        if record and record.id >= 0:
             data = {
                 'model': record.model_name,
                 'id': record.id,
@@ -204,6 +201,11 @@ class Link(StateMixin, Gtk.Button):
                 'active_ids': [record.id],
                 }
             self._current = record.id
+        elif record and record.id < 0:
+            data = {}
+            pyson_ctx = {}
+            context = record.get_context()
+            self._current = None
         else:
             data = {}
             context = {}
@@ -240,21 +242,26 @@ class Link(StateMixin, Gtk.Button):
                 record.links_counts[self.action_id] = counter
             if tab_domains:
                 for i, (_, tab_domain) in enumerate(tab_domains):
+                    count_domain = ['AND', domain, tab_domain]
+                    context_vars = domain_context_vars(count_domain)
+                    if record.id >= 0 or 'active_id' not in context_vars:
+                        common.RPCExecute(
+                            'model', action['res_model'], 'search_count',
+                            count_domain, 0, 100, context=context,
+                            callback=functools.partial(
+                                self._set_count, idx=i, current=self._current,
+                                counter=counter, label=label),
+                            process_exception=False)
+            else:
+                context_vars = domain_context_vars(domain)
+                if record.id >= 0 or 'active_id' not in context_vars:
                     common.RPCExecute(
                         'model', action['res_model'], 'search_count',
-                        ['AND', domain, tab_domain], 0, 100, context=context,
+                        domain, 0, 100, context=context,
                         callback=functools.partial(
-                            self._set_count, idx=i, current=self._current,
+                            self._set_count, current=self._current,
                             counter=counter, label=label),
                         process_exception=False)
-            else:
-                common.RPCExecute(
-                    'model', action['res_model'], 'search_count',
-                    domain, 0, 100, context=context,
-                    callback=functools.partial(
-                        self._set_count, current=self._current,
-                        counter=counter, label=label),
-                    process_exception=False)
 
     def _set_count(self, value, idx=0, current=None, counter=None, label=''):
         if current != self._current or not self.get_parent():

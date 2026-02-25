@@ -857,3 +857,22 @@ CONTEXT = {
     'true': True,
     'false': False,
 }
+
+
+def domain_context_vars(domain):
+
+    def _iter_eval_fields(value):
+        if isinstance(value, Get):
+            origin = value._obj
+            if isinstance(origin, Eval) and (origin._value == 'context'):
+                yield value._key
+        elif isinstance(value, PYSON):
+            yield from _iter_eval_fields(value.pyson())
+        elif isinstance(value, (list, tuple)):
+            for part in value:
+                yield from _iter_eval_fields(part)
+        elif isinstance(value, dict):
+            for part in value.values():
+                yield from _iter_eval_fields(part)
+
+    return set(_iter_eval_fields(domain))
