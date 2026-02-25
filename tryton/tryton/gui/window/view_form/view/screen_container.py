@@ -668,6 +668,8 @@ class ScreenContainer(object):
                         entry.append_text(selection)
                 elif field['type'] in ['selection', 'multiselection']:
                     selections = tuple(x[1] for x in field['selection'])
+                    if field.get('sort', True):
+                        selections = tuple(sorted(selections))
                     entry = Selection(selections)
                     entry.set_vexpand(True)
                 elif field['type'] in ('date', 'datetime', 'time'):
