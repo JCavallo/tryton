@@ -2016,9 +2016,8 @@
                 return '%';
             }
             var escaped = value
-                .replace(escape + '%', '')
-                .replace(escape + '_', '');
-            if (escaped.contains('%') || escaped.contains('_')) {
+                .replace(escape + '%', '');
+            if (escaped.contains('%')) {
                 return value;
             } else {
                 return '%' + value + '%';
@@ -2032,9 +2031,8 @@
                 escaped = escaped.slice(1, -1);
             }
             escaped = escaped
-                .replace(escape + '%', '')
-                .replace(escape + '_', '');
-            if (escaped.contains('%') || escaped.contains('_')) {
+                .replace(escape + '%', '');
+            if (escaped.contains('%')) {
                 return false;
             }
             return value.startsWith('%') && value.endsWith('%');
@@ -2042,15 +2040,13 @@
         is_like: function(value, escape) {
             escape = escape || '\\';
             var escaped = value
-                .replace(escape + '%', '')
-                .replace(escape + '_', '');
-            return escaped.contains('%') || escaped.contains('_');
+                .replace(escape + '%', '');
+            return escaped.contains('%');
         },
         unescape: function(value, escape) {
             escape = escape || '\\';
             return value
-                .replace(escape + '%', '%')
-                .replace(escape + '_', '_');
+                .replace(escape + '%', '%');
         },
         quote: function(value, empty=false) {
             if (typeof value != 'string') {
@@ -2999,7 +2995,7 @@
         for (var i=1, len=splitted.length; i < len; i = i+2) {
             char = splitted[i];
             if (escape) {
-                if ((char == '%') || (char == '_')) {
+                if ((char == '%')) {
                     chars.push(char);
                 } else {
                     chars.push('\\', char);
@@ -3007,8 +3003,6 @@
                 escape = false;
             } else if (char == '\\') {
                 escape = true;
-            } else if (char == '_') {
-                chars.push('.');
             } else if (char == '%') {
                 chars.push('.*');
             } else {
