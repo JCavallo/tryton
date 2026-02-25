@@ -974,6 +974,7 @@
             return this.screen.save_tree_state().then(() => {
                 this.screen.current_view.set_value();
                 if (this.screen.modified()) {
+                    this.show();
                     return Sao.common.sur_3b.run(
                             Sao.i18n.gettext('This record has been modified\n' +
                                 'do you want to save it?'))
