@@ -1607,7 +1607,7 @@
                 var selected_date = this.current_view.get_selected_date();
             }
             if (this.current_view && !this.current_view.creatable) {
-                prm = this.switch_view('form', undefined, true, false);
+                prm = this.switch_view('form', undefined, true, false, false);
             }
             return prm.then(() => {
                 if (!this.current_view || !this.current_view.editable) {
@@ -1619,6 +1619,7 @@
                 } else {
                     group = this.group;
                 }
+                this.current_record = null;
                 var record = group.new_(false);
                 var prm;
                 if (default_) {
