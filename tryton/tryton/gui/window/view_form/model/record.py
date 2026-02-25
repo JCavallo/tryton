@@ -478,6 +478,8 @@ class Record:
             if field_name in {
                     self.group.exclude_field, self.group.parent_name}:
                 continue
+            if field_name == self.group.parent_name:
+                continue
             if not field.validate(self, softvalidation, pre_validate):
                 res = False
         return res
