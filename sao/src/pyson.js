@@ -22,6 +22,12 @@
             return JSON.stringify(value);
         }
     };
+    Sao.PYSON.checkTypes = function(value, allowed_types) {
+        const types = value.types();
+        return types.filter(
+            item => allowed_types.includes(item)
+            ).length === 0;
+    };
 
     Sao.PYSON.PYSON = class PYSON {
         constructor() {
@@ -172,6 +178,15 @@
                 return [typeof this._default];
             }
         }
+        toString() {
+            if ((this._value.constructor == String) && (!this._default)) {
+                return `rec.${this._value}`;
+            } else if (this._default) {
+                return `Eval(${this._value}, ${this._default})`;
+            } else {
+                return `Eval(${this._value})`;
+            }
+        }
         __string_params__() {
             const params = [this._value];
             if (this._default !== '') {
@@ -235,6 +250,19 @@
                 'v': this._value
                 };
         }
+        toString() {
+            if (this._value.constructor == Sao.PYSON.Not) {
+                return this._value._value.toString();
+            } else if (this._value.constructor == Sao.PYSON.Equal) {
+                const val = this._value;
+                return `(${val._statement1} ≠ ${val._statement2})`;
+            } else if (this._value.constructor == Sao.PYSON.In) {
+                const val = this._value;
+                return `(${val._key} not in ${val._obj})`;
+            } else {
+                return `!(${this._value})`;
+            }
+        }
         types() {
             return ['boolean'];
         }
@@ -263,6 +291,9 @@
                 '__class__': 'Bool',
                 'v': this._value
             };
+        }
+        toString() {
+            return `${this._value}`;
         }
         types() {
             return ['boolean'];
@@ -320,6 +351,11 @@
                 's': this._statements
             };
         }
+        toString() {
+            const statements = this._statements.map(v => {
+                return `${v}`; }).join(' & ');
+            return `(${statements})`;
+        }
         types() {
             return ['boolean'];
         }
@@ -348,6 +384,11 @@
             var result = super.pyson();
             result.__class__ = 'Or';
             return result;
+        }
+        toString() {
+            const statements = this._statements.map(v => {
+                return `${v}`; }).join(' | ');
+            return `(${statements})`;
         }
     };
 
@@ -396,6 +437,9 @@
         types() {
             return ['boolean'];
         }
+        toString() {
+            return `(${this._statement1} = ${this._statement2})`;
+        }
         __string_params__() {
             return [this._statement1, this._statement2];
         }
@@ -431,8 +475,7 @@
                     if ( (!(statement instanceof Sao.PYSON.DateTime ||
                         statement instanceof Sao.PYSON.Date ||
                         statement instanceof Sao.PYSON.TimeDelta)) &&
-                        (jQuery(statement.types()).not(
-                            ['number', 'object']).length) ) {
+                        (Sao.PYSON.checkTypes(statement, ['number', 'object'])) ) {
                         throw 'statement must be an integer, float, ' +
                             'date, datetime or timedelta';
                     }
@@ -465,6 +508,10 @@
         }
         types() {
             return ['boolean'];
+        }
+        toString() {
+            const operator = this._equal ? ' ≥ ' : ' > ';
+            return `(${this._statement1} ${operator} ${this._statement2})`;
         }
         __string_params__() {
             return [this._statement1, this._statement2, this._equal];
@@ -511,6 +558,10 @@
             var result = super.pyson();
             result.__class__ = 'Less';
             return result;
+        }
+        toString() {
+            const operator = this._equal ? ' ≤ ' : ' < ';
+            return `(${this._statement1} ${operator} ${this._statement2})`;
         }
     };
 
@@ -948,8 +999,7 @@
         constructor(value) {
             super();
             if (value instanceof Sao.PYSON.PYSON) {
-                if (jQuery(value.types()).not(['object', 'string']).length ||
-                    jQuery(['object', 'string']).not(value.types()).length) {
+                if (Sao.PYSON.checkTypes(value, ['object', 'string'])) {
                     throw 'value must be an object or a string';
                 }
             } else {
@@ -966,7 +1016,7 @@
             };
         }
         types() {
-            return ['integer'];
+            return ['number'];
         }
         __string_params__() {
             return [this._value];
