@@ -32,7 +32,7 @@ class DomainParserTestCase(TestCase):
                 ('', '%'),
                 ('foo', '%foo%'),
                 ('foo%', 'foo%'),
-                ('foo_bar', 'foo_bar'),
+                ('foo_bar', '%foo_bar%'),
                 ('foo\\%', '%foo\\%%'),
                 ('foo\\_bar', '%foo\\_bar%'),
                 ]:
