@@ -3966,8 +3966,8 @@
                     if (this.dropdown.hasClass('open')) {
                         evt.preventDefault();
                         evt.stopPropagation();
-                        this.menu.dropdown('toggle');
                     }
+                    this._hide();
                 } else if (evt.which == Sao.common.DOWN_KEYCODE) {
                     if (this.dropdown.hasClass('open')) {
                         evt.preventDefault();
@@ -3980,16 +3980,32 @@
                 if (evt.which == Sao.common.ESC_KEYCODE) {
                     evt.preventDefault();
                     evt.stopPropagation();
-                    this.menu.dropdown('toggle');
+                    this._hide();
                 }
             });
+            this.input.on('focusout', (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                setTimeout(this._focus_out.bind(this), 100);
+            });
+            this.dropdown.on('focusout', (evt) => {
+                evt.preventDefault();
+                evt.stopPropagation();
+                setTimeout(this._focus_out.bind(this), 100);
+            });
             this.dropdown.on('hide.bs.dropdown', () => {
-                this.input.focus();
                 Sao.common.set_overflow(this.input, 'hide');
             });
             this.dropdown.on('show.bs.dropdown', () => {
                 Sao.common.set_overflow(this.input, 'show');
             });
+        },
+        _focus_out: function() {
+            let target = document.activeElement;
+            if (!this.menu[0].contains(target)
+                    && !this.input[0].contains(target)) {
+                this._hide();
+            }
         },
         set_actions: function(action_activated, search=true, create=true) {
             if (action_activated !== undefined) {
@@ -4022,6 +4038,7 @@
                         this.action_activated(action_id);
                     }
                     this.input.val('');
+                    this._hide();
                 })
                 .appendTo(this.actions.children().first());
             }, this);
@@ -4061,6 +4078,18 @@
                 this._set_selection(values);
             });
         },
+        _show: function() {
+            if (!this.dropdown.hasClass('open')) {
+                this.menu.dropdown('toggle');
+            }
+            this.menu.css('display', 'block');
+        },
+        _hide: function() {
+            if (!this.dropdown.hasClass('open')) {
+                this.menu.dropdown('toggle');
+            }
+            this.menu.css('display', 'none');
+        },
         _set_selection: function(values) {
             if (values === undefined) {
                 values = [];
@@ -4077,20 +4106,32 @@
                     if (this.match_selected) {
                         this.match_selected(value);
                     }
-                    this.input.focus();
+                    this._hide();
                 }).prependTo(this.menu);
             }, this);
             if (!this.input.val() || (
                 !this.menu.find('li.completion').length &&
                 !this.menu.find('li.action').length)) {
-                if (this.dropdown.hasClass('open')) {
-                    this.menu.dropdown('toggle');
-                }
+                this._hide();
+                return
             } else {
-                if (!this.dropdown.hasClass('open')) {
-                    this.menu.dropdown('toggle');
-                }
+                this._show();
             }
+            this.menu.css('position', 'fixed');
+            this.menu.css('top', 'unset');
+            this.menu.css('bottom', 'unset');
+            let parent_size = this.menu.get(0).parentElement.getBoundingClientRect();
+            if (window.innerHeight - parent_size.bottom < 200) {
+                this.menu.css('max-height', parent_size.top - 200 - 5);
+                this.menu.css('top', parent_size.top - 5 - Math.min(
+                    this.menu.get(0).getBoundingClientRect().height,
+                    parent_size.top -200 -5));
+            } else {
+                this.menu.css('top', parent_size.bottom);
+                this.menu.css('max-height',
+                    window.innerHeight - 5 - parent_size.bottom);
+            }
+            this.menu.css('left', parent_size.left);
         }
     });
 
@@ -4677,8 +4718,27 @@
                 'left': evt.pageX,
                 'display': 'block',
             });
-
             return ul;
+        },
+        updateLocation: menu => {
+            let menu_size = menu.get(0).getBoundingClientRect();
+            menu.css('position', 'fixed');
+            let parent_size = menu.get(0).parentElement.getBoundingClientRect();
+            if (parent_size.top + menu_size.height > window.innerHeight) {
+                menu.css('bottom', 5)
+                menu.css('top', 'unset')
+                menu.css('max-height', window.innerHeight - 200);
+            } else {
+                menu.css('top', parent_size.top);
+                menu.css('bottom', 'unset')
+            }
+            if ((parent_size.right + menu_size.width) > window.innerWidth) {
+                menu.css('right', 'unset');
+                menu.css('left', parent_size.left - menu_size.width);
+            } else {
+                menu.css('right', 'unset');
+                menu.css('left', parent_size.right);
+            }
         },
         populate: (menu, model_name, field_name, context, records, edit_entry, view_ids) => {
             var model = new Sao.Model(model_name);
@@ -4686,10 +4746,7 @@
                 'view_toolbar_get', [], context, false);
 
             const popLocation = (e) => {
-                var menu = e.data;
-                if ((menu.offset().left + menu.width()) > window.innerWidth) {
-                    menu.css('left', (-1 * menu.width()) + 'px');
-                }
+                Sao.common.PopupMenu.updateLocation(e.data);
             };
             const open_records = (records) => {
                 return (evt) => {
@@ -4760,6 +4817,9 @@
                 }).text(Sao.i18n.gettext("Edit...")).click(
                     open_records(records))
                 ).appendTo(menu);
+                if (field_name) {
+                    menu.parent().on('mouseenter', menu, popLocation);
+                }
             }
 
             for (const [action_type, action_name] of [
