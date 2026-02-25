@@ -144,6 +144,57 @@
                 if ((node.tagName == 'field') && (!node_attrs.help)) {
                     node_attrs.help = field.help;
                 }
+                try {
+                    var decoder = new Sao.PYSON.Decoder({}, true);
+                    var h = node_attrs.help;
+                    if (h) {
+                        h = h + '\n\n';
+                    }
+                    h = h + `${this.view.screen.model_name}::${field.name} `;
+                    h = h + `(${field.type}):\n\n`;
+                    for (const [key, value] of Object.entries(field)) {
+                        if (['on_change', 'on_change_with',
+                                'relation_fields', 'help', 'name', 'type',
+                                'views', 'selection_change_with']
+                                .includes(key)) {
+                            continue;
+                        }
+                        if (key === 'states') {
+                            for (var [state, s_value] of Object.entries(
+                                    decoder.decode(value))) {
+                                var v = Sao.PYSON.toString(s_value);
+                                h = h + `states[${state}]: ${s_value}\n`
+                            }
+                        } else if (['context', 'search_context', 'domain',
+                                'search_order', 'datetime_field'
+                                ].includes(key)) {
+                            var v = Sao.PYSON.toString(decoder.decode(value));
+                            if ((v !== '[]') && (v !== '{}') && (v !== 'null')) {
+                                h = h + `${key}: ${v}\n`;
+                            }
+                        } else if ((key === 'selection')
+                                && (value.constructor == Array)) {
+                            h = h + 'selection:\n';
+                            for (const [i, j] of value.slice(0, 10)) {
+                                if ((i === null) || (i === '')) {
+                                    continue;
+                                }
+                                h = h + `    ${i}: ${j}\n`;
+                            }
+                            if (value.length > 10) {
+                                var c = value.length - 10;
+                                h = h + `    ... ${c} elements omitted\n`;
+                            }
+                        } else {
+                            var v = JSON.stringify(value, null, 4);
+                            h = h + `${key}: ${v}\n`;
+                        }
+                    }
+                    node_attrs.developer_help = h;
+                } catch (error) {
+                    node_attrs.developer_help = '';
+                    Sao.Logger.warn("Error creating developer help", error);
+                }
 
                 for (const name of [
                     'relation', 'domain', 'selection', 'string', 'states',
