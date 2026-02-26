@@ -2060,6 +2060,34 @@
         button: function(attributes) {
             var ids;
             const process_action = action => {
+                // [Coog specific]
+                // JMO: report https://github.com/coopengo/tryton/pull/13
+                if (Array.isArray(action)) {
+                    var prms = [];
+                    var later_actions = [];
+                    for (const act of action) {
+                        if (typeof act == 'string') {
+                            later_actions.push(act);
+                        } else if (act) {
+                            prms.push(
+                                Sao.Action.execute(act, {
+                                    model: this.model_name,
+                                    id: this.current_record.id,
+                                    ids: ids
+                                }, null, this.context, true));
+                        }
+                    }
+                    return jQuery.when.apply(jQuery, prms).always(() => {
+                        return this.reload(ids, true).always(() => {
+                            for (const a of later_actions) {
+                                this.client_action(a);
+                            }
+                            return this.record_saved();
+                        });
+                    });
+                }
+                else
+                // end
                 if (typeof action == 'string') {
                     return this.reload(ids, true).then(() => {
                         return this.client_action(action);
@@ -2137,6 +2165,13 @@
         },
         client_action: function(action) {
             var access = Sao.common.MODELACCESS.get(this.model_name);
+            // [Coog] Allow multiple actions
+            var actions = action.split(',');
+            for (var i in actions){
+                this.do_single_action(actions[i], access);
+            }
+        },
+        do_single_action: function(action, access) {
             if (action == 'new') {
                 if (access.create) {
                     return this.new_();
