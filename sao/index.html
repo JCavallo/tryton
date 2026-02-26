@@ -22,14 +22,31 @@ this repository contains the full copyright notices and license terms. -->
         <script type="text/javascript" src="bower_components/mousetrap/mousetrap.js"></script>
         <script type="text/javascript" src="bower_components/mousetrap/plugins/pause/mousetrap-pause.js"></script>
         <script type="text/javascript" src="bower_components/Sortable/Sortable.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/lib/codemirror.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/mode/python/python.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/lint/lint.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/hint/show-hint.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/runmode/runmode.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/display/autorefresh.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/search/search.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/search/searchcursor.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/search/jump-to-line.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/dialog/dialog.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/fold/foldcode.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/fold/foldgutter.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/fold/comment-fold.js"></script>
+        <script type="text/javascript" src="bower_components/codemirror/addon/fold/indent-fold.js"></script>
 
         <link rel="stylesheet" href="node_modules/billboard.js/dist/billboard.css">
         <link rel="stylesheet" href="bower_components/fullcalendar/dist/fullcalendar.css">
+        <link rel="stylesheet" href="bower_components/codemirror/lib/codemirror.css">
+        <link rel="stylesheet" href="bower_components/codemirror/addon/lint/lint.css">
+        <link rel="stylesheet" href="bower_components/codemirror/addon/hint/show-hint.css">
+        <link rel="stylesheet" href="bower_components/codemirror/addon/dialog/dialog.css">
+        <link rel="stylesheet" href="bower_components/codemirror/addon/fold/foldgutter.css">
 
         <script type="text/javascript" src="dist/tryton-sao.js"></script>
         <link rel="stylesheet" type="text/css" href="dist/tryton-sao.css" media="screen"/>
-        <link rel="stylesheet" type="text/css" href="dist/coog-sao.min.css" media="screen"/>
-        <link rel="stylesheet" type="text/css" href="dist/coog-sao.css" media="screen"/>
         <script type="text/javascript" src="custom.js"></script>
         <link rel="stylesheet" type="text/css" href="custom.css" media="screen"/>
     </head>
@@ -97,6 +114,7 @@ this repository contains the full copyright notices and license terms. -->
                         jQuery('#tabs').toggleClass('hidden-xs');
                     });
                     jQuery('#tabs').on('ready', function() {
+                        // MAB: I removed b08b13cb commit code in this script as it seems contradictory with what b2ck do
                         var mq = window.matchMedia('(max-width: 991px)');
                         if (mq.matches) {
                             if (jQuery('#tablist').children().length) {
@@ -111,6 +129,21 @@ this repository contains the full copyright notices and license terms. -->
                     jQuery('#main_navbar').on('click', 'a', function() {
                         jQuery('#main_navbar').collapse('hide');
                     });
+                });
+
+                const menu_resize_obs = new MutationObserver((mutationList) => {
+                    if (mutationList.length == 0) {
+                        return;
+                    }
+                    let last_mut = mutationList.at(-1);
+                    let menu_width = last_mut.target.style.width;
+                    jQuery('#tabs').css(
+                        'width',
+                        `calc(100vw - .5rem - ${menu_width})`);
+                });
+                menu_resize_obs.observe(document.getElementById('menu'), {
+                    attributeFilter: ["style"],
+                    subtree: false,
                 });
             }
             if (navigator.userAgent.indexOf('iPhone') > -1) {
