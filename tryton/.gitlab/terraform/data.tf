@@ -29,6 +29,6 @@ data "aws_subnet" "gitlab_runner" {
   vpc_id = var.vpc_id
 
   tags = {
-    Type = "public subnets"
+    Type = "public-subnets"
   }
 }
