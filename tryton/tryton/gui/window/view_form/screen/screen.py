@@ -1067,6 +1067,13 @@ class Screen:
         self.display(set_cursor=set_cursor)
 
     def display(self, set_cursor=False):
+        if (self.current_record
+                and self.current_record in self.current_record.group):
+            pass
+        elif self.group and self.current_view.view_type == 'form':
+            self.current_record = self.group[0]
+        else:
+            self.current_record = None
         if self.views and self.current_view:
             self.search_active(self.current_view.view_type
                 in ('tree', 'graph', 'calendar'))

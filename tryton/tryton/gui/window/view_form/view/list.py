@@ -1327,6 +1327,11 @@ class ViewTree(View):
             self.set_state()
         self.update_arrow()
         self.update_sum()
+        if not self.record and self.group:
+            record = self.group[0]
+            selection = self.treeview.get_selection()
+            selection.unselect_all()
+            selection.select_path(record.get_index_path(self.group))
 
         # Set column visibility depending on attributes and domain
         domain = []
