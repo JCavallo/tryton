@@ -1,6 +1,9 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 "Exports"
+from sql import Literal
+from sql.conditionals import Case
+
 from trytond.model import ModelSQL, ModelView, fields
 from trytond.pool import Pool
 from trytond.pyson import Eval
@@ -38,9 +41,13 @@ class Export(_ClearCache, ModelSQL, ModelView):
             'invisible': ~Eval('groups'),
             },
         help="The user groups that can modify the export.")
-    header = fields.Boolean(
+    header = fields.Selection([
+            ('', "None"),
+            ('label', "Label"),
+            ('field', "Field"),
+            ],
         "Header",
-        help="Check to include field names on the export.")
+        help="The way to display the header")
     records = fields.Selection([
             ('selected', "Selected"),
             ('listed', "Listed"),
@@ -71,12 +78,25 @@ class Export(_ClearCache, ModelSQL, ModelView):
         cursor = Transaction().connection.cursor()
 
         user_exists = table_h.column_exist('user')
+        migrate_header = (
+            table_h.column_exist('header')
+            and table_h.column_is_type('header', 'BOOL'))
+        if migrate_header:
+            table_h.column_rename('header', '_temp_header')
 
         super().__register__(module)
 
         # Migration from 6.8: add user
         if not user_exists:
             cursor.execute(*table.update([table.user], [table.create_uid]))
+        # Migration from 7.8: header can use field name
+        if migrate_header:
+            cursor.execute(*table.update(
+                    [table.header],
+                    [Case(
+                            (table._temp_header, Literal('label')),
+                            else_=Literal(''))
+                        ]))
 
     @classmethod
     def default_header(cls):

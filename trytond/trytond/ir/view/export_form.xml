@@ -9,9 +9,9 @@ this repository contains the full copyright notices and license terms. -->
 
     <label name="records"/>
     <field name="records"/>
-    <group col="-1" colspan="2" id="checkboxes">
-        <label name="header"/>
-        <field name="header" xexpand="0" width="25"/>
+    <label name="header"/>
+    <field name="header"/>
+    <group col="-1" colspan="4" id="checkboxes">
         <label name="ignore_search_limit"/>
         <field name="ignore_search_limit" xexpand="0" width="25"/>
     </group>

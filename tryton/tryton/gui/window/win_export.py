@@ -158,10 +158,23 @@ class WinExport(WinCSV, InfoBar):
                 not w.get_active() and not self.screen_is_tree))
 
     def add_csv_header_param(self, box):
-        self.add_field_names = Gtk.CheckButton(label=_("Add field names"))
-        self.add_field_names.set_active(True)
+        self.add_headers = Gtk.CheckButton(label=_("Add headers"))
+        self.add_headers.set_active(True)
         box.pack_start(
-            self.add_field_names, expand=False, fill=True, padding=0)
+            self.add_headers, expand=False, fill=True, padding=0)
+
+        self.use_field_names = Gtk.CheckButton(
+            label=_("Use field names instead of labels"))
+        box.pack_start(
+            self.use_field_names, expand=False, fill=True, padding=0)
+
+        def headers_toggled(button):
+            if button.get_active():
+                self.use_field_names.show_all()
+            else:
+                self.use_field_names.hide()
+
+        self.add_headers.connect('toggled', headers_toggled)
 
     def model_populate(self, fields, parent_node=None, prefix_field='',
             prefix_name=''):
@@ -279,12 +292,18 @@ class WinExport(WinCSV, InfoBar):
                 return
         try:
             values = {
-                'header': self.add_field_names.get_active(),
                 'records': (
                     'selected' if self.selected_records.get_active()
                     else 'listed'),
                 'ignore_search_limit': self.ignore_search_limit.get_active(),
                 }
+            if self.use_field_names.get_active():
+                values['header'] = 'field'
+            elif self.add_headers.get_active():
+                values['header'] = 'label'
+            else:
+                values['header'] = ''
+
             if not pref_id:
                 values.update({
                         'name': name,
@@ -349,7 +368,8 @@ class WinExport(WinCSV, InfoBar):
                 continue
             self.sel_field(name)
 
-        self.add_field_names.set_active(values.get('header'))
+        self.add_headers.set_active(values.get('header'))
+        self.use_field_names.set_active(values.get('header') == 'field')
         self.selected_records.set_active(
             int(values.get('records') == 'selected'))
         self.ignore_search_limit.set_active(
@@ -368,7 +388,8 @@ class WinExport(WinCSV, InfoBar):
             while iter:
                 fields.append(self.model2.get_value(iter, 1))
                 iter = self.model2.iter_next(iter)
-            header = self.add_field_names.get_active()
+            header = ('field' if self.use_field_names.get_active()
+                else ('label' if self.add_headers.get_active() else None))
 
             if self.selected_records.get_active():
                 ids = [r.id for r in self.screen.selected_records]
@@ -537,8 +558,10 @@ class WinExport(WinCSV, InfoBar):
 
         query_string.append(('dl', self.get_delimiter()))
         query_string.append(('qc', self.get_quotechar()))
-        if not self.add_field_names.get_active():
-            query_string.append(('h', '0'))
+        if self.use_field_names.get_active():
+            query_string.append(('h', 'field'))
+        elif self.add_headers.get_active():
+            query_string.append(('h', 'label'))
         if self.csv_locale.get_active():
             query_string.append(('loc', '1'))
 

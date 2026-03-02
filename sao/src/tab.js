@@ -1822,7 +1822,8 @@
                 var fields = export_['export_fields.'].map(
                     field => field.name);
                 this.screen.model.execute(
-                    'export_data', [ids, fields, export_.header],
+                    'export_data',
+                    [ids, fields, export_.header, export_.technical_names],
                     this.screen.context)
                     .then(function(data) {
                         var unparse_obj = {

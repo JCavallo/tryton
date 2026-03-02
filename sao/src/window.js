@@ -1967,17 +1967,32 @@
             }).prepend(this.el_csv_locale)).appendTo(this.expander_csv);
             this.expander_csv.append(' ');
 
-            this.el_add_field_names = jQuery('<input/>', {
+            this.el_add_headers = jQuery('<input/>', {
                 'type': 'checkbox',
                 'checked': 'checked'
+            });
+            this.el_use_field_names = jQuery('<input/>', {
+                'type': 'checkbox',
             });
 
             jQuery('<div/>', {
                 'class': 'checkbox',
             }).append(jQuery('<label/>', {
-                'text': ' '+Sao.i18n.gettext('Add Field Names')
-            }).prepend(this.el_add_field_names)).appendTo(this.expander_csv);
+                'text': ' '+Sao.i18n.gettext('Add headers')
+            }).prepend(this.el_add_headers)).appendTo(this.expander_csv);
+            let field_div = jQuery('<div/>', {
+                'class': 'checkbox',
+            }).append(jQuery('<label/>', {
+                'text': Sao.i18n.gettext('Use field names instead of labels')
+            }).prepend(this.el_use_field_names)).appendTo(this.expander_csv);
             this.expander_csv.append(' ');
+            this.el_add_headers.on('change', (evt) => {
+                if (this.el_add_headers.is(':checked')) {
+                    field_div.show();
+                } else {
+                    field_div.hide();
+                }
+            });
 
             this.set_url();
             Sortable.create(this.fields_selected.get(0), {
@@ -2180,7 +2195,7 @@
             const save = name => {
                 var prm;
                 var values = {
-                    'header': this.el_add_field_names.is(':checked'),
+                    'header': this.el_add_headers.is(':checked') ? (this.el_use_field_names.is(':checked') ? 'field' : 'label') : null,
                     'records': (
                         JSON.parse(this.selected_records.val()) ?
                         'selected' : 'listed'),
@@ -2262,6 +2277,11 @@
                 this.sel_field(name);
             }
             this.el_add_field_names.prop('checked', export_.values.header);
+            this.el_use_field_names.prop('checked', export_.values.header == 'field');
+            // setting the value through .prop() does not trigger the callback
+            if (export_.values.header == 'field') {
+                this.toggle_field_names();
+            }
             this.selected_records.val(
                 JSON.stringify(export_.values.records == 'selected'));
             this.selected_records.change();
@@ -2309,7 +2329,7 @@
                 this.fields_selected.children('li').each(function(i, field) {
                     fields.push(field.getAttribute('path'));
                 });
-                var header = this.el_add_field_names.is(':checked');
+                var header = this.el_add_headers.is(':checked') ? (this.el_use_field_names.is(':checked') ? 'field' : 'label') : null;
                 var prm, ids, paths;
                 if (JSON.parse(this.selected_records.val())) {
                     ids = this.screen.selected_records.map(function(r) {
@@ -2429,8 +2449,12 @@
             query_string.push(['dl', this.el_csv_delimiter.val()]);
             query_string.push(['qc', this.el_csv_quotechar.val()]);
 
-            if (!this.el_add_field_names.is(':checked')) {
-                query_string.push(['h', '0']);
+            if (this.el_add_headers.is(':checked')) {
+                if (this.el_use_field_names.is(':checked')) {
+                    query_string.push(['h', 'label']);
+                } else {
+                    query_string.push(['h', 'field']);
+                }
             }
             if (this.el_csv_locale.prop('checked')) {
                 query_string.push(['loc', '1']);

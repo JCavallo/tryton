@@ -233,8 +233,9 @@ def data(request, pool, model):
     encoding = request.args.get('enc', 'UTF-8')
     delimiter = request.args.get('dl', ',')
     quotechar = request.args.get('qc', '"')
+    header = request.args.get('h', 'label')
+    header = None if header == '0' else header
     try:
-        header = bool(int(request.args.get('h', True)))
         locale_format = bool(int(request.args.get('loc', False)))
     except ValueError:
         abort(HTTPStatus.BAD_REQUEST)
