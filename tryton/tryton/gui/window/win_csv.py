@@ -53,6 +53,7 @@ class WinCSV(NoModal):
         hbox_mapping = Gtk.HBox(homogeneous=True)
         dialog_vbox.pack_start(hbox_mapping, expand=True, fill=True, padding=0)
 
+        self.vbox_fields = Gtk.VBox()
         frame_fields = Gtk.Frame()
         frame_fields.set_shadow_type(Gtk.ShadowType.NONE)
         viewport_fields = Gtk.Viewport()
@@ -64,8 +65,10 @@ class WinCSV(NoModal):
         label_all_fields = Gtk.Label(
             label=_('<b>All fields</b>'), use_markup=True)
         frame_fields.set_label_widget(label_all_fields)
-        hbox_mapping.pack_start(
+        self.vbox_fields.pack_start(
             frame_fields, expand=True, fill=True, padding=0)
+        hbox_mapping.pack_start(
+            self.vbox_fields, expand=True, fill=True, padding=0)
 
         vbox_buttons = Gtk.VBox(homogeneous=False, spacing=10)
         vbox_buttons.set_border_width(5)
@@ -189,16 +192,18 @@ class WinCSV(NoModal):
         self.view1.set_headers_visible(False)
         self.view2.set_headers_visible(False)
 
-        cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn(_('Field name'), cell, text=0)
-        self.view1.append_column(column)
+        self.cell1 = Gtk.CellRendererText()
+        self.column1 = Gtk.TreeViewColumn(_('Field name'), self.cell1, text=0)
+        self.view1.append_column(self.column1)
 
-        cell = Gtk.CellRendererText()
-        column = Gtk.TreeViewColumn(_('Field name'), cell, text=0)
-        self.view2.append_column(column)
+        self.cell2 = Gtk.CellRendererText()
+        self.column2 = Gtk.TreeViewColumn(_('Field name'), self.cell2, text=0)
+        self.view2.append_column(self.column2)
 
-        self.model1 = Gtk.TreeStore(GObject.TYPE_STRING, GObject.TYPE_STRING)
-        self.model2 = Gtk.ListStore(GObject.TYPE_STRING, GObject.TYPE_STRING)
+        self.model1 = Gtk.TreeStore(
+            GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING)
+        self.model2 = Gtk.ListStore(
+            GObject.TYPE_STRING, GObject.TYPE_STRING, GObject.TYPE_STRING)
 
         self.model_populate(self._get_fields(self.model))
 

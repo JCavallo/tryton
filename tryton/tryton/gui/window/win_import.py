@@ -74,6 +74,12 @@ class WinImport(WinCSV):
         label_csv_skip.set_mnemonic_widget(self.csv_skip)
         box.pack_start(self.csv_skip, expand=False, fill=True, padding=0)
 
+        use_field_names = Gtk.CheckButton(
+            label=_("Use field names instead of labels"))
+        use_field_names.connect('toggled', self.toggle_field_names)
+        self.vbox_fields.pack_end(
+            use_field_names, expand=False, fill=True, padding=0)
+
     def model_populate(self, fields, parent_node=None, prefix_field='',
             prefix_name=''):
         fields_order = list(fields.keys())
@@ -85,7 +91,8 @@ class WinImport(WinCSV):
                 self.fields_data[prefix_field + field_name] = field
                 name = field['string'] or field_name
                 node = self.model1.insert(
-                    parent_node, 0, [name, prefix_field + field_name])
+                    parent_node, 0,
+                    [name, field_name, prefix_field + field_name])
                 name = prefix_name + name
                 # Only One2Many can be nested for import
                 if field['type'] == 'one2many':
@@ -95,13 +102,14 @@ class WinImport(WinCSV):
                 self.fields[prefix_field + field_name] = (name, relation)
                 self.fields_invert[name] = prefix_field + field_name
                 if relation:
-                    self.model1.insert(node, 0, [None, ''])
+                    self.model1.insert(node, 0, [None, None, ''])
                 elif field.get('translate', False):
                     for language in self.languages:
                         l_field_name = f"{field_name}:lang={language['code']}"
                         self.model1.insert(
                             node, 0, [
-                                language['name'], prefix_field + l_field_name])
+                                language['name'], language['code'],
+                                prefix_field + l_field_name])
                         l_name = prefix_name + name + f" ({language['name']})"
                         self.fields[prefix_field + l_field_name] = (
                             l_name, relation)
@@ -198,6 +206,16 @@ class WinImport(WinCSV):
 
     def sig_unsel_all(self, *args):
         self.model2.clear()
+
+    def toggle_field_names(self, button):
+        position = 1 if button.get_active() else 0
+
+        def cell_data_func(column, cell, model, iter_, data):
+            cell.set_property('text', model[iter_][position])
+
+        self.column1.set_cell_data_func(self.cell1, cell_data_func)
+        self.model1.set_sort_column_id(position, Gtk.SortType.ASCENDING)
+        self.view1.queue_draw()
 
     def response(self, dialog, response):
         super().response(dialog, response)
