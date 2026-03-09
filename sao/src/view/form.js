@@ -1328,19 +1328,25 @@ function eval_pyson(value){
             } else {
                 this.el.removeClass('readonly');
             }
-            var required_el = this._required_el();
-            this.set_required(required);
-            if (!readonly && required) {
-                required_el.addClass('required');
-            } else {
-                required_el.removeClass('required');
+            // MAB: For extra data
+            if (!this.attributes.no_command){
+                var required_el = this._required_el();
+                this.set_required(required);
+                if (!readonly && required) {
+                    required_el.addClass('required');
+                } else {
+                    required_el.removeClass('required');
+                }
             }
             var invalid = state_attrs.invalid;
-            var invalid_el = this._invalid_el();
-            if (!readonly && invalid) {
-                invalid_el.addClass('has-error');
-            } else {
-                invalid_el.removeClass('has-error');
+            // MAB: For extra data
+            if (!this.attributes.no_command){
+                var invalid_el = this._invalid_el();
+                if (!readonly && invalid) {
+                    invalid_el.addClass('has-error');
+                } else {
+                    invalid_el.removeClass('has-error');
+                }
             }
             if (invisible === undefined) {
                 invisible = field.get_state_attrs(this.record).invisible;
@@ -6008,36 +6014,32 @@ function eval_pyson(value){
                 'class': this.class_ + '-container'
             }).appendTo(body);
 
-            var group = jQuery('<div/>', {
-                'class': 'input-group input-group-sm'
-            }).appendTo(jQuery('<div>', {
-                'class': 'dict-row'
-            }).appendTo(body));
-            this.wid_text = jQuery('<input/>', {
-                'type': 'text',
-                'class': 'form-control input-sm',
-                'placeholder': Sao.i18n.gettext('Search'),
-                'name': attributes.name,
-            }).appendTo(group);
+            // [Coog specific]
+            //      > attribute no_command (hide input line)
+            if (!attributes.no_command) {
+                var group = jQuery('<div/>', {
+                    'class': 'input-group input-group-sm'
+                }).appendTo(jQuery('<div>', {
+                    'class': 'dict-row'
+                }).appendTo(body)));
+                this.wid_text = jQuery('<input/>', {
+                    'type': 'text',
+                    'class': 'form-control input-sm',
+                    'placeholder': Sao.i18n.gettext('Search'),
+                    'name': attributes.name,
+                }).appendTo(group);
 
-            if (!attributes.completion || attributes.completion == '1') {
-                this.wid_completion = Sao.common.get_completion(
-                    group,
-                    this._update_completion.bind(this),
-                    this._completion_match_selected.bind(this));
-                this.wid_text.completion = this.wid_completion;
+                this.but_add = jQuery('<button/>', {
+                    'class': 'btn btn-default btn-sm',
+                    'type': 'button',
+                    'aria-label': Sao.i18n.gettext('Add'),
+                    'title': Sao.i18n.gettext("Add"),
+                }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-add')
+                ).appendTo(jQuery('<div/>', {
+                    'class': 'input-group-btn'
+                }).appendTo(group));
+                this.but_add.click(this.add.bind(this));
             }
-
-            this.but_add = jQuery('<button/>', {
-                'class': 'btn btn-default btn-sm',
-                'type': 'button',
-                'aria-label': Sao.i18n.gettext("Add"),
-                'title': Sao.i18n.gettext("Add"),
-            }).append(Sao.common.ICONFACTORY.get_icon_img('tryton-add')
-            ).appendTo(jQuery('<div/>', {
-                'class': 'input-group-btn'
-            }).appendTo(group));
-            this.but_add.click(this.add.bind(this));
 
             this._readonly = false;
             this._record_id = null;
@@ -6136,7 +6138,10 @@ function eval_pyson(value){
                 var widget = this.fields[key];
                 widget.set_readonly(readonly);
             }
-            this.wid_text.prop('disabled', readonly || !this.record);
+            // MAB: For extra data
+            if (!this.attributes.no_command) {
+                this.wid_text.prop('disabled', readonly);
+            }
         },
         _set_button_sensitive: function() {
             var record = this.record;
@@ -6152,10 +6157,13 @@ function eval_pyson(value){
             } else if (typeof delete_ == 'string') {
                 delete_ = Boolean(parseInt(delete_, 10));
             }
-            this.but_add.prop('disabled', this._readonly || !create || !record);
+            // MAB: For extra data
+            if (!this.attributes.no_command) {
+                this.but_add.prop('disabled', this._readonly || !create);
+            }
             for (var key in this.fields) {
                 var button = this.fields[key].button;
-                button.prop('disabled', this._readonly || !delete_ || !record);
+                button.prop('disabled', this._readonly || !delete_);
             }
         },
         add_line: function(key, position) {
@@ -6179,10 +6187,14 @@ function eval_pyson(value){
             field.labelled.uniqueId();
             field.labelled.attr('aria-labelledby', label.attr('id'));
             label.attr('for', field.labelled.attr('id'));
-
-            field.button.click(() => {
-                this.remove(key, true);
-            });
+            // MAB: For extra data
+            if (!this.attributes.no_command) {
+                field.button.click(() => {
+                    this.remove(key, true);
+                });
+            } else {
+                field.button.parent().css('visibility', 'hidden');
+            }
 
             var previous = null;
             if (position > 0) {
