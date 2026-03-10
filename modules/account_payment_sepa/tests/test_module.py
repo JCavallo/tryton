@@ -248,10 +248,11 @@ class AccountPaymentSepaTestCase(
                     })
             self.assertEqual(mandate.identification, None)
 
-            self.assertRaises(UserError, Mandate.create, [{
-                        'party': party.id,
-                        'identification': same_id,
-                        }])
+            # RSE 20/04/17: We removed the constraint
+            # self.assertRaises(UserError, Mandate.create, [{
+            #             'party': party.id,
+            #             'identification': same_id,
+            #             }])
 
     @with_transaction()
     def test_payment_sepa_bank_account_number(self):
