@@ -92,9 +92,10 @@ Post statement in company currency with second currency::
     >>> line.amount_second_currency = Decimal('50.00')
     >>> line.second_currency = eur
     >>> line.related_to = invoice
-    >>> statement.click('validate_statement')
+    >>> statement.click('dummy_validate_method')
+    >>> statement.click('post')
     >>> statement.state
-    'validated'
+    'posted'
 
 Check invoice is paid::
 

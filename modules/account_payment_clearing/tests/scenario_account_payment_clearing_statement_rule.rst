@@ -133,9 +133,10 @@ Create a statement with payment and group as origins::
 
 Check payments are succeeded after validation::
 
-    >>> statement.click('validate_statement')
+    >>> statement.click('dummy_validate_method')
+    >>> statement.click('post')
     >>> statement.state
-    'validated'
+    'posted'
     >>> payment1.reload()
     >>> payment1.state
     'succeeded'
