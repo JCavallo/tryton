@@ -87,8 +87,9 @@ Create no dunning::
 
     >>> create_dunning = Wizard('account.dunning.create')
     >>> create_dunning.execute('create_')
+    >>> # coog specific : active field does not depend on payment_amount
     >>> Dunning.find([])
-    []
+    [proteus.Model.get('account.dunning')(1)]
 
 Fail the payment::
 
@@ -122,7 +123,9 @@ Recreate a payment::
 Dunning is inactive::
 
     >>> dunning.reload()
+    >>> # coog specific : active field does not depend on payment_amount
     >>> dunning.active
-    False
+    True
+    >>> # coog specific : active field does not depend on payment_amount
     >>> Dunning.find([])
-    []
+    [proteus.Model.get('account.dunning')(1)]
