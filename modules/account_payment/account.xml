@@ -26,8 +26,11 @@ this repository contains the full copyright notices and license terms. -->
         <record model="ir.action.act_window" id="act_move_line_form">
             <field name="name">Lines to Pay</field>
             <field name="res_model">account.move.line</field>
-            <field name="domain"
+            <!-- <field name="domain" JMO: Coog Specific: no filter on maturity_date
                 eval="[['OR', ('account.type.receivable', '=', True), ('account.type.payable', '=', True)], ('party', '!=', None), ('reconciliation', '=', None), ('payment_amount', '!=', 0), ('move_state', '=', 'posted'), ('maturity_date', '!=', None)]"
+            pyson="1"/> -->
+            <field name="domain"
+                eval="[['OR', ('account.type.receivable', '=', True), ('account.type.payable', '=', True)], ('party', '!=', None), ('reconciliation', '=', None), ('payment_amount', '!=', 0), ('move_state', '=', 'posted')]"
                 pyson="1"/>
             <field name="search_value"
                 eval="[('payment_blocked', '=', False)]" pyson="1"/>
