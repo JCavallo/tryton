@@ -2336,7 +2336,12 @@ class Invoice(
                 for line in move.lines:
                     if (not line.reconciliation
                             and line.account == invoice.account):
-                        to_reconcile.append(line)
+                        # JMO : handle case of zero lines
+                        # on cancel move
+                        zero_reconciled = (not line.amount
+                            and line.reconciliation)
+                        if not zero_reconciled:
+                            to_reconcile.append(line)
             Line.reconcile(to_reconcile)
 
         cls._clean_payments(invoices)
