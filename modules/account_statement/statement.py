@@ -1090,6 +1090,9 @@ class Line(origin_mixin(_states), sequence_ordered(), ModelSQL, ModelView):
             amount_second_currency=amount_second_currency,
             )
 
+    def reset_remaining_line(self, from_line):
+        self.invoice = None
+
 
 del _states
 

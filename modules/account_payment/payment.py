@@ -921,3 +921,6 @@ class ProcessPayment(Wizard):
             return action, {
                 'res_id': [g.id for g in groups],
                 }
+
+    def default_start(self, name):
+        return {}

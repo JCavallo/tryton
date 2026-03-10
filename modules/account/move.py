@@ -1322,6 +1322,12 @@ class Line(DescriptionOriginMixin, MoveLineMixin, ModelSQL, ModelView):
             return final_delegation.amount
 
     @classmethod
+    def get_query_get_where_clause(cls, table, where):
+        # RSE add hook to override where clause #9462
+        # overriden in account_per_product module
+        return where
+
+    @classmethod
     def query_get(cls, table):
         '''
         Return SQL clause and fiscal years for account move line
@@ -1385,6 +1391,7 @@ class Line(DescriptionOriginMixin, MoveLineMixin, ModelSQL, ModelView):
                     ])
             fiscalyear_ids = list(map(int, fiscalyears))
 
+        where = cls.get_query_get_where_clause(table, where)
         # Use LEFT JOIN to allow database optimization
         # if no joined table is used in the where clause.
         return (table.move.in_(move
@@ -2400,49 +2407,50 @@ class Reconcile(Wizard):
     def transition_setup(self):
         return self.transition_next_(first=True)
 
+    def _next_account(self):
+        accounts = list(self.show.accounts)
+        if not accounts:
+            return
+        account = accounts.pop()
+        self.show.account = account
+        self.show.accounts = accounts
+        self.show.parties = self.get_parties(account)
+        return account
+
+    def _next_party(self):
+        parties = list(self.show.parties)
+        if not parties:
+            return
+        party = parties.pop()
+        self.show.party = party
+        self.show.parties = parties
+        self.show.currencies = self.get_currencies(
+            self.show.account, party)
+        return party,
+
+    def _next_currency(self):
+        currencies = list(self.show.currencies)
+        if not currencies:
+            return
+        currency = currencies.pop()
+        self.show.currency = currency
+        self.show.currencies = currencies
+        return currency
+
     @check_access
     def transition_next_(self, first=False):
         pool = Pool()
         Line = pool.get('account.move.line')
 
-        def next_account():
-            accounts = list(self.show.accounts)
-            if not accounts:
-                return
-            account = accounts.pop()
-            self.show.account = account
-            self.show.accounts = accounts
-            self.show.parties = self.get_parties(account)
-            return account
-
-        def next_party():
-            parties = list(self.show.parties)
-            if not parties:
-                return
-            party = parties.pop()
-            self.show.party = party
-            self.show.parties = parties
-            self.show.currencies = self.get_currencies(
-                self.show.account, party)
-            return party,
-
-        def next_currency():
-            currencies = list(self.show.currencies)
-            if not currencies:
-                return
-            currency = currencies.pop()
-            self.show.currency = currency
-            self.show.currencies = currencies
-            return currency
-
         if first:
             self.show.accounts = self.get_accounts()
-            account = next_account()
-            if not account or (not next_party() and account.party_required):
+            account = self._next_account()
+            if not account or (not self._next_party()
+                    and account.party_required):
                 return 'end'
             if self.show.account.party_required:
                 self.show.parties = self.get_parties(self.show.account)
-                if not next_party():
+                if not self._next_party():
                     return 'end'
             else:
                 self.show.parties = []
@@ -2451,13 +2459,13 @@ class Reconcile(Wizard):
                 self.show.account, self.show.party)
 
         while True:
-            while not next_currency():
-                if self.show.account.party_required:
-                    while not next_party():
-                        if not next_account():
+            while not self._next_currency():
+                if self.show.account.party_required or True:
+                    while not self._next_party():
+                        if not self._next_account():
                             return 'end'
                 else:
-                    if not next_account():
+                    if not self._next_account():
                         return 'end'
             if self.start.automatic or self.start.only_balanced:
                 lines = self._default_lines()

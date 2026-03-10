@@ -6,6 +6,7 @@ import re
 from collections import defaultdict
 
 import stdnum.exceptions
+from collections import defaultdict
 from sql import Column, Literal
 from sql.aggregate import Min
 from sql.functions import CharLength
@@ -1141,6 +1142,7 @@ class Replace(Wizard):
 
         models_changed = defaultdict(list)
         cursor = transaction.connection.cursor()
+        modified_fields = defaultdict(list)
         for model_name, field_name in self.fields_to_replace():
             Model = pool.get(model_name)
             field = getattr(Model, field_name)
@@ -1172,11 +1174,13 @@ class Replace(Wizard):
 
             Model._insert_history(ids)
             models_changed[Model].append((field_name, ids))
+            modified_fields[(model_name, field_name)].extend(ids)
 
         for Model, modified_fields in models_changed.items():
             for field_name, ids in modified_fields:
                 Model.on_modification('write', Model.browse(ids), {field_name})
 
+        self.hook_after_replace(modified_fields)
         return 'end'
 
     @classmethod
@@ -1186,6 +1190,10 @@ class Replace(Wizard):
             ('party.contact_mechanism', 'party'),
             ('party.identifier', 'party'),
             ]
+
+    @classmethod
+    def hook_after_replace(cls, modified_fields):
+        return
 
 
 class ReplaceAsk(ModelView):

@@ -1243,6 +1243,14 @@ class Invoice(
         if to_write:
             Tax.write(*to_write)
 
+    def get_payment_term_computation_date(self):
+        pool = Pool()
+        Date = pool.get('ir.date')
+        with Transaction().set_context(company=self.company.id):
+            today = Date.today()
+
+        return self.payment_term_date or self.invoice_date or today
+
     def _get_move_line(self, date, amount):
         '''
         Return move line
@@ -1338,7 +1346,7 @@ class Invoice(
 
         remainder = sum(l.debit - l.credit for l in move_lines)
         if self.payment_term:
-            payment_date = self.payment_term_date or self.invoice_date or today
+            payment_date = self.get_payment_term_computation_date()
             term_lines = self.payment_term.compute(
                 self.total_amount, self.currency, payment_date)
         else:
@@ -2046,13 +2054,17 @@ class Invoice(
         cls._store_cache(invoices)
         moves = []
         for invoice in invoices_in:
-            move = invoice.get_move()
-            if move != invoice.move:
+            # COOPENGO:
+            move = invoice.get_validated_move()
+            if move is not None and move != invoice.move:
                 invoice.move = move
                 moves.append(move)
         if moves:
             Move.save(moves)
         cls.save(invoices_in)
+
+    def get_validated_move(self):
+        return self.get_move()
 
     @classmethod
     @Workflow.transition('posted')
