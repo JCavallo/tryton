@@ -217,17 +217,6 @@ this repository contains the full copyright notices and license terms. -->
             <field name="perm_create" eval="True"/>
             <field name="perm_delete" eval="True"/>
         </record>
-
-        <record model="ir.action.report" id="report_letter">
-            <field name="name">Letter</field>
-            <field name="model">party.party</field>
-            <field name="report_name">party.letter</field>
-            <field name="report">company/letter.fodt</field>
-        </record>
-        <record model="ir.action.keyword" id="report_letter_party">
-            <field name="keyword">form_print</field>
-            <field name="model">party.party,-1</field>
-            <field name="action" ref="report_letter"/>
-        </record>
+        <!-- Coog Specific: Remove reports "Labels" and "Letter" on party -->
     </data>
 </tryton>
