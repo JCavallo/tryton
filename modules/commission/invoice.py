@@ -54,14 +54,17 @@ class Invoice(metaclass=PoolMeta):
         pool = Pool()
         Date = pool.get('ir.date')
         Commission = pool.get('commission')
+        InvoiceLine = pool.get('account.invoice.line')
+
         date2commissions = defaultdict(list)
         for company, c_invoices in groupby(invoices, key=lambda i: i.company):
             with Transaction().set_context(company=company.id):
                 today = Date.today()
+            # JMO : Query optimization
             for commission in Commission.search([
                         ('date', '=', None),
-                        ('origin.invoice', 'in', list(c_invoices),
-                            'account.invoice.line'),
+                        ('origin', 'in', [str(x) for x in InvoiceLine.search(
+                                    [('invoice', 'in', ids)])]),
                         ]):
                 date = commission.origin.invoice.reconciled or today
                 date2commissions[date].append(commission)
@@ -81,24 +84,50 @@ class Invoice(metaclass=PoolMeta):
         cls.set_commissions_date(invoices)
 
     @classmethod
+    def _get_commissions_to_delete(cls, ids):
+        # Declared to be overloaded for performances improvements
+        # We should improve or overload the field `reference`
+        Commission = Pool().get('commission')
+        return Commission.search([
+                ('invoice_line', '=', None),
+                ('origin.invoice', 'in', ids, 'account.invoice.line'),
+                ])
+
+    @classmethod
+    def _get_commissions_to_cancel(cls, ids):
+        # Declared to be overloaded for performances improvements
+        # We should improve or overload the field `reference`
+        Commission = Pool().get('commission')
+        return Commission.search([
+                ('invoice_line', '!=', None),
+                ('origin.invoice', 'in', ids, 'account.invoice.line'),
+                ])
+
+    @classmethod
     @ModelView.button
     @Workflow.transition('cancelled')
     def cancel(cls, invoices):
+        # Because domain resolution of the field `reference` creates
+        # a non-optimized query: we temporary created two function to be
+        # overloaded
+        # Issue: 2913
         pool = Pool()
         Commission = pool.get('commission')
 
-        invoices_to_revert_commission = []
-        invoices_to_set_date = []
-        for invoice in invoices:
-            if invoice.move:
-                invoices_to_set_date.append(invoice)
-            else:
-                invoices_to_revert_commission.append(invoice)
+        # invoices_to_revert_commission = []
+        # invoices_to_set_date = []
+        # for invoice in invoices:
+        #     if invoice.move:
+        #         invoices_to_set_date.append(invoice)
+        #     else:
+        #         invoices_to_revert_commission.append(invoice)
 
         super().cancel(invoices)
-        cls.set_commissions_date(invoices_to_set_date)
+        # Do not set commissions date on cancel
+        # cls.set_commissions_date(invoices_to_set_date)
 
         to_delete = []
+<<<<<<< HEAD
         to_save = []
         to_delete += Commission.search([
                 ('invoice_line', '=', None),
@@ -113,9 +142,15 @@ class Invoice(metaclass=PoolMeta):
         for commission in Commission.copy(to_cancel):
             commission.amount *= -1
             to_save.append(commission)
+=======
+        for sub_invoices in grouped_slice(invoices):
+            ids = [i.id for i in sub_invoices]
+            to_delete += cls._get_commissions_to_delete(ids)
+            to_cancel = cls._get_commissions_to_cancel(ids)
+            Commission.cancel(to_cancel)
+>>>>>>> 5a2fb5e177 ([modules/commission][TO ANALYSE] Modular commission computation [CUSTOM])
 
         Commission.delete(to_delete)
-        Commission.save(to_save)
 
     def _credit(self, **values):
         values.setdefault('agent', self.agent)
