@@ -221,10 +221,11 @@ class AccountNumber(DeactivableMixin, sequence_ordered(), ModelSQL, ModelView):
         super().__setup__()
         table = cls.__table__()
         cls._sql_constraints += [
-            ('number_iban_active_exclude',
-                Exclude(table, (table.number_compact, Equal),
-                    where=(table.type == 'iban') & table.active),
-                'bank.msg_number_iban_unique'),
+            # JCA: remove unicity constraint on ibans for multi_portfolios
+            # ('number_iban_active_exclude',
+            #     Exclude(table, (table.number_compact, Equal),
+            #         where=(table.type == 'iban') & table.active),
+            #     'bank.msg_number_iban_unique'),
             ('account_iban_active_exclude',
                 Exclude(table, (table.account, Equal),
                     where=(table.type == 'iban') & table.active),
