@@ -1295,6 +1295,7 @@ class TaxableMixin(object):
         Tax = pool.get('account.tax')
         Configuration = pool.get('account.configuration')
         context = Transaction().context
+        today = pool.get('ir.date').today()
 
         all_taxes = {}
         with Transaction().set_context(self._get_tax_context()):
@@ -1311,9 +1312,12 @@ class TaxableMixin(object):
                 taxes = {}
                 for line in grouped_taxable_lines:
                     assert all(t.company == self.company for t in line.taxes)
+                    date = (getattr(line, 'tax_date', None)
+                        or getattr(self, 'tax_date', None)
+                        or today)
                     l_taxes = Tax.compute(
                         Tax.browse(line.taxes), line.unit_price,
-                        line.quantity, line.tax_date or self.tax_date)
+                        line.quantity, date)
                     current_taxes = {}
                     for tax in l_taxes:
                         taxline = self._compute_tax_line(**tax)
