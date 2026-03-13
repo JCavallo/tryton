@@ -1,0 +1,41 @@
+stages:
+  - synchronize
+  - test
+
+variables:
+  SLACK_WEBHOOK: security_test # For slack notification from the include file
+
+## includes
+include:
+  - project: 'coopengo/devops/gitlab-ci-template'
+    ref: master
+    file:
+      - '/Security/SAST.gitlab-ci.yml'
+      - '/Specific/slack.notification.gitlab-ci.yml'
+
+## Main
+
+synchronize:pipeline:
+  stage: synchronize
+  image: bitnami/git
+  variables:
+    GIT_STRATEGY: none
+    REPOSITORY_COOPENGO_URL: "git@github.com"
+  before_script:
+    - echo "Source is ${CI_PIPELINE_SOURCE}"
+    - !reference [.git_with_ssh:debian, before_script]
+    - git clone --branch "${CI_COMMIT_REF_NAME}" "${REPOSITORY_COOPENGO_URL}:${CI_PROJECT_ROOT_NAMESPACE}/${CI_PROJECT_NAME}.git" "${CI_PROJECT_DIR}"
+    - git fetch --all
+  script:
+    - |-
+      for BRANCH in $(git ls-remote --refs -h origin -l "coog-*" | cut -s -d '/' -f3 | grep -E "^(coog-[[:digit:]]{1,2}).([[:digit:]]{1,2})$" )
+      do
+        git checkout "${BRANCH}"
+        git checkout "origin/${CI_DEFAULT_BRANCH}" .gitlab-ci.yml
+        git commit -m "Merge .gitlab-ci.yml from \"${CI_DEFAULT_BRANCH}\""
+      done
+      git push --all
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "push" && $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH'
+      changes:
+        - .gitlab-ci.yml
