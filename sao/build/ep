@@ -1,0 +1,66 @@
+#!/bin/sh
+
+move_res() {
+    local base
+    base=$(basename "$1")
+    echo "$1" -> "$base"
+    cp -r "$1" dist/ && sed -i "s;$1;$base;g" dist/index.html
+}
+
+# pick the files needed to run and flatten them on dist folder
+# in dev mode, these files are referenced from their original path
+pack() {
+    cp index.html dist/ \
+        && cp custom.js dist/ \
+        && cp custom.css dist/ \
+        && cp -r locale dist/ \
+        && cp -r images dist/ \
+        && cp -r bower_components/bootstrap/dist/fonts dist/ \
+        && move_res bower_components/Sortable/Sortable.js \
+        && move_res bower_components/bootstrap/dist/css/bootstrap.min.css \
+        && move_res bower_components/bootstrap/dist/css/bootstrap-theme.min.css \
+        && move_res bower_components/bootstrap/dist/js/bootstrap.js \
+        && move_res bower_components/bootstrap-rtl-ondemand/dist/css/bootstrap-rtl-ondemand.min.css \
+        && move_res bower_components/bootstrap-rtl-ondemand/dist/js/holder.js \
+        && move_res bower_components/bootstrap-rtl-ondemand/dist/js/html5shiv.js \
+        && move_res bower_components/bootstrap-rtl-ondemand/dist/js/respond.min.js \
+        && move_res bower_components/codemirror/lib/codemirror.js \
+        && move_res bower_components/codemirror/mode/python/python.js \
+        && move_res bower_components/codemirror/mode/xml/xml.js \
+        && move_res bower_components/codemirror/addon/lint/lint.js \
+        && move_res bower_components/codemirror/addon/hint/show-hint.js \
+        && move_res bower_components/codemirror/addon/runmode/runmode.js \
+        && move_res bower_components/codemirror/addon/display/autorefresh.js \
+        && move_res bower_components/codemirror/addon/search/search.js \
+        && move_res bower_components/codemirror/addon/search/searchcursor.js \
+        && move_res bower_components/codemirror/addon/search/jump-to-line.js \
+        && move_res bower_components/codemirror/addon/dialog/dialog.js \
+        && move_res bower_components/codemirror/addon/fold/foldcode.js \
+        && move_res bower_components/codemirror/addon/fold/foldgutter.js \
+        && move_res bower_components/codemirror/addon/fold/comment-fold.js \
+        && move_res bower_components/codemirror/addon/fold/indent-fold.js \
+        && move_res bower_components/codemirror/addon/selection/active-line.js \
+        && move_res bower_components/codemirror/lib/codemirror.css \
+        && move_res bower_components/codemirror/addon/lint/lint.css \
+        && move_res bower_components/codemirror/addon/hint/show-hint.css \
+        && move_res bower_components/codemirror/addon/dialog/dialog.css \
+        && move_res bower_components/codemirror/addon/fold/foldgutter.css \
+        && move_res node_modules/d3/dist/d3.js \
+        && move_res node_modules/billboard.js/dist/billboard.js \
+        && move_res node_modules/billboard.js/dist/billboard.css \
+        && move_res bower_components/fullcalendar/dist/fullcalendar.css \
+        && move_res bower_components/fullcalendar/dist/fullcalendar.js \
+        && move_res bower_components/fullcalendar/dist/locale-all.js \
+        && move_res bower_components/gettext.js/dist/gettext.iife.js \
+        && move_res bower_components/jquery/dist/jquery.js \
+        && move_res bower_components/moment/min/locales.js \
+        && move_res bower_components/moment/moment.js \
+        && move_res bower_components/mousetrap/mousetrap.js \
+        && move_res bower_components/mousetrap/plugins/pause/mousetrap-pause.js \
+        && move_res bower_components/papaparse/papaparse.js \
+        && sed -i "s;\.\./bower_components/bootstrap/fonts;fonts;g" dist/tryton-sao.css \
+        && sed -i "s;dist/tryton-sao.js;tryton-sao.js;g" dist/index.html \
+        && sed -i "s;dist/tryton-sao.css;tryton-sao.css;g" dist/index.html
+}
+
+yarn && npm exec grunt && pack
