@@ -58,7 +58,7 @@
     "moment": "^2.10",
     "gettext.js": "^2",
     "papaparse": "^5.0",
-    "fullcalendar": "^3.10.2",
+    "fullcalendar": "3.10.2",
     "mousetrap": "^1.6",
     "bootstrap-rtl-ondemand": "^3.3.4-ondemand",
     "sortablejs": "^1.8.4",
