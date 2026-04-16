@@ -302,6 +302,7 @@
                     document.addEventListener('mousemove', on_mouse_move);
                     document.addEventListener('mouseup', on_mouse_up);
 
+                    this.table.addClass('table-bordered');
                     event.preventDefault();
                 });
 
