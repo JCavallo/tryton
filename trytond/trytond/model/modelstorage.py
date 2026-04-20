@@ -354,7 +354,10 @@ class ModelStorage(Model):
 
     @classmethod
     def _must_log(cls):
-        return True
+        transaction = Transaction()
+        check_access = transaction.user and transaction.check_access
+        log = transaction.context.get('_log', False)
+        return check_access or log
 
     @classmethod
     def _before_write(cls, *args):
@@ -364,7 +367,7 @@ class ModelStorage(Model):
         Trigger = pool.get('ir.trigger')
         transaction = Transaction()
         check_access = transaction.user and transaction.check_access
-        log = transaction.context.get('_log', False)
+        must_log = cls._must_log()
 
         assert not len(args) % 2
 
@@ -384,7 +387,7 @@ class ModelStorage(Model):
                 on_write.extend(cls.on_write(records, values))
                 args.append(records)
                 args.append(cls.preprocess_values('write', values))
-                if cls._must_log() and values:
+                if must_log and values:
                     cls.log(records, 'write', ','.join(sorted(values.keys())))
                 field_names.update(values.keys())
                 all_records.extend(records)
