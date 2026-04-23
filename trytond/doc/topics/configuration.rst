@@ -314,6 +314,24 @@ The name of the similarity function.
 
 Default: ``similarity``
 
+binary_scanner
+~~~~~~~~~~~~~~
+
+The command used to scan the content of Binary fields.
+The command receive the quarantine directory as last argument.
+If the command returns a non zero status, it is considered that at least one
+file in the directory is malicious.
+
+binary_scanner_directory
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+The directory where the binary content are stored before being checked
+by the scanner.
+
+Default: The temporary directory as determined by Python's tempfile_ module.
+
+.. _tempfile: https://docs.python.org/3/library/tempfile.html#tempfile.gettempdir
+
 .. _config-request:
 
 request

@@ -379,6 +379,9 @@ this repository contains the full copyright notices and license terms. -->
         <record model="ir.message" id="msg_trigger_invalid_condition">
             <field name="text">Condition "%(condition)s" is not a valid PYSON expression for trigger "%(trigger)s".</field>
         </record>
+        <record model="ir.message" id="msg_malicious_binary">
+            <field name="text">The content of field "%(field)s" has been detected as malicious.</field>
+        </record>
         <record model="ir.message" id="msg_html_editor_save_fail">
             <field name="text">Failed to save, please retry.</field>
         </record>
