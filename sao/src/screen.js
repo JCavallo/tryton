@@ -2081,8 +2081,7 @@
                         fields.push(domain_parser.string(invalid));
                     } else {
                         fields.push(Sao.i18n.gettext(
-                            '"%1" is not valid according to its domain.'),
-                            string);
+                            '"%1" is not valid according to its domain.', string));
                     }
                 }
             }
