@@ -88,6 +88,8 @@
                 ctx = jQuery.extend(ctx, params.context);
                 // [Coog Specific] handle extra_context
                 ctx = jQuery.extend(ctx, data.extra_context || {});
+                params.context = jQuery.extend(
+                    params.context, data.extra_context || {});
 
                 ctx.context = Sao.common.clone(ctx);
                 decoder = new Sao.PYSON.Decoder(ctx);
