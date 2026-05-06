@@ -45,6 +45,11 @@ module.exports = function(grunt) {
         options: {
             failOnError: true
         },
+        tiptap: {
+            command: 'node_modules/.bin/esbuild src/tiptap-entry.js' +
+                ' --bundle --format=iife --global-name=Tiptap' +
+                ' --outfile=dist/tiptap-bundle.js'
+        },
         msgmerge: {
             command: _.map(locales, function(locale) {
                 var po = "locale/" + locale + ".po";
@@ -128,20 +133,19 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-po2json');
   grunt.loadNpmTasks('grunt-qunit-junit');
+  grunt.loadNpmTasks('grunt-shell');
 
   grunt.registerTask('default', 'Build for production.', function() {
-    grunt.task.run(['concat', 'less', 'po2json']);
+    grunt.task.run(['concat', 'less', 'po2json', 'shell:tiptap']);
     });
   grunt.registerTask('watch', 'Watch development', function() {
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.task.run(['watch']);
     });
   grunt.registerTask('msgmerge', 'Update locale messages.', function() {
-    grunt.loadNpmTasks('grunt-shell');
     grunt.task.run(['shell:msgmerge']);
     });
   grunt.registerTask('xgettext', ' Extracts translatable messages', function() {
-    grunt.loadNpmTasks('grunt-shell');
     grunt.task.run(['shell:xgettext']);
   });
   grunt.registerTask('test', 'Run tests', function() {
