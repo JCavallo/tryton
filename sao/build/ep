@@ -59,6 +59,7 @@ pack() {
         && move_res bower_components/mousetrap/plugins/pause/mousetrap-pause.js \
         && move_res bower_components/papaparse/papaparse.js \
         && sed -i "s;\.\./bower_components/bootstrap/fonts;fonts;g" dist/tryton-sao.css \
+        && sed -i "s;dist/tiptap-bundle.js;tiptap-bundle.js;g" dist/index.html \
         && sed -i "s;dist/tryton-sao.js;tryton-sao.js;g" dist/index.html \
         && sed -i "s;dist/tryton-sao.css;tryton-sao.css;g" dist/index.html
 }
