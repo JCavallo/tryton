@@ -61,6 +61,24 @@
             this._x_sao = structuredClone(value['x-sao']);
             if (['pie', 'donut'].includes(value.data.type)) {
                 this._remap_ids();
+                if (this.attributes.pie_mode && (this.attributes.pie_mode == 'number')) {
+                    Object.assign(value, {
+                        pie: {
+                            label: {
+                                format: function (value, ratio, id) {
+                                    return value;
+                                }
+                            }
+                        },
+                        tooltip: {
+                            format: {
+                                value: function (value, ratio, id) {
+                                    return value;
+                                }
+                            }
+                        },
+                    });
+                };
             }
             Object.assign(value, {
                 bindto: `#${this.el.attr('id')}`,
