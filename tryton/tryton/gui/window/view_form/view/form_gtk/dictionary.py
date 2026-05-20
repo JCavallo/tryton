@@ -83,6 +83,47 @@ class DictCharEntry(DictEntry):
         return self.get_value() != (value.get(self.name, '') or '')
 
 
+class DictTextEntry(DictEntry):
+
+    def create_widget(self):
+        widget = Gtk.VBox()
+        scrolledwindow = Gtk.ScrolledWindow()
+        scrolledwindow.set_policy(
+            Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
+        scrolledwindow.set_shadow_type(Gtk.ShadowType.ETCHED_IN)
+        scrolledwindow.set_size_request(100, 100)
+
+        self.textview = Gtk.TextView()
+        self.textview.set_wrap_mode(Gtk.WrapMode.WORD)
+        self.textview.set_accepts_tab(False)
+        self._signal_handlers[self.textview].append(
+            self.textview.connect(
+                'focus-out-event',
+                lambda w, e: self.parent_widget._focus_out()))
+        self._signal_handlers[self.textview].append(
+            self.textview.connect(
+                'key-press-event', self.parent_widget.send_modified))
+        scrolledwindow.add(self.textview)
+        scrolledwindow.show_all()
+        widget.pack_end(scrolledwindow, expand=True, fill=True, padding=0)
+        return widget
+
+    def get_value(self):
+        buf = self.textview.get_buffer()
+        iter_start = buf.get_start_iter()
+        iter_end = buf.get_end_iter()
+        return buf.get_text(iter_start, iter_end, False)
+
+    def set_value(self, value):
+        buf = self.textview.get_buffer()
+        buf.delete(buf.get_start_iter(), buf.get_end_iter())
+        iter_start = buf.get_start_iter()
+        buf.insert(iter_start, value)
+
+    def set_readonly(self, readonly):
+        self.textview.set_editable(not readonly)
+
+
 class DictColorEntry(DictCharEntry):
 
     def create_widget(self):
@@ -468,6 +509,7 @@ DICT_ENTRIES = {
     'integer': DictIntegerEntry,
     'float': DictFloatEntry,
     'numeric': DictNumericEntry,
+    'text': DictTextEntry,
     }
 
 

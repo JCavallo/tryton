@@ -1545,6 +1545,22 @@ input.column-boolean {
     text-align: end;
 }
 
+.form-dict {
+    display: flex;
+    flex-direction: column;
+
+    > .form-dict-body {
+        flex-grow:1;
+
+        display: flex;
+        flex-direction: column;
+
+        > .form-dict-container {
+            flex-grow: 1;
+        }
+    }
+}
+
 .form-dict-container {
     display: grid;
     grid-template-columns: fit-content(50%) 1fr;
@@ -1555,6 +1571,20 @@ input.column-boolean {
     grid-template-columns: subgrid;
     grid-column: 1 / span 2;
     padding: 2px;
+
+    .input-group-btn {
+        align-content: start;
+    }
+}
+
+.dict-text {
+    .input-group {
+        height: 100%;
+
+        textarea {
+            height: 100%;
+        }
+    }
 }
 
 .calendar {

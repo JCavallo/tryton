@@ -6348,6 +6348,7 @@ function hide_x2m_body(widget) {
             delete this.fields[key];
             this.rows[key].remove();
             delete this.rows[key];
+            this._set_rows_template();
             if (modified) {
                 this.send_modified();
                 this.set_value(this.record, this.field);
@@ -6387,6 +6388,19 @@ function hide_x2m_body(widget) {
             if (!this.attributes.no_command) {
                 this.wid_text.prop('disabled', readonly);
             }
+        },
+        _set_rows_template: function() {
+            let row_size;
+            let template = [];
+            for (let row of this.container[0].children) {
+                if (Array.from(row.children).some(c => c.classList.contains('dict-text'))) {
+                    row_size = '1fr';
+                } else {
+                    row_size = 'min-content';
+                }
+                template.push(row_size);
+            }
+            this.container[0].style['grid-template-rows'] = template.join(' ');
         },
         _set_button_sensitive: function() {
             var record = this.record;
@@ -6531,6 +6545,7 @@ function hide_x2m_body(widget) {
                         }
                     }
                 }
+                this._set_rows_template();
             });
             this._set_button_sensitive();
             return prm;
@@ -6571,6 +6586,8 @@ function hide_x2m_body(widget) {
                     return Sao.View.Form.Dict.Date;
                 case 'datetime':
                     return Sao.View.Form.Dict.DateTime;
+                case 'text':
+                    return Sao.View.Form.Dict.Text;
             }
         }
     });
@@ -6634,6 +6651,18 @@ function hide_x2m_body(widget) {
             return (JSON.stringify(this.get_value()) !=
                 JSON.stringify(value[this.name] || ""));
         }
+    });
+
+    Sao.View.Form.Dict.Text = Sao.class_(Sao.View.Form.Dict.Char, {
+        class_: 'dict-text',
+        create_widget: function() {
+            Sao.View.Form.Dict.Text._super.create_widget.call(this);
+            let input = jQuery('<textarea/>', {
+                'class': 'form-control input-sm mousetrap',
+            });
+            this.input.replaceWith(input);
+            this.input = this.labelled = input;
+        },
     });
 
     Sao.View.Form.Dict.Color = Sao.class_(Sao.View.Form.Dict.Char, {

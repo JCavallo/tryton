@@ -45,6 +45,7 @@ class DictSchemaMixin(object):
             ('selection', lazy_gettext('ir.msg_dict_schema_selection')),
             ('multiselection',
                 lazy_gettext('ir.msg_dict_schema_multiselection')),
+            ('text', lazy_gettext('ir.msg_dict_schema_text')),
             ], lazy_gettext('ir.msg_dict_schema_type'), required=True)
     digits = fields.Integer(
         lazy_gettext('ir.msg_dict_schema_digits'),
