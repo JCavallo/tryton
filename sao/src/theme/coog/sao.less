@@ -782,21 +782,22 @@ div.form-item.form-float:has(+ div.form-item.form-label) {
     }
 }
 
-div.form-selection {
+div.form-selection,div.dict-selection {
     select.form-control {
         padding:            0px 5px 0px 5px;
     }
 }
 
-div.form-text {
+div.form-text,div.dict-text {
     padding:                3px 10px 3px 10px;
     textarea.form-control {
-        min-height: inherit !important;
+        min-height: 200px;
         max-height: 500px;
         border: 1px solid rgba(@color-lighter-grey, @coog-box-opacity);
         box-shadow:         @coog-box-shadow;
         padding:            5px;
         margin-bottom:      2px;
+        resize:             vertical;
 
         &:focus {
             box-shadow: 0 1px 4px rgba(@color-blue, 0.6);
