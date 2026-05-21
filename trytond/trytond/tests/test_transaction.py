@@ -185,8 +185,8 @@ class SavepointTestCase(TestCase):
             p_list = SavepointAwareProperty(list)
 
             def __init__(self):
-                self._sp_p_list = {}
                 self.current_savepoint = 'foo'
+                self.savepoints = []
 
         transaction = Transaction()
         self.assertEqual(transaction.p_list, [])
@@ -201,8 +201,8 @@ class SavepointTestCase(TestCase):
             p_list = SavepointAwareProperty(list)
 
             def __init__(self):
-                self._sp_p_list = {}
                 self.current_savepoint = 'foo'
+                self.savepoints = []
 
         transaction = Transaction()
         transaction.p_list = [1, 2, 3]
@@ -215,46 +215,6 @@ class SavepointTestCase(TestCase):
 
         transaction.current_savepoint = 'bar'
         self.assertEqual(transaction.p_list, ['a', 'b', 'c'])
-
-    def test_savepointawareproperty_merge(self):
-        "Test SavepointAwareProperty merging"
-
-        class Transaction:
-            p_list = SavepointAwareProperty(list)
-            p_dict = SavepointAwareProperty(dict)
-            p_set = SavepointAwareProperty(set)
-
-            def __init__(self):
-                self._sp_p_list = {}
-                self._sp_p_dict = {}
-                self._sp_p_set = {}
-                self.current_savepoint = 'foo'
-
-        transaction = Transaction()
-        transaction.p_list = [1, 2, 3]
-        transaction.p_dict = {1: 'a', 2: 'b', 3: 'c'}
-        transaction.p_set = set('abc')
-
-        transaction.current_savepoint = 'bar'
-        transaction.p_list = [4, 5, 6]
-        transaction.p_dict = {4: 'd', 5: 'e', 6: 'f'}
-        transaction.p_set = set('def')
-
-        transaction_members = vars(Transaction)
-        p_list = transaction_members['p_list']
-        p_dict = transaction_members['p_dict']
-        p_set = transaction_members['p_set']
-
-        transaction.current_savepoint = 'foo'
-
-        p_list.merge(transaction, 'bar', 'foo')
-        self.assertEqual(transaction.p_list, [1, 2, 3, 4, 5, 6])
-        p_dict.merge(transaction, 'bar', 'foo')
-        self.assertEqual(
-            transaction.p_dict,
-            {1: 'a', 2: 'b', 3: 'c', 4: 'd', 5: 'e', 6: 'f'})
-        p_set.merge(transaction, 'bar', 'foo')
-        self.assertEqual(transaction.p_set, set('abcdef'))
 
     def test_release(self):
         "Test savepoint release"
@@ -335,6 +295,24 @@ class SavepointTestCase(TestCase):
             Model = pool.get('test.savepoint')
             record = Model(record_id)
             self.assertEqual(record.value, 2)
+
+    def test_transaction_rollback(self):
+        "Test rollbacking the whole transaction while using a savepoint"
+        with Transaction().start(DB_NAME, USER) as transaction:
+            pool = Pool()
+            Model = pool.get('test.savepoint')
+
+            record = Model(value=1)
+            record.save()
+            record_id = record.id
+            with transaction.savepoint():
+                transaction.rollback()
+
+        with Transaction().start(DB_NAME, USER) as transaction:
+            pool = Pool()
+            Model = pool.get('test.savepoint')
+
+            self.assertEqual(Model.search([('id', '=', record_id)]), [])
 
     def test_context_manager_with_exception(self):
         "Test using a context manager rollbacking on some exceptions"

@@ -188,6 +188,7 @@ class MemoryCacheTestCase(TestCase):
         transaction = Transaction()
 
         with transaction.start(DB_NAME, USER):
+            self.wait_cache_listening()
             cache.set('foo', 'bar')
             with transaction.savepoint():
                 self.assertEqual(cache.get('foo'), None)
@@ -204,6 +205,7 @@ class MemoryCacheTestCase(TestCase):
         transaction = Transaction()
 
         with transaction.start(DB_NAME, USER):
+            self.wait_cache_listening()
             cache.set('foo', 'bar')
             with transaction.savepoint():
                 cache.clear()
@@ -215,6 +217,7 @@ class MemoryCacheTestCase(TestCase):
         transaction = Transaction()
 
         with transaction.start(DB_NAME, USER):
+            self.wait_cache_listening()
             cache.set('foo', 'bar')
             with transaction.savepoint() as sp:
                 cache.clear()
