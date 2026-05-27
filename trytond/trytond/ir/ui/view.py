@@ -5,6 +5,7 @@ import copy
 import json
 import logging
 import os
+import rnc2rng
 from collections import defaultdict
 from pathlib import Path
 
@@ -201,6 +202,12 @@ class View(
         return self._validator(self.real_type)
 
     @classmethod
+    def _get_rng(cls, filepath, type_):
+        with open(filepath) as fd:
+            return etree.fromstring(
+                rnc2rng.dumps(rnc2rng.load(fd)).encode('utf8'))
+
+    @classmethod
     def _validator(cls, type):
         key = (cls.__name__, type)
         validator = cls._get_validator_cache.get(key)
@@ -210,7 +217,8 @@ class View(
             filepath = Path(os.path.dirname(__file__), f'{type}.rng')
             if not filepath.exists():
                 filepath = filepath.with_suffix('.rnc')
-            validator = etree.RelaxNG(file=str(filepath))
+            rng = cls._get_rng(filepath, type)
+            validator = etree.RelaxNG(etree=rng)
             validator = cls._get_validator_cache.set(key, validator)
         return validator
 
