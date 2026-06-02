@@ -26,6 +26,7 @@ logger = logging.getLogger(__name__)
 show_debug_logs = logger.isEnabledFor(logging.DEBUG)
 
 REFRESH_POOL_MSG = "refresh pool"
+TYPE_DICT_KEYS = type({}.keys())
 
 
 def _cast(column):
@@ -39,7 +40,7 @@ def _cast(column):
 
 
 def freeze(o):
-    if isinstance(o, (set, tuple, list)):
+    if isinstance(o, (set, tuple, list, TYPE_DICT_KEYS)):
         return tuple(freeze(x) for x in o)
     elif isinstance(o, dict):
         return frozenset((x, freeze(y)) for x, y in o.items())
