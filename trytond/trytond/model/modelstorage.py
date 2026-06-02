@@ -359,7 +359,7 @@ class ModelStorage(Model):
     @classmethod
     def _must_log(cls):
         transaction = Transaction()
-        check_access = transaction.user and transaction.check_access
+        check_access = transaction.check_access
         log = transaction.context.get('_log', False)
         return check_access or log
 
