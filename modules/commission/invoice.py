@@ -64,7 +64,7 @@ class Invoice(metaclass=PoolMeta):
             for commission in Commission.search([
                         ('date', '=', None),
                         ('origin', 'in', [str(x) for x in InvoiceLine.search(
-                                    [('invoice', 'in', ids)])]),
+                                    [('invoice', 'in', map(int, c_invoices))])]),
                         ]):
                 date = commission.origin.invoice.reconciled or today
                 date2commissions[date].append(commission)
@@ -84,23 +84,25 @@ class Invoice(metaclass=PoolMeta):
         cls.set_commissions_date(invoices)
 
     @classmethod
-    def _get_commissions_to_delete(cls, ids):
+    def _get_commissions_to_delete(cls, invoices):
         # Declared to be overloaded for performances improvements
         # We should improve or overload the field `reference`
         Commission = Pool().get('commission')
         return Commission.search([
                 ('invoice_line', '=', None),
-                ('origin.invoice', 'in', ids, 'account.invoice.line'),
+                ('origin.invoice', 'in', map(int, invoices),
+                    'account.invoice.line'),
                 ])
 
     @classmethod
-    def _get_commissions_to_cancel(cls, ids):
+    def _get_commissions_to_cancel(cls, invoices):
         # Declared to be overloaded for performances improvements
         # We should improve or overload the field `reference`
         Commission = Pool().get('commission')
         return Commission.search([
                 ('invoice_line', '!=', None),
-                ('origin.invoice', 'in', ids, 'account.invoice.line'),
+                ('origin.invoice', 'in', map(int, invoices),
+                    'account.invoice.line'),
                 ])
 
     @classmethod
@@ -126,29 +128,8 @@ class Invoice(metaclass=PoolMeta):
         # Do not set commissions date on cancel
         # cls.set_commissions_date(invoices_to_set_date)
 
-        to_delete = []
-<<<<<<< HEAD
-        to_save = []
-        to_delete += Commission.search([
-                ('invoice_line', '=', None),
-                ('origin.invoice', 'in', invoices_to_revert_commission,
-                    'account.invoice.line'),
-                ])
-        to_cancel = Commission.search([
-                ('invoice_line', '!=', None),
-                ('origin.invoice', 'in', invoices_to_revert_commission,
-                    'account.invoice.line'),
-                ])
-        for commission in Commission.copy(to_cancel):
-            commission.amount *= -1
-            to_save.append(commission)
-=======
-        for sub_invoices in grouped_slice(invoices):
-            ids = [i.id for i in sub_invoices]
-            to_delete += cls._get_commissions_to_delete(ids)
-            to_cancel = cls._get_commissions_to_cancel(ids)
-            Commission.cancel(to_cancel)
->>>>>>> 5a2fb5e177 ([modules/commission][TO ANALYSE] Modular commission computation [CUSTOM])
+        to_delete = cls._get_commissions_to_delete(invoices)
+        Commission.cancel(cls._get_commissions_to_cancel(invoices))
 
         Commission.delete(to_delete)
 
