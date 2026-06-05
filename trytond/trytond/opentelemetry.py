@@ -83,10 +83,10 @@ else:
         logger.info('Instrumented wsgi')
 
     if config.getboolean(
-            'opentelemetry', 'enable_psycopg2_instrumentation', default=False):
-        from opentelemetry.instrumentation.psycopg2 import Psycopg2Instrumentor
-        Psycopg2Instrumentor().instrument()
-        logger.info('Instrumented psycopg2')
+            'opentelemetry', 'enable_psycopg_instrumentation', default=False):
+        from opentelemetry.instrumentation.psycopg import PsycopgInstrumentor
+        PsycopgInstrumentor().instrument()
+        logger.info('Instrumented psycopg')
 
     if config.getboolean(
             'opentelemetry', 'enable_celery_instrumentation', default=True):
