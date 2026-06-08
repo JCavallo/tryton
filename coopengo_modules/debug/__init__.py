@@ -66,7 +66,7 @@ def set_method_names_for_profiling(pool, update):
     if update:
         return
 
-    from trytond.config import config
+    from trytond import config
 
     def change_method_name_for_profiling(klass, method_name):
         '''
@@ -120,7 +120,7 @@ def name_one2many_gets(pool, update):
     if update:
         return
 
-    from trytond.config import config
+    from trytond import config
     from trytond.model import fields as tryton_fields
 
     to_patch = [
@@ -158,7 +158,7 @@ def activate_auto_profile(pool, update):
         return
 
     from configparser import NoSectionError
-    from trytond.config import config
+    from trytond import config
     from trytond.pool import PoolMeta
 
     logger = logging.getLogger('trytond.autoprofile')
@@ -212,7 +212,7 @@ def activate_auto_profile(pool, update):
                 wrapped.__origin_function = f.__origin_function
             return wrapped
 
-        for _, data in config.items('auto_profile'):
+        for _, data in config._config.items('auto_profile'):
             model, methods = data.split(':')
             *pool_type, model = model.strip().split('/')
             pool_type = (pool_type or ['model'])[0]
@@ -237,7 +237,7 @@ def tryton_syntax_analysis(pool, update):
     if update:
         return
 
-    from trytond.config import config
+    from trytond import config
     enabled = config.getboolean('debug', 'enable_syntax_analysis')
     if not enabled:
         return
@@ -365,7 +365,7 @@ def enable_debug_views(pool, update):
     if update:
         return
 
-    from trytond.config import config
+    from trytond import config
 
     enabled = config.getboolean('debug', 'debug_views')
     if not enabled:
