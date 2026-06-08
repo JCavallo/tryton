@@ -187,7 +187,7 @@ class TableHandler(TableHandlerInterface):
                 if not self.history:
                     history_table = self.table_name + '__history'
                     if self.__class__.table_exist(history_table):
-                        history_h = self.__class__(self.model, True)
+                        history_h = self.__class__(self.model, history=True)
                         history_h.column_rename(old_name, new_name)
             else:
                 logger.warning(
