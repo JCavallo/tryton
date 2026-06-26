@@ -10,7 +10,7 @@ from urllib.parse import quote
 
 from trytond.i18n import gettext
 from trytond.rpc import RPC
-from trytond.config import config
+from trytond import config
 from trytond.pool import PoolMeta, Pool
 from trytond.transaction import Transaction
 from trytond.pyson import Eval
@@ -184,7 +184,9 @@ class Journal(metaclass=PoolMeta):
             cls.process_method.selection.append(sepa_method)
 
     def get_paybox_config(self):
-        return config['paybox']
+        if not config.has_section('paybox'):
+            return {}
+        return config._config['paybox']
 
 
 class ProcessPayment(metaclass=PoolMeta):
