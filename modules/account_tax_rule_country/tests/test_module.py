@@ -1,6 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 
+import unittest
 from unittest.mock import Mock
 
 from trytond.modules.account.tests import create_chart
@@ -8,6 +9,12 @@ from trytond.modules.company.tests import (
     CompanyTestMixin, create_company, set_company)
 from trytond.pool import Pool
 from trytond.tests.test_tryton import ModuleTestCase, with_transaction
+
+# Coog does not ship sale/purchase/stock (not in tryton-modules-whitelist), so
+# the upstream origin tests that pool.get those models cannot run. Runtime code
+# degrades gracefully (see InvoiceLine._get_tax_rule_pattern), hence skip rather
+# than activate them.
+_NO_LOGISTICS = "sale/purchase/stock not activated in coog test extras"
 
 
 class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
@@ -186,6 +193,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 'to_subdivision': None,
                 })
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_sale_line(self):
         "Check tax rule pattern with sale line origin"
@@ -221,6 +229,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 invoice_line.origin = Mock(
                     spec=InvoiceLine, id=1, origin=invoice_line.origin)
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_purchase_line(self):
         "Check tax rule pattern with purchase line origin"
@@ -254,6 +263,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 invoice_line.origin = Mock(
                     spec=InvoiceLine, id=1, origin=invoice_line.origin)
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_stock_move_from_location(self):
         "Check tax rule pattern with stock move from location origin"
@@ -283,6 +293,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 invoice_line.origin = Mock(
                     spec=InvoiceLine, id=1, origin=invoice_line.origin)
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_shipment_out_return(self):
         "Check tax rule pattern with shipment out return origin"
@@ -314,6 +325,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 invoice_line.origin = Mock(
                     spec=InvoiceLine, id=1, origin=invoice_line.origin)
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_stock_move_to_location(self):
         "Check tax rule pattern with stock move to location origin"
@@ -344,6 +356,7 @@ class AccountTaxRuleCountryTestCase(CompanyTestMixin, ModuleTestCase):
                 invoice_line.origin = Mock(
                     spec=InvoiceLine, id=1, origin=invoice_line.origin)
 
+    @unittest.skip(_NO_LOGISTICS)
     @with_transaction()
     def test_check_tax_rule_pattern_origin_shipment_out(self):
         "Check tax rule pattern with shipment out origin"
