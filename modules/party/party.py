@@ -1176,8 +1176,8 @@ class Replace(Wizard):
             models_changed[Model].append((field_name, ids))
             modified_fields[(model_name, field_name)].extend(ids)
 
-        for Model, modified_fields in models_changed.items():
-            for field_name, ids in modified_fields:
+        for Model, field_changes in models_changed.items():
+            for field_name, ids in field_changes:
                 Model.on_modification('write', Model.browse(ids), {field_name})
 
         self.hook_after_replace(modified_fields)
