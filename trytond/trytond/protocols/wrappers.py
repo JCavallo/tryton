@@ -181,6 +181,8 @@ class Request(BaseRequest):
             user_id = security.check(
                 database_name, self.session.userid, self.session.token,
                 context=context)
+        elif getattr(auth, 'type', None) == 'token':
+            user_id, _ = security.check_token(database_name, auth.token)
         elif auth.username:
             parameters = getattr(auth, 'parameters', auth)
             try:
