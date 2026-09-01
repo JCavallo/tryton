@@ -4055,8 +4055,13 @@ function hide_x2m_body(widget) {
             this._position = undefined;
             this._length = 0;
 
+            var main_class = this.class_;
+            if (this.attributes.customcss) {
+                main_class += " " + this.attributes.customcss;
+            }
+
             this.el = jQuery('<div/>', {
-                'class': this.class_ + ' panel panel-default'
+                'class': main_class + ' panel panel-default'
             });
             this.menu = jQuery('<div/>', {
                 'class': this.class_ + '-menu panel-heading'

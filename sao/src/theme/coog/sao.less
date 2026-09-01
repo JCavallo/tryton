@@ -65,6 +65,17 @@
         background-color:   transparent;
     }
 
+    > div.panel.coog-infinite-list > div.panel-body > div > div.content-box {
+        // Actual lists
+        > div.tree-container > div.treeview {
+            max-height:             unset !important;
+        }
+        // List forms
+        > ul.list-form {
+            max-height:             unset !important;
+        }
+    }
+
     > div.panel {
         background-color:       rgba(@coog-background-color, @coog-panel-opacity);
         margin-bottom:          0px;
@@ -1342,12 +1353,13 @@ div.panel-body:has( > .markdown-source ) {
 }
 
 .form-markdown .markdown-editor {
+    min-height: 50px;
     padding: 15px;
     margin: 0 auto;
 }
 
 .form-markdown .markdown-editor .tiptap {
-    min-height: 150px;
+    min-height: 50px;
     padding: 8px 12px;
     outline: none;
     cursor: text;
@@ -1415,7 +1427,7 @@ div.panel-body > textarea.markdown-source {
     width: 100%;
     padding: 15px;
     margin: 0 auto;
-    min-height: 150px;
+    min-height: 50px;
     padding: 8px 12px;
     font-family: monospace;
     font-size: 15px;
@@ -1462,6 +1474,10 @@ div.panel-body > textarea.markdown-source {
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
     font-size: 13px;
     line-height: 1.5;
+}
+
+p:has( > br.ProseMirror-trailingBreak) {
+    display:            none;
 }
 
 .form-markdown .tiptap pre code {
