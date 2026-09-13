@@ -131,7 +131,10 @@ class Line(metaclass=PoolMeta):
         return lines
 
 
-class Carriage(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Carriage(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'sale.carriage'
 
     _states = {

@@ -113,8 +113,12 @@ class BudgetMixin(ChatMixin):
         return super().copy(budgets, default=default)
 
 
+_TreeMixin = tree(name='current_name', separator='\\')
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class BudgetLineMixin(
-        tree(name='current_name', separator='\\'), sequence_ordered(),
+        _TreeMixin, _SequenceOrderedMixin,
         AmountMixin):
     __slots__ = ()
     budget = None

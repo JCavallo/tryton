@@ -14,7 +14,10 @@ from .common import (
 from .product import ComponentMixin
 
 
-class Sale(order_mixin('sale'), metaclass=PoolMeta):
+_SaleMixin = order_mixin('sale')
+
+
+class Sale(_SaleMixin, metaclass=PoolMeta):
     __name__ = 'sale.sale'
 
     def _get_shipment_moves(self, shipment_type):
@@ -63,7 +66,10 @@ class Sale(order_mixin('sale'), metaclass=PoolMeta):
         return super()._shipment_grouping_origins + ['sale.line.component']
 
 
-class Line(order_line_mixin('sale'), metaclass=PoolMeta):
+_SaleMixin2 = order_line_mixin('sale')
+
+
+class Line(_SaleMixin2, metaclass=PoolMeta):
     __name__ = 'sale.line'
 
     def get_component_order_line(self, component, **values):
@@ -92,8 +98,11 @@ class Line(order_line_mixin('sale'), metaclass=PoolMeta):
                 self.quantity_to_ship = quantity_to_ship
 
 
+_SaleMixin3 = order_line_component_mixin('sale')
+
+
 class LineComponent(
-        order_line_component_mixin('sale'), ComponentMixin,
+        _SaleMixin3, ComponentMixin,
         ModelSQL, ModelView):
     __name__ = 'sale.line.component'
 
@@ -240,8 +249,11 @@ class LineComponentRecreatedMove(ModelSQL):
         'stock.move', "Move", ondelete='RESTRICT', required=True)
 
 
+_SaleMixin4 = handle_shipment_exception_mixin('sale')
+
+
 class HandleShipmentException(
-        handle_shipment_exception_mixin('sale'),
+        _SaleMixin4,
         metaclass=PoolMeta):
     __name__ = 'sale.handle.shipment.exception'
 

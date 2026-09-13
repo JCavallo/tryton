@@ -4,6 +4,9 @@ from trytond.model import sequence_ordered
 from trytond.pool import PoolMeta
 
 
-class Location(sequence_ordered(), metaclass=PoolMeta):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Location(_SequenceOrderedMixin, metaclass=PoolMeta):
     __name__ = 'stock.location'
     _order_name = 'sequence'

@@ -8,7 +8,10 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval, If
 
 
-class Template(copy_template_filtered('tasks'), metaclass=PoolMeta):
+_TasksMixin = copy_template_filtered('tasks')
+
+
+class Template(_TasksMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
 
     taskable = fields.Boolean(
@@ -31,7 +34,10 @@ class Template(copy_template_filtered('tasks'), metaclass=PoolMeta):
             ])
 
 
-class Product(copy_product_filtered('tasks'), metaclass=PoolMeta):
+_TasksMixin2 = copy_product_filtered('tasks')
+
+
+class Product(_TasksMixin2, metaclass=PoolMeta):
     __name__ = 'product.product'
 
     tasks = fields.One2Many(
@@ -48,7 +54,11 @@ class Product(copy_product_filtered('tasks'), metaclass=PoolMeta):
         yield from self.template.tasks
 
 
-class ProjectTask(sequence_ordered(), tree(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+_TreeMixin = tree()
+
+
+class ProjectTask(_SequenceOrderedMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'product.project_task'
 
     template = fields.Many2One(

@@ -234,7 +234,10 @@ class Email(ModelSQL, ModelView):
         return value
 
 
-class Rule(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Rule(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'inbound.email.rule'
 
     inbox = fields.Many2One(

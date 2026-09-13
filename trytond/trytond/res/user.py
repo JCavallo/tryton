@@ -98,7 +98,10 @@ class UserValidationError(ValidationError):
     pass
 
 
-class User(avatar_mixin(100, 'login'), DeactivableMixin, ModelSQL, ModelView):
+_AvatarMixin = avatar_mixin(100, 'login')
+
+
+class User(_AvatarMixin, DeactivableMixin, ModelSQL, ModelView):
     __name__ = "res.user"
     name = fields.Char('Name')
     login = fields.Char('Login', required=True)

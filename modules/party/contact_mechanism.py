@@ -65,8 +65,11 @@ class _ContactMechanismMixin:
         return default_mechanism
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ContactMechanism(
-        DeactivableMixin, sequence_ordered(), ModelSQL, ModelView,
+        DeactivableMixin, _SequenceOrderedMixin, ModelSQL, ModelView,
         MultiValueMixin):
     __name__ = 'party.contact_mechanism'
     _rec_name = 'value'

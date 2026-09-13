@@ -32,7 +32,10 @@ class Configuration(metaclass=PoolMeta):
         return value
 
 
-class AccountRule(sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class AccountRule(_SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'account.account.rule'
 
     company = fields.Many2One('company.company', "Company", required=True)

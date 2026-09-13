@@ -34,8 +34,11 @@ class ShippingPoint(DeactivableMixin, ModelSQL, ModelView):
         return Location.get_default_warehouse()
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ShippingPointSelection(
-        sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+        _SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'stock.shipping.point.selection'
 
     warehouse = fields.Many2One(

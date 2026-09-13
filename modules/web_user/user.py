@@ -56,7 +56,10 @@ def _extract_params(url):
     return urllib.parse.parse_qsl(urllib.parse.urlsplit(url).query)
 
 
-class User(avatar_mixin(100), DeactivableMixin, ModelSQL, ModelView):
+_AvatarMixin = avatar_mixin(100)
+
+
+class User(_AvatarMixin, DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'web.user'
     _rec_name = 'email'
 

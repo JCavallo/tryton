@@ -1375,7 +1375,10 @@ class SaleRecreatedInvoice(ModelSQL):
         super().__register__(module)
 
 
-class SaleLine(TaxableMixin, sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class SaleLine(TaxableMixin, _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'sale.line'
     sale = fields.Many2One(
         'sale.sale', "Sale", ondelete='CASCADE', required=True,

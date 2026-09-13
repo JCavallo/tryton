@@ -1114,8 +1114,11 @@ class Shop_Attribute(metaclass=PoolMeta):
             cls.shop.domain = domain
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ShopShopifyPaymentJournal(
-        sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+        _SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'web.shop.shopify_payment_journal'
 
     shop = fields.Many2One(

@@ -82,10 +82,14 @@ CLIENT_ICONS = [(x, x) for x in [
         ]]
 
 
+_SequenceOrderedMixin = sequence_ordered(order='ASC NULLS LAST')
+_TreeMixin = tree(separator=' / ')
+
+
 class UIMenu(
         DeactivableMixin,
-        sequence_ordered(order='ASC NULLS LAST'),
-        tree(separator=' / '),
+        _SequenceOrderedMixin,
+        _TreeMixin,
         ModelSQL, ModelView):
     __name__ = 'ir.ui.menu'
 

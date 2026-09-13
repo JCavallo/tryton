@@ -44,11 +44,10 @@ class XMLError(ValidationError):
     pass
 
 
-class View(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            ondelete='CASCADE'),
-        fields.fmany2one(
+            ondelete='CASCADE')
+_FieldChildrenMixin = fields.fmany2one(
             'field_children', 'field_childs,model',
             'ir.model.field,name,model',
             "Children Field",
@@ -57,11 +56,18 @@ class View(
                 ],
             states={
                 'invisible': Eval('type') != 'tree',
-                }),
-        fields.fmany2one(
+                })
+_ModuleRefMixin = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
-            readonly=True, ondelete='CASCADE'),
-        sequence_ordered('priority', "Priority"), ModelSQL, ModelView):
+            readonly=True, ondelete='CASCADE')
+_PriorityMixin = sequence_ordered('priority', "Priority")
+
+
+class View(
+        _ModelRefMixin,
+        _FieldChildrenMixin,
+        _ModuleRefMixin,
+        _PriorityMixin, ModelSQL, ModelView):
     "View"
     __name__ = 'ir.ui.view'
     model = fields.Char('Model', states={
@@ -470,16 +476,20 @@ class ShowView(Wizard):
             ])
 
 
-class ViewTreeWidth(
-        fields.fmany2one(
+_ModelRefMixin2 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_FieldRefMixin = fields.fmany2one(
             'field_ref', 'field,model', 'ir.model.field,name,model', "Field",
             required=True, ondelete='CASCADE',
             domain=[
                 ('model', '=', Eval('model')),
-                ]),
+                ])
+
+
+class ViewTreeWidth(
+        _ModelRefMixin2,
+        _FieldRefMixin,
         ModelSQL, ModelView):
     "View Tree Width"
     __name__ = 'ir.ui.view_tree_width'
@@ -676,16 +686,20 @@ class ViewTreeWidth(
         cls.delete(records)
 
 
-class ViewTreeOptional(
-        fields.fmany2one(
+_ModelRefMixin3 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_FieldRefMixin2 = fields.fmany2one(
             'field_ref', 'field,model', 'ir.model.field,name,model', "Field",
             required=True, ondelete='CASCADE',
             domain=[
                 ('model', '=', Eval('model')),
-                ]),
+                ])
+
+
+class ViewTreeOptional(
+        _ModelRefMixin3,
+        _FieldRefMixin2,
         ModelSQL, ModelView):
     "View Tree Optional"
     __name__ = 'ir.ui.view_tree_optional'
@@ -778,16 +792,20 @@ class ViewTreeOptional(
             cls.create(to_create)
 
 
-class ViewTreeState(
-        fields.fmany2one(
+_ModelRefMixin4 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_ChildFieldMixin = fields.fmany2one(
             'child_field', 'child_name,model', 'ir.model.field,name,model',
             "Child Field", ondelete='CASCADE',
             domain=[
                 ('model', '=', Eval('model')),
-                ]),
+                ])
+
+
+class ViewTreeState(
+        _ModelRefMixin4,
+        _ChildFieldMixin,
         ModelSQL, ModelView):
     'View Tree State'
     __name__ = 'ir.ui.view_tree_state'
@@ -866,10 +884,13 @@ class ViewTreeState(
             state.selected_nodes or cls.default_selected_nodes())
 
 
-class ViewSearch(
-        fields.fmany2one(
+_ModelRefMixin5 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
+            required=True, ondelete='CASCADE')
+
+
+class ViewSearch(
+        _ModelRefMixin5,
         ModelSQL, ModelView):
     "View Search"
     __name__ = 'ir.ui.view_search'

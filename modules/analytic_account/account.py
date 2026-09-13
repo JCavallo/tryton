@@ -22,8 +22,12 @@ from trytond.transaction import Transaction
 from .exceptions import AccountValidationError
 
 
+_DistributionParentsMixin = tree('distribution_parents')
+_TreeMixin = tree()
+
+
 class Account(
-        DeactivableMixin, tree('distribution_parents'), tree(),
+        DeactivableMixin, _DistributionParentsMixin, _TreeMixin,
         ModelSQL, ModelView):
     __name__ = 'analytic_account.account'
     name = fields.Char("Name", required=True, translate=True)

@@ -5,19 +5,28 @@ from trytond.model import ModelSQL, fields, tree
 from trytond.pool import Pool
 
 
-class Tree(tree(separator=' / '), ModelSQL):
+_TreeMixin = tree(separator=' / ')
+
+
+class Tree(_TreeMixin, ModelSQL):
     __name__ = 'test.tree'
     name = fields.Char("Name")
     parent = fields.Many2One('test.tree', "Parent")
 
 
-class TreeWildcard(tree(separator='\\'), ModelSQL):
+_TreeMixin2 = tree(separator='\\')
+
+
+class TreeWildcard(_TreeMixin2, ModelSQL):
     __name__ = 'test.tree_wildcard'
     name = fields.Char("Name")
     parent = fields.Many2One('test.tree_wildcard', "Parent")
 
 
-class Polytree(tree(parent='parents'), ModelSQL):
+_TreeMixin3 = tree(parent='parents')
+
+
+class Polytree(_TreeMixin3, ModelSQL):
     __name__ = 'test.polytree'
     name = fields.Char("Name")
     parents = fields.Many2Many(

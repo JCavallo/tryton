@@ -289,7 +289,10 @@ class Peppol(Workflow, ModelSQL, ModelView):
         return super().copy(documents, default=default)
 
 
-class PeppolService(sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class PeppolService(_SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'edocument.peppol.service'
 
     company = fields.Many2One(

@@ -222,8 +222,11 @@ class Company(ModelSQL, ModelView):
         return self.party.tax_identifier
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class CompanyTaxIdentifier(
-        MatchMixin, sequence_ordered(), ModelSQL, ModelView):
+        MatchMixin, _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'company.company.tax_identifier'
 
     company = fields.Many2One(

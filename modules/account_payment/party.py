@@ -58,8 +58,11 @@ class PartyPaymentDirectDebit(ModelSQL, CompanyValueMixin):
     payment_direct_debit = payment_direct_debit
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class PartyReceptionDirectDebit(
-        sequence_ordered(), MatchMixin, ModelView, ModelSQL):
+        _SequenceOrderedMixin, MatchMixin, ModelView, ModelSQL):
     __name__ = 'party.party.reception_direct_debit'
 
     party = fields.Many2One(

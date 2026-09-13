@@ -8,7 +8,10 @@ from trytond.transaction import Transaction
 from .account import AnalyticMixin
 
 
-class Rule(sequence_ordered(), MatchMixin, AnalyticMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Rule(_SequenceOrderedMixin, MatchMixin, AnalyticMixin, ModelSQL, ModelView):
     __name__ = 'analytic_account.rule'
 
     company = fields.Many2One(

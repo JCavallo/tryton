@@ -29,7 +29,10 @@ def AccountTypeMixin(template=False):
     return Mixin
 
 
-class AccountTypeTemplate(AccountTypeMixin(template=True), metaclass=PoolMeta):
+_AccountTypeMixin = AccountTypeMixin(template=True)
+
+
+class AccountTypeTemplate(_AccountTypeMixin, metaclass=PoolMeta):
     __name__ = 'account.account.type.template'
 
     def _get_type_value(self, type=None):
@@ -39,7 +42,10 @@ class AccountTypeTemplate(AccountTypeMixin(template=True), metaclass=PoolMeta):
         return values
 
 
-class AccountType(AccountTypeMixin(), metaclass=PoolMeta):
+_AccountTypeMixin2 = AccountTypeMixin()
+
+
+class AccountType(_AccountTypeMixin2, metaclass=PoolMeta):
     __name__ = 'account.account.type'
 
 

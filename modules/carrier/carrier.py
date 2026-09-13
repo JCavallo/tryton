@@ -74,7 +74,10 @@ class Carrier(DeactivableMixin, ModelSQL, ModelView):
             CarrierSelection._get_carriers_cache.clear()
 
 
-class Selection(sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Selection(_SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'carrier.selection'
     _get_carriers_cache = Cache(
         'carrier.selection.get_carriers', context=False)

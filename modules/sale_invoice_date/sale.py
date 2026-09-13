@@ -26,7 +26,10 @@ class InvoiceTerm(DeactivableMixin, ModelSQL, ModelView):
         return date
 
 
-class InvoiceTermRelativeDelta(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class InvoiceTermRelativeDelta(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'sale.invoice.term.relative_delta'
 
     term = fields.Many2One(

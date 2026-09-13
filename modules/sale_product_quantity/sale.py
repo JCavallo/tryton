@@ -79,9 +79,15 @@ def product_quantity_mixin(states):
     return ProductQuantityMixin
 
 
-class Line(product_quantity_mixin(['draft']), metaclass=PoolMeta):
+_DraftMixin = product_quantity_mixin(['draft'])
+
+
+class Line(_DraftMixin, metaclass=PoolMeta):
     __name__ = 'sale.line'
 
 
-class POSLine(product_quantity_mixin(['open']), metaclass=PoolMeta):
+_OpenMixin = product_quantity_mixin(['open'])
+
+
+class POSLine(_OpenMixin, metaclass=PoolMeta):
     __name__ = 'sale.point.sale.line'

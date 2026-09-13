@@ -22,9 +22,12 @@ class FMany2OneTarget(ModelSQL):
             ]
 
 
+_ParentMixin = fields.fmany2one(
+            'parent', 'parent_name', 'test.fmany2one_target,name', "Parent")
+
+
 class FMany2OneTargetChild(
-        fields.fmany2one(
-            'parent', 'parent_name', 'test.fmany2one_target,name', "Parent"),
+        _ParentMixin,
         ModelSQL):
     __name__ = 'test.fmany2one_target.child'
 
@@ -42,12 +45,16 @@ class FMany2OneTargetChild(
             ]
 
 
-class FMany2One(
-        fields.fmany2one(
-            'target', 'target_name', 'test.fmany2one_target,name', "Target"),
-        fields.fmany2one(
+_TargetMixin = fields.fmany2one(
+            'target', 'target_name', 'test.fmany2one_target,name', "Target")
+_ChildMixin = fields.fmany2one(
             'child', 'child_name,target_name',
-            'test.fmany2one_target.child,name,parent_name', "Child"),
+            'test.fmany2one_target.child,name,parent_name', "Child")
+
+
+class FMany2One(
+        _TargetMixin,
+        _ChildMixin,
         ModelSQL):
     __name__ = 'test.fmany2one'
 
@@ -55,10 +62,13 @@ class FMany2One(
     child_name = fields.Char("Child Name")
 
 
-class FMany2OneRequired(
-        fields.fmany2one(
+_TargetMixin2 = fields.fmany2one(
             'target', 'target_name', 'test.fmany2one_target,name', "Target",
-            required=True),
+            required=True)
+
+
+class FMany2OneRequired(
+        _TargetMixin2,
         ModelSQL):
     __name__ = 'test.fmany2one_required'
 

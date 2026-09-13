@@ -82,8 +82,11 @@ def trend_mixin(model_name, field_name):
     return TrendMixin
 
 
+_MarketingAutomationReportingScenarioMixin = trend_mixin('marketing.automation.reporting.scenario', 'scenario')
+
+
 class Scenario(
-        trend_mixin('marketing.automation.reporting.scenario', 'scenario'),
+        _MarketingAutomationReportingScenarioMixin,
         Workflow, ModelSQL, ModelView):
     __name__ = 'marketing.automation.scenario'
 
@@ -301,8 +304,11 @@ class Scenario(
             RecordActivity.save(record_activities)
 
 
+_MarketingAutomationReportingActivityMixin = trend_mixin('marketing.automation.reporting.activity', 'activity')
+
+
 class Activity(
-        trend_mixin('marketing.automation.reporting.activity', 'activity'),
+        _MarketingAutomationReportingActivityMixin,
         ModelSQL, ModelView):
     __name__ = 'marketing.automation.activity'
 

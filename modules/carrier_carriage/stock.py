@@ -15,7 +15,10 @@ except ImportError:
     ShipmentCostSaleMixin = object
 
 
-class Carriage(sequence_ordered(), ShipmentCostMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Carriage(_SequenceOrderedMixin, ShipmentCostMixin, ModelSQL, ModelView):
     __name__ = 'stock.shipment.carriage'
 
     _states = {

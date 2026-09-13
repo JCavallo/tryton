@@ -15,7 +15,10 @@ from .configuration import LOGIN_SERVICE, get_client
 from .exceptions import DPDCredentialWarning, DPDError
 
 
-class CredentialDPD(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class CredentialDPD(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.credential.dpd'
 
     company = fields.Many2One('company.company', 'Company')

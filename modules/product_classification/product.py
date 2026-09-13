@@ -74,7 +74,10 @@ class ClassificationDummy(ClassificationMixin, ModelStorage, ModelView):
     __name__ = 'product.classification.dummy'
 
 
+_ProductClassificationTreeDummyMixin = classification_tree('product.classification_tree.dummy')
+
+
 class ClassificationTreeDummy(
-        classification_tree('product.classification_tree.dummy'),
+        _ProductClassificationTreeDummyMixin,
         ModelStorage, ModelView):
     __name__ = 'product.classification_tree.dummy'

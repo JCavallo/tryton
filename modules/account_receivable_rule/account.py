@@ -351,7 +351,10 @@ class AccountRuleAbstract(DeactivableMixin, ModelSQL, ModelView):
                 )
 
 
-class AccountRuleAccountAbstract(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class AccountRuleAccountAbstract(_SequenceOrderedMixin, ModelSQL, ModelView):
 
     rule = NotImplemented
 

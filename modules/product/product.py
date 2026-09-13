@@ -125,8 +125,11 @@ def copy_product_filtered(
     return ProductCopyFiltered
 
 
+_ListPricesMixin = copy_template_filtered('list_prices')
+
+
 class Template(
-        copy_template_filtered('list_prices'),
+        _ListPricesMixin,
         DeactivableMixin, ModelSQL, ModelView, CompanyMultiValueMixin):
     __name__ = "product.template"
     name = fields.Char(
@@ -475,9 +478,13 @@ class _One2ManyWithInactive(fields.One2Many):
         return super().convert_domain(*args, **kwargs)
 
 
+_ListPricesMixin2 = copy_product_filtered('list_prices')
+_ReplacedByMixin = tree('replaced_by')
+
+
 class Product(
-        copy_product_filtered('list_prices'),
-        TemplateDeactivatableMixin, tree('replaced_by'), ModelSQL, ModelView,
+        _ListPricesMixin2,
+        TemplateDeactivatableMixin, _ReplacedByMixin, ModelSQL, ModelView,
         CompanyMultiValueMixin):
     __name__ = "product.product"
     _order_name = 'rec_name'
@@ -967,7 +974,10 @@ class TemplateCategoryAll(UnionMixin, ModelSQL):
         return ['product.template-product.category']
 
 
-class ProductIdentifier(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class ProductIdentifier(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'product.identifier'
     _rec_name = 'code'
     product = fields.Many2One(

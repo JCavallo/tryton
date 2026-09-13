@@ -46,7 +46,10 @@ def sendcloud_api(func):
     return wrapper
 
 
-class CredentialSendcloud(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class CredentialSendcloud(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.credential.sendcloud'
 
     company = fields.Many2One('company.company', "Company")
@@ -213,7 +216,10 @@ class CredentialSendcloud(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
                         '.msg_sendcloud_credential_modified'))
 
 
-class SendcloudAddress(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class SendcloudAddress(_SequenceOrderedMixin2, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.sendcloud.address'
 
     sendcloud = fields.Many2One(
@@ -250,8 +256,11 @@ class SendcloudAddress(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
                     address.get('country')]))
 
 
+_SequenceOrderedMixin3 = sequence_ordered()
+
+
 class SendcloudShippingMethod(
-        sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+        _SequenceOrderedMixin3, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.sendcloud.shipping_method'
 
     sendcloud = fields.Many2One(

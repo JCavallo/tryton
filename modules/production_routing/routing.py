@@ -17,7 +17,10 @@ class RoutingOperation(DeactivableMixin, ModelSQL, ModelView):
     name = fields.Char('Operation', required=True, translate=True)
 
 
-class RoutingStep(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class RoutingStep(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'production.routing.step'
     operation = fields.Many2One('production.routing.operation', 'Operation',
         required=True)

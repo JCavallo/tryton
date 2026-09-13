@@ -1159,7 +1159,10 @@ class PurchaseRecreatedInvoice(ModelSQL):
         super().__register__(module)
 
 
-class Line(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Line(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'purchase.line'
     purchase = fields.Many2One(
         'purchase.purchase', "Purchase", ondelete='CASCADE', required=True,

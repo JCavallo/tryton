@@ -30,7 +30,10 @@ class WorkCenterCategory(ModelSQL, ModelView):
     name = fields.Char('Name', required=True, translate=True)
 
 
-class WorkCenter(DeactivableMixin, tree(separator=' / '), ModelSQL, ModelView):
+_TreeMixin = tree(separator=' / ')
+
+
+class WorkCenter(DeactivableMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'production.work.center'
     name = fields.Char('Name', required=True, translate=True)
     parent = fields.Many2One('production.work.center', 'Parent',
@@ -99,7 +102,10 @@ class WorkCenter(DeactivableMixin, tree(separator=' / '), ModelSQL, ModelView):
         return picker
 
 
-class Work(sequence_ordered(), ModelSQL, ModelView, ChatMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Work(_SequenceOrderedMixin, ModelSQL, ModelView, ChatMixin):
     __name__ = 'production.work'
     operation = fields.Many2One('production.routing.operation', 'Operation',
         required=True)

@@ -16,8 +16,11 @@ from trytond.wizard import Button, StateAction, StateView, Wizard
 from .exceptions import QuantityIssueError
 
 
+_PriorityMixin = sequence_ordered('priority', "Priority", "ASC NULLS LAST")
+
+
 class QuantityIssue(
-        sequence_ordered('priority', "Priority", "ASC NULLS LAST"),
+        _PriorityMixin,
         Workflow, ModelSQL, ModelView):
     __name__ = 'stock.quantity.issue'
 

@@ -4,7 +4,10 @@ from trytond.model import DeactivableMixin, ModelSQL, fields, tree
 from trytond.pool import Pool
 
 
-class Path(DeactivableMixin, tree(), ModelSQL):
+_TreeMixin = tree()
+
+
+class Path(DeactivableMixin, _TreeMixin, ModelSQL):
     __name__ = 'test.path'
     name = fields.Char("Name", required=True)
     parent = fields.Many2One('test.path', "Parent", path='path')

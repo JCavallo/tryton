@@ -279,8 +279,11 @@ class Agent(DeactivableMixin, ModelSQL, ModelView):
         return [('party.rec_name', *clause[1:])]
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class AgentSelection(
-        DeactivableMixin, sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+        DeactivableMixin, _SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'customs.agent.selection'
 
     company = fields.Many2One(

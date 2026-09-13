@@ -16,16 +16,20 @@ from trytond.pyson import Eval
 from trytond.transaction import Transaction
 
 
-class Queue(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_FieldRefMixin = fields.fmany2one(
             'field_ref', 'field,model', 'ir.model.field,name,model', "Field",
             required=True, ondelete='CASCADE',
             domain=[
                 ('model_ref', '=', Eval('model_ref', -1)),
-            ]),
+            ])
+
+
+class Queue(
+        _ModelRefMixin,
+        _FieldRefMixin,
         ModelSQL):
     __name__ = 'ir.filestore.queue'
 

@@ -411,7 +411,10 @@ class PurchaseRequisition(Workflow, ModelSQL, ModelView, ChatMixin):
             for l in self.lines for r in l.purchase_requests)
 
 
-class PurchaseRequisitionLine(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class PurchaseRequisitionLine(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'purchase.requisition.line'
     _states = {
         'readonly': Eval('purchase_requisition_state') != 'draft',

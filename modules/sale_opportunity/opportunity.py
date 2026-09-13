@@ -530,7 +530,10 @@ class SaleOpportunity(
             cls.convert(converted)
 
 
-class SaleOpportunityLine(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class SaleOpportunityLine(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = "sale.opportunity.line"
     _history = True
     _states = {

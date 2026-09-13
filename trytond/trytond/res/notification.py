@@ -18,10 +18,13 @@ from trytond.rpc import RPC
 from trytond.transaction import Transaction
 
 
-class Notification(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            ondelete='CASCADE'),
+            ondelete='CASCADE')
+
+
+class Notification(
+        _ModelRefMixin,
         ModelSQL, ModelView):
     __name__ = 'res.notification'
 

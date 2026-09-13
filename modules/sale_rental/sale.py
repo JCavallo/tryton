@@ -750,7 +750,10 @@ class Rental(
         cls.invoice(rentals)
 
 
-class RentalLine(sequence_ordered(), ModelSQL, ModelView, TaxableMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class RentalLine(_SequenceOrderedMixin, ModelSQL, ModelView, TaxableMixin):
     __name__ = 'sale.rental.line'
 
     rental = fields.Many2One(

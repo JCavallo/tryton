@@ -309,7 +309,10 @@ class ModuleDependency(ModelSQL, ModelView):
         return {d.id: name2state.get(d.name, 'unknown') for d in dependencies}
 
 
-class ModuleConfigWizardItem(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class ModuleConfigWizardItem(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'ir.module.config_wizard.item'
 
     action = fields.Many2One('ir.action', 'Action', required=True,

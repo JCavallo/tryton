@@ -154,8 +154,12 @@ class Invoice(metaclass=PoolMeta):
         return move
 
 
+_SequenceOrderedMixin = sequence_ordered()
+_TreeMixin = tree(separator='\\')
+
+
 class Consolidation(
-        sequence_ordered(), tree(separator='\\'), ModelSQL, ModelView):
+        _SequenceOrderedMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'account.consolidation'
 
     parent = fields.Many2One(

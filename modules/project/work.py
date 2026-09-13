@@ -57,7 +57,10 @@ class ConfigurationSequence(ModelSQL, ValueMixin):
     work_sequence = _work_sequence
 
 
-class WorkStatus(DeactivableMixin, sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class WorkStatus(DeactivableMixin, _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'project.work.status'
 
     _get_default_status_cache = Cache('project_work_status.get_default_status')
@@ -143,8 +146,12 @@ class WorkStatus(DeactivableMixin, sequence_ordered(), ModelSQL, ModelView):
         return cls._get_window_domains_cache.set(key, domains)
 
 
+_SequenceOrderedMixin2 = sequence_ordered()
+_TreeMixin = tree(separator='\\')
+
+
 class Work(
-        sequence_ordered(), tree(separator='\\'), ModelSQL, ModelView,
+        _SequenceOrderedMixin2, _TreeMixin, ModelSQL, ModelView,
         ChatMixin):
     __name__ = 'project.work'
     name = fields.Char("Name", required=True)

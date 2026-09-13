@@ -10,11 +10,15 @@ from trytond.tools import file_open
 from trytond.transaction import Transaction
 
 
-class Icon(
-        fields.fmany2one(
+_ModuleRefMixin = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
-            readonly=True, required=True, ondelete='CASCADE'),
-        sequence_ordered(), ModelSQL, ModelView):
+            readonly=True, required=True, ondelete='CASCADE')
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Icon(
+        _ModuleRefMixin,
+        _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'ir.ui.icon'
 
     name = fields.Char('Name', required=True)

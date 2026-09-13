@@ -119,7 +119,10 @@ class PriceList(DeactivableMixin, ModelSQL, ModelView):
                 return line.get_unit_price(**context)
 
 
-class PriceListLine(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class PriceListLine(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'product.price_list.line'
 
     price_list = fields.Many2One('product.price_list', 'Price List',

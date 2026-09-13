@@ -154,7 +154,10 @@ class UnionTree(UnionMixin, ModelSQL):
         return ['test.model.union.tree1', 'test.model.union.tree2']
 
 
-class SequenceOrderedModel(sequence_ordered(), ModelSQL):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class SequenceOrderedModel(_SequenceOrderedMixin, ModelSQL):
     __name__ = 'test.order.sequence'
 
 

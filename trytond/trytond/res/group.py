@@ -24,7 +24,10 @@ class MenuMany2Many(fields.Many2Many):
         return res
 
 
-class Group(DeactivableMixin, tree(), ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class Group(DeactivableMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = "res.group"
     name = fields.Char('Name', required=True, translate=True)
     users = fields.Many2Many('res.user-res.group', 'group', 'user', 'Users')

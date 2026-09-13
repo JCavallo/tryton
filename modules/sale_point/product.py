@@ -27,8 +27,11 @@ class _GrossPriceMixin:
                 today))
 
 
+_GrossPricesMixin = copy_template_filtered('gross_prices')
+
+
 class Template(
-        copy_template_filtered('gross_prices'),
+        _GrossPricesMixin,
         _GrossPriceMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
 
@@ -49,8 +52,11 @@ class Template(
         return super().multivalue_model(field)
 
 
+_GrossPricesMixin2 = copy_product_filtered('gross_prices')
+
+
 class Product(
-        copy_product_filtered('gross_prices'),
+        _GrossPricesMixin2,
         _GrossPriceMixin, metaclass=PoolMeta):
     __name__ = 'product.product'
 

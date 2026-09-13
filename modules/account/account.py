@@ -130,8 +130,13 @@ def TypeMixin(template=False):
     return Mixin
 
 
+_TypeMixin = TypeMixin(template=True)
+_SequenceOrderedMixin = sequence_ordered()
+_TreeMixin = tree(separator='\\')
+
+
 class TypeTemplate(
-        TypeMixin(template=True), sequence_ordered(), tree(separator='\\'),
+        _TypeMixin, _SequenceOrderedMixin, _TreeMixin,
         ModelSQL, ModelView):
     __name__ = 'account.account.type.template'
     parent = fields.Many2One(
@@ -208,8 +213,13 @@ class TypeTemplate(
             childs = sum((c.childs for c in childs), ())
 
 
+_TypeMixin2 = TypeMixin()
+_SequenceOrderedMixin2 = sequence_ordered()
+_TreeMixin2 = tree(separator='\\')
+
+
 class Type(
-        TypeMixin(), sequence_ordered(), tree(separator='\\'),
+        _TypeMixin2, _SequenceOrderedMixin2, _TreeMixin2,
         ModelSQL, ModelView):
     __name__ = 'account.account.type'
 
@@ -633,8 +643,12 @@ def AccountMixin(template=False):
     return Mixin
 
 
+_AccountMixin = AccountMixin(template=True)
+_TreeMixin3 = tree()
+
+
 class AccountTemplate(
-        AccountMixin(template=True), PeriodMixin, tree(), ModelSQL, ModelView):
+        _AccountMixin, PeriodMixin, _TreeMixin3, ModelSQL, ModelView):
     __name__ = 'account.account.template'
     type = fields.Many2One(
         'account.account.type.template', "Type")
@@ -822,8 +836,12 @@ class AccountTemplateTaxTemplate(ModelSQL):
         super().__register__(module)
 
 
+_AccountMixin2 = AccountMixin()
+_TreeMixin4 = tree()
+
+
 class Account(
-        AccountMixin(), ContextCompanyMixin, ActivePeriodMixin, tree(),
+        _AccountMixin2, ContextCompanyMixin, ActivePeriodMixin, _TreeMixin4,
         ModelSQL, ModelView):
     __name__ = 'account.account'
     _states = {

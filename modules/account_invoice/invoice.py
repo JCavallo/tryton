@@ -2437,7 +2437,10 @@ class InvoicePaymentLine(ModelSQL):
         return result
 
 
-class InvoiceLine(sequence_ordered(), ModelSQL, ModelView, TaxableMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class InvoiceLine(_SequenceOrderedMixin, ModelSQL, ModelView, TaxableMixin):
     __name__ = 'account.invoice.line'
     _states = {
         'readonly': Eval('invoice_state') != 'draft',
@@ -3222,7 +3225,10 @@ class InvoiceLineTax(ModelSQL):
         super().__register__(module)
 
 
-class InvoiceTax(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class InvoiceTax(_SequenceOrderedMixin2, ModelSQL, ModelView):
     __name__ = 'account.invoice.tax'
     _rec_name = 'description'
     _states = {
@@ -3599,7 +3605,10 @@ class PaymentMean_Bank(metaclass=PoolMeta):
         return name
 
 
-class PaymentMeanRule(sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin3 = sequence_ordered()
+
+
+class PaymentMeanRule(_SequenceOrderedMixin3, MatchMixin, ModelSQL, ModelView):
     __name__ = 'account.invoice.payment.mean.rule'
 
     company = fields.Many2One('company.company', "Company", required=True)

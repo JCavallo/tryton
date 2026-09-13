@@ -17,7 +17,10 @@ from .common import (
 from .product import ComponentMixin
 
 
-class Purchase(order_mixin('purchase'), metaclass=PoolMeta):
+_PurchaseMixin = order_mixin('purchase')
+
+
+class Purchase(_PurchaseMixin, metaclass=PoolMeta):
     __name__ = 'purchase.purchase'
 
     def create_move(self, move_type):
@@ -58,7 +61,10 @@ class Purchase(order_mixin('purchase'), metaclass=PoolMeta):
         return super().search_moves(name, clause)
 
 
-class Line(order_line_mixin('purchase'), metaclass=PoolMeta):
+_PurchaseMixin2 = order_line_mixin('purchase')
+
+
+class Line(_PurchaseMixin2, metaclass=PoolMeta):
     __name__ = 'purchase.line'
 
     def get_component_order_line(self, component, **values):
@@ -74,8 +80,11 @@ class Line(order_line_mixin('purchase'), metaclass=PoolMeta):
         return super().movable_types() + ['kit']
 
 
+_PurchaseMixin3 = order_line_component_mixin('purchase')
+
+
 class LineComponent(
-        order_line_component_mixin('purchase'), ComponentMixin,
+        _PurchaseMixin3, ComponentMixin,
         ModelSQL, ModelView):
     __name__ = 'purchase.line.component'
 
@@ -183,8 +192,11 @@ class LineComponentRecreatedMove(ModelSQL):
         'stock.move', "Move", ondelete='RESTRICT', required=True)
 
 
+_PurchaseMixin4 = handle_shipment_exception_mixin('purchase')
+
+
 class HandleShipmentException(
-        handle_shipment_exception_mixin('purchase'),
+        _PurchaseMixin4,
         metaclass=PoolMeta):
     __name__ = 'purchase.handle.shipment.exception'
 

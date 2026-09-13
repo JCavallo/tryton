@@ -45,7 +45,10 @@ class TaxGroup(ModelSQL, ModelView):
         return 'both'
 
 
-class TaxCodeTemplate(PeriodMixin, tree(), ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class TaxCodeTemplate(PeriodMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'account.tax.code.template'
     name = fields.Char('Name', required=True)
     code = fields.Char('Code')
@@ -122,8 +125,11 @@ class TaxCodeTemplate(PeriodMixin, tree(), ModelSQL, ModelView):
             childs = sum((c.childs for c in childs), ())
 
 
+_TreeMixin2 = tree()
+
+
 class TaxCode(
-        ContextCompanyMixin, ActivePeriodMixin, tree(), ModelSQL, ModelView):
+        ContextCompanyMixin, ActivePeriodMixin, _TreeMixin2, ModelSQL, ModelView):
     __name__ = 'account.tax.code'
     _states = {
         'readonly': (Bool(Eval('template', -1))
@@ -579,7 +585,10 @@ class TaxCodeContext(ModelView):
         return periods
 
 
-class TaxTemplate(sequence_ordered(), ModelSQL, ModelView, DeactivableMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class TaxTemplate(_SequenceOrderedMixin, ModelSQL, ModelView, DeactivableMixin):
     __name__ = 'account.tax.template'
     name = fields.Char('Name', required=True)
     description = fields.Char('Description', required=True)
@@ -740,7 +749,10 @@ class TaxTemplate(sequence_ordered(), ModelSQL, ModelView, DeactivableMixin):
             childs = sum((c.childs for c in childs), ())
 
 
-class Tax(sequence_ordered(), ModelSQL, ModelView, DeactivableMixin):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class Tax(_SequenceOrderedMixin2, ModelSQL, ModelView, DeactivableMixin):
     """Type:
            percentage: tax = price * rate
            fixed: tax = amount
@@ -1581,7 +1593,10 @@ class TaxRule(ModelSQL, ModelView):
             cls.write(*values)
 
 
-class TaxRuleLineTemplate(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin3 = sequence_ordered()
+
+
+class TaxRuleLineTemplate(_SequenceOrderedMixin3, ModelSQL, ModelView):
     __name__ = 'account.tax.rule.line.template'
     rule = fields.Many2One('account.tax.rule.template', 'Rule', required=True,
             ondelete='CASCADE')
@@ -1697,7 +1712,10 @@ class TaxRuleLineTemplate(sequence_ordered(), ModelSQL, ModelView):
             template2rule_line[template.id] = rule_line.id
 
 
-class TaxRuleLine(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin4 = sequence_ordered()
+
+
+class TaxRuleLine(_SequenceOrderedMixin4, ModelSQL, ModelView, MatchMixin):
     __name__ = 'account.tax.rule.line'
     _states = {
         'readonly': (Bool(Eval('template', -1))

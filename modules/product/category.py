@@ -11,7 +11,10 @@ from trytond.pyson import Eval, PYSONEncoder
 from trytond.tools import is_full_text, lstrip_wildcard
 
 
-class Category(tree(separator=' / '), ModelSQL, ModelView):
+_TreeMixin = tree(separator=' / ')
+
+
+class Category(_TreeMixin, ModelSQL, ModelView):
     __name__ = "product.category"
     name = fields.Char('Name', required=True, translate=True)
     code = fields.Char(

@@ -10,8 +10,11 @@ from trytond.pyson import Bool, Eval, If
 from trytond.tools import is_full_text, lstrip_wildcard
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ProductCustomer(
-        sequence_ordered(), ProductDeactivatableMixin, MatchMixin,
+        _SequenceOrderedMixin, ProductDeactivatableMixin, MatchMixin,
         ModelSQL, ModelView):
     __name__ = 'sale.product_customer'
 
@@ -86,8 +89,11 @@ class ProductCustomer(
             ]
 
 
+_ProductCustomersMixin = copy_template_filtered('product_customers')
+
+
 class Template(
-        copy_template_filtered('product_customers'), metaclass=PoolMeta):
+        _ProductCustomersMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
     product_customers = fields.One2Many(
         'sale.product_customer', 'template', "Customers",
@@ -101,8 +107,11 @@ class Template(
                 yield product_customer
 
 
+_ProductCustomersMixin2 = copy_product_filtered('product_customers')
+
+
 class Product(
-        copy_product_filtered('product_customers'), metaclass=PoolMeta):
+        _ProductCustomersMixin2, metaclass=PoolMeta):
     __name__ = 'product.product'
     product_customers = fields.One2Many(
         'sale.product_customer', 'product', "Customers",

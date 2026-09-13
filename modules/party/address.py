@@ -22,8 +22,11 @@ from .contact_mechanism import _ContactMechanismMixin
 from .exceptions import InvalidFormat
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class Address(
-        DeactivableMixin, sequence_ordered(), _ContactMechanismMixin,
+        DeactivableMixin, _SequenceOrderedMixin, _ContactMechanismMixin,
         ModelSQL, ModelView):
     __name__ = 'party.address'
     party = fields.Many2One(

@@ -111,7 +111,10 @@ class Period(metaclass=PoolMeta):
         super().close(periods)
 
 
-class InvoiceSequence(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class InvoiceSequence(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'account.fiscalyear.invoice_sequence'
     company = fields.Many2One('company.company', "Company", required=True)
     fiscalyear = fields.Many2One(

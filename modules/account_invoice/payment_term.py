@@ -62,7 +62,10 @@ class PaymentTerm(DeactivableMixin, ModelSQL, ModelView):
         return res
 
 
-class PaymentTermLine(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class PaymentTermLine(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'account.invoice.payment_term.line'
     payment = fields.Many2One('account.invoice.payment_term', 'Payment Term',
             required=True, ondelete="CASCADE")
@@ -201,7 +204,10 @@ class PaymentTermLine(sequence_ordered(), ModelSQL, ModelView):
                         line=line.rec_name))
 
 
-class PaymentTermLineRelativeDelta(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class PaymentTermLineRelativeDelta(_SequenceOrderedMixin2, ModelSQL, ModelView):
     __name__ = 'account.invoice.payment_term.line.delta'
     line = fields.Many2One('account.invoice.payment_term.line',
         'Payment Term Line', required=True, ondelete='CASCADE')

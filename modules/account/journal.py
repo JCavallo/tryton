@@ -21,9 +21,12 @@ STATES = {
 }
 
 
+_MatchingSequenceMixin = sequence_ordered('matching_sequence', "Matching Sequence")
+
+
 class Journal(
         DeactivableMixin, MatchMixin,
-        sequence_ordered('matching_sequence', "Matching Sequence"),
+        _MatchingSequenceMixin,
         ModelSQL, ModelView):
     __name__ = 'account.journal'
     name = fields.Char('Name', size=None, required=True, translate=True)

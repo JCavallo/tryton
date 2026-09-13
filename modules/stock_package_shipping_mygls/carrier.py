@@ -9,7 +9,10 @@ from trytond.pyson import Eval, If
 from .exceptions import MyGLSCredentialWarning
 
 
-class CredentialMyGLS(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class CredentialMyGLS(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.credential.mygls'
 
     company = fields.Many2One('company.company', "Company")

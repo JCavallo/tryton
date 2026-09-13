@@ -94,7 +94,10 @@ class MoveTemplate(DeactivableMixin, ModelSQL, ModelView):
         return move
 
 
-class MoveTemplateKeyword(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class MoveTemplateKeyword(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'account.move.template.keyword'
     name = fields.Char('Name', required=True)
     string = fields.Char('String', required=True, translate=True)

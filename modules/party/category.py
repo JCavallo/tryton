@@ -9,7 +9,10 @@ from trytond.model import (
 SEPARATOR = ' / '
 
 
-class Category(DeactivableMixin, tree(separator=' / '), ModelSQL, ModelView):
+_TreeMixin = tree(separator=' / ')
+
+
+class Category(DeactivableMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'party.category'
     name = fields.Char(
         "Name", required=True, translate=True,

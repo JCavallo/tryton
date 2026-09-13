@@ -38,11 +38,14 @@ class ConditionError(ValidationError):
     pass
 
 
-class Model(
-        fields.fmany2one(
+_ModuleRefMixin = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
             readonly=True, ondelete='CASCADE',
-            help="Module in which this model is defined."),
+            help="Module in which this model is defined.")
+
+
+class Model(
+        _ModuleRefMixin,
         ModelSQL, ModelView):
     __name__ = 'ir.model'
     _rec_name = 'string'
@@ -253,23 +256,28 @@ class Model(
                 Model._table_query_refresh()
 
 
-class ModelField(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
             required=True, ondelete='CASCADE',
             states={
                 'readonly': Bool(Eval('module')),
-                }),
-        fields.fmany2one(
+                })
+_ModuleRefMixin2 = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
             readonly=True, ondelete='CASCADE',
-            help="Module in which this field is defined."),
-        fields.fmany2one(
+            help="Module in which this field is defined.")
+_RelationRefMixin = fields.fmany2one(
             'relation_ref', 'relation', 'ir.model,name', "Relation",
             ondelete='CASCADE',
             states={
                 'readonly': Bool(Eval('module')),
-                }),
+                })
+
+
+class ModelField(
+        _ModelRefMixin,
+        _ModuleRefMixin2,
+        _RelationRefMixin,
         ModelSQL, ModelView):
     __name__ = 'ir.model.field'
     _rec_name = 'string'
@@ -525,10 +533,13 @@ class ModelField(
         return res
 
 
-class ModelAccess(
-        fields.fmany2one(
+_ModelRefMixin2 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
+            required=True, ondelete='CASCADE')
+
+
+class ModelAccess(
+        _ModelRefMixin2,
         DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'ir.model.access'
     model = fields.Char("Model", required=True)
@@ -760,16 +771,20 @@ class ModelAccess(
         ModelView._fields_view_get_cache.clear()
 
 
-class ModelFieldAccess(
-        fields.fmany2one(
+_ModelRefMixin3 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_FieldRefMixin = fields.fmany2one(
             'field_ref', 'field,model', 'ir.model.field,name,model', "Field",
             required=True, ondelete='CASCADE',
             domain=[
                 ('model_ref', '=', Eval('model_ref', -1)),
-                ]),
+                ])
+
+
+class ModelFieldAccess(
+        _ModelRefMixin3,
+        _FieldRefMixin,
         DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'ir.model.field.access'
     model = fields.Char("Model", required=True)
@@ -937,10 +952,13 @@ class ModelFieldAccess(
         ModelView._fields_view_get_cache.clear()
 
 
-class ModelButton(
-        fields.fmany2one(
+_ModelRefMixin4 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, readonly=True, ondelete='CASCADE'),
+            required=True, readonly=True, ondelete='CASCADE')
+
+
+class ModelButton(
+        _ModelRefMixin4,
         DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'ir.model.button'
     name = fields.Char('Name', required=True, readonly=True)
@@ -1271,13 +1289,17 @@ class ModelButtonReset(ModelSQL):
         required=True, ondelete='CASCADE')
 
 
-class ModelData(
-        fields.fmany2one(
+_ModelRefMixin5 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
-        fields.fmany2one(
+            required=True, ondelete='CASCADE')
+_ModuleRefMixin3 = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
-            required=True, ondelete='CASCADE'),
+            required=True, ondelete='CASCADE')
+
+
+class ModelData(
+        _ModelRefMixin5,
+        _ModuleRefMixin3,
         ModelSQL):
     __name__ = 'ir.model.data'
     fs_id = fields.Char('Identifier on File System', required=True,

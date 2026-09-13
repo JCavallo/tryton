@@ -158,7 +158,10 @@ class Extra(DeactivableMixin, ModelSQL, ModelView, MatchMixin):
         return match
 
 
-class ExtraLine(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class ExtraLine(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'sale.extra.line'
 
     extra = fields.Many2One('sale.extra', 'Extra', required=True,

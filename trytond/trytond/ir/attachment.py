@@ -85,8 +85,11 @@ class Attachment(ResourceMixin, ModelSQL, ModelView):
             view_id=view_id, view_type=view_type, level=level)
 
 
-class AttachmentCopyMixin(
-        resource_copy(
+_IrAttachmentMixin = resource_copy(
             'ir.attachment', 'attachments',
-            lazy_gettext('ir.msg_attachments'))):
+            lazy_gettext('ir.msg_attachments'))
+
+
+class AttachmentCopyMixin(
+        _IrAttachmentMixin):
     pass

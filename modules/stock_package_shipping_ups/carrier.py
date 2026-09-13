@@ -13,7 +13,10 @@ from trytond.pyson import Eval
 from .exceptions import UPSCredentialWarning
 
 
-class CredentialUPS(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class CredentialUPS(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'carrier.credential.ups'
     _rec_name = 'account_number'
 

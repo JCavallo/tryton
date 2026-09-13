@@ -502,7 +502,10 @@ class Subscription(Workflow, ModelSQL, ModelView, ChatMixin):
         return invoice
 
 
-class Line(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Line(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'sale.subscription.line'
 
     subscription = fields.Many2One(

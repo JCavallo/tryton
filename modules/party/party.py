@@ -826,7 +826,10 @@ TAX_IDENTIFIER_TYPES = [
 TAX_IDENTIFIER_TYPES = list(map(replace_vat, TAX_IDENTIFIER_TYPES))
 
 
-class Identifier(sequence_ordered(), DeactivableMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Identifier(_SequenceOrderedMixin, DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'party.identifier'
     _rec_name = 'code'
     party = fields.Many2One(

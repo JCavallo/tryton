@@ -5,5 +5,8 @@ from trytond.model import avatar_mixin
 from trytond.pool import PoolMeta
 
 
-class Party(avatar_mixin(200, 'name'), metaclass=PoolMeta):
+_AvatarMixin = avatar_mixin(200, 'name')
+
+
+class Party(_AvatarMixin, metaclass=PoolMeta):
     __name__ = 'party.party'

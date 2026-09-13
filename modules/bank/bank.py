@@ -193,7 +193,10 @@ class Account(DeactivableMixin, ModelSQL, ModelView):
                 return Bank.from_bic(iban.bic)
 
 
-class AccountNumber(DeactivableMixin, sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class AccountNumber(DeactivableMixin, _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'bank.account.number'
     _rec_name = 'number'
     account = fields.Many2One(

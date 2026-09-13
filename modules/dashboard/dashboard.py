@@ -4,7 +4,10 @@ from trytond.model import ModelSQL, ModelView, fields, sequence_ordered
 from trytond.pyson import Eval
 
 
-class Action(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Action(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = "dashboard.action"
     user = fields.Many2One('res.user', "User", required=True)
     act_window = fields.Many2One('ir.action.act_window', 'Action',

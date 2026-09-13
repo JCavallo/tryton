@@ -506,13 +506,17 @@ class ActionMixin(ModelSQL):
             [('action', '=', action_id)], fields_names=fields, limit=1)
 
 
-class ActionReport(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            ondelete='CASCADE'),
-        fields.fmany2one(
+            ondelete='CASCADE')
+_ModuleRefMixin = fields.fmany2one(
             'module_ref', 'module', 'ir.module,name', "Module",
-            readonly=True, ondelete='CASCADE'),
+            readonly=True, ondelete='CASCADE')
+
+
+class ActionReport(
+        _ModelRefMixin,
+        _ModuleRefMixin,
         ActionMixin, ModelSQL, ModelView):
     __name__ = 'ir.action.report'
     _action_name = 'report_name'
@@ -771,13 +775,17 @@ class ActionReport(
                         exception=exception)) from exception
 
 
-class ActionActWindow(
-        fields.fmany2one(
+_ResModelRefMixin = fields.fmany2one(
             'res_model_ref', 'res_model', 'ir.model,name', "Model",
-            ondelete='CASCADE'),
-        fields.fmany2one(
+            ondelete='CASCADE')
+_ContextModelRefMixin = fields.fmany2one(
             'context_model_ref', 'context_model', 'ir.model,name',
-            "Context Model", ondelete='CASCADE'),
+            "Context Model", ondelete='CASCADE')
+
+
+class ActionActWindow(
+        _ResModelRefMixin,
+        _ContextModelRefMixin,
         ActionMixin, ModelSQL, ModelView):
     __name__ = 'ir.action.act_window'
     domain = fields.Char('Domain Value')
@@ -984,8 +992,11 @@ class ActionActWindow(
         return Action(action_id).get_action_value()
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ActionActWindowView(
-        sequence_ordered(), DeactivableMixin, ModelSQL, ModelView):
+        _SequenceOrderedMixin, DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'ir.action.act_window.view'
     view = fields.Many2One(
         'ir.ui.view', "View", required=True, ondelete='CASCADE',
@@ -1014,8 +1025,11 @@ class ActionActWindowView(
         Keyword._get_keyword_cache.clear()
 
 
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
 class ActionActWindowDomain(
-        sequence_ordered(), DeactivableMixin, ModelSQL, ModelView):
+        _SequenceOrderedMixin2, DeactivableMixin, ModelSQL, ModelView):
     __name__ = 'ir.action.act_window.domain'
     name = fields.Char('Name', translate=True)
     domain = fields.Char('Domain')
@@ -1079,10 +1093,13 @@ class ActionActWindowDomain(
         Keyword._get_keyword_cache.clear()
 
 
-class ActionWizard(
-        fields.fmany2one(
+_ModelRefMixin2 = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            ondelete='CASCADE'),
+            ondelete='CASCADE')
+
+
+class ActionWizard(
+        _ModelRefMixin2,
         ActionMixin, ModelSQL, ModelView):
     __name__ = 'ir.action.wizard'
     _action_name = 'wiz_name'

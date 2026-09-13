@@ -8,7 +8,10 @@ from trytond.pool import PoolMeta
 from trytond.pyson import Eval
 
 
-class Template(copy_template_filtered('location_places'), metaclass=PoolMeta):
+_LocationPlacesMixin = copy_template_filtered('location_places')
+
+
+class Template(_LocationPlacesMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
 
     location_places = fields.One2Many(
@@ -25,7 +28,10 @@ class Template(copy_template_filtered('location_places'), metaclass=PoolMeta):
                 return place
 
 
-class Product(copy_product_filtered('location_places'), metaclass=PoolMeta):
+_LocationPlacesMixin2 = copy_product_filtered('location_places')
+
+
+class Product(_LocationPlacesMixin2, metaclass=PoolMeta):
     __name__ = 'product.product'
 
     location_places = fields.One2Many(

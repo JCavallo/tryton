@@ -98,7 +98,10 @@ class CategoryCustomerRentalTax(ModelSQL):
         cls.__access__.add('tax')
 
 
-class Template(copy_template_filtered('rental_prices'), metaclass=PoolMeta):
+_RentalPricesMixin = copy_template_filtered('rental_prices')
+
+
+class Template(_RentalPricesMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
 
     rentable = fields.Boolean(
@@ -162,7 +165,10 @@ class Template(copy_template_filtered('rental_prices'), metaclass=PoolMeta):
                     })]
 
 
-class Product(copy_product_filtered('rental_prices'), metaclass=PoolMeta):
+_RentalPricesMixin2 = copy_product_filtered('rental_prices')
+
+
+class Product(_RentalPricesMixin2, metaclass=PoolMeta):
     __name__ = 'product.product'
 
     rental_prices = fields.One2Many(
@@ -241,7 +247,10 @@ class Product(copy_product_filtered('rental_prices'), metaclass=PoolMeta):
                 return price.get_unit_price(self.rental_unit)
 
 
-class RentalPrice(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class RentalPrice(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'product.rental.price'
 
     template = fields.Many2One(

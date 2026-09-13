@@ -15,7 +15,10 @@ def intfloor(x):
     return int(round(x, 4))
 
 
-class Work(tree(parent='successors'), metaclass=PoolMeta):
+_TreeMixin = tree(parent='successors')
+
+
+class Work(_TreeMixin, metaclass=PoolMeta):
     __name__ = 'project.work'
     predecessors = fields.Many2Many('project.predecessor_successor',
         'successor', 'predecessor', 'Predecessors',

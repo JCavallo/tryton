@@ -28,7 +28,10 @@ class Procedure(ModelSQL, ModelView):
         cls._order.insert(0, ('name', 'ASC'))
 
 
-class Level(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Level(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'account.dunning.level'
     procedure = fields.Many2One(
         'account.dunning.procedure', "Procedure", required=True)

@@ -151,7 +151,10 @@ class Agent(DeactivableMixin, ModelSQL, ModelView):
             return self.party.account_receivable_used
 
 
-class AgentSelection(sequence_ordered(), MatchMixin, ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class AgentSelection(_SequenceOrderedMixin, MatchMixin, ModelSQL, ModelView):
     __name__ = 'commission.agent.selection'
     agent = fields.Many2One(
         'commission.agent', "Agent", required=True,
@@ -274,7 +277,10 @@ class Plan(ModelSQL, ModelView):
                 return line.get_amount(**context)
 
 
-class PlanLines(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class PlanLines(_SequenceOrderedMixin2, ModelSQL, ModelView, MatchMixin):
     __name__ = 'commission.plan.line'
     plan = fields.Many2One('commission.plan', 'Plan', required=True,
         ondelete='CASCADE',

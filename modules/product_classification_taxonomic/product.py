@@ -15,7 +15,10 @@ class Template(metaclass=PoolMeta):
             'product.taxon', 'product.cultivar']
 
 
-class Taxon(classification_tree('product.taxon'), ModelSQL, ModelView):
+_ProductTaxonMixin = classification_tree('product.taxon')
+
+
+class Taxon(_ProductTaxonMixin, ModelSQL, ModelView):
     __name__ = 'product.taxon'
     rank = fields.Selection([
             (None, ""),

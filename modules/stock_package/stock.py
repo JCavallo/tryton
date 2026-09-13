@@ -155,7 +155,10 @@ class MeasurementsMixin:
             cubic_meter, length * height * width, self.packaging_volume_uom)
 
 
-class Package(tree(), MeasurementsMixin, ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class Package(_TreeMixin, MeasurementsMixin, ModelSQL, ModelView):
     __name__ = 'stock.package'
     _rec_name = 'number'
     number = fields.Char("Number", readonly=True, required=True)

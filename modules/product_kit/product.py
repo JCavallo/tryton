@@ -10,9 +10,12 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval, If
 
 
+_ComponentsMixin = copy_template_filtered(
+            'components', 'parent_template', 'parent_product')
+
+
 class Template(
-        copy_template_filtered(
-            'components', 'parent_template', 'parent_product'),
+        _ComponentsMixin,
         metaclass=PoolMeta):
     __name__ = "product.template"
 
@@ -37,9 +40,12 @@ class Template(
             self.cost_price_method = 'fixed'
 
 
+_ComponentsMixin2 = copy_product_filtered(
+            'components', 'parent_template', 'parent_product')
+
+
 class Product(
-        copy_product_filtered(
-            'components', 'parent_template', 'parent_product'),
+        _ComponentsMixin2,
         metaclass=PoolMeta):
     __name__ = "product.product"
 
@@ -90,7 +96,10 @@ class Product(
         return quantities
 
 
-class ComponentMixin(sequence_ordered(), ModelStorage):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class ComponentMixin(_SequenceOrderedMixin, ModelStorage):
 
     parent_type = fields.Function(fields.Selection(
             'get_product_types', "Parent Type"), 'on_change_with_parent_type')

@@ -39,10 +39,13 @@ def _get_access_models(Model, names=None, model2field=None, path=None):
     return names, model2field
 
 
-class RuleGroup(
-        fields.fmany2one(
+_ModelRefMixin = fields.fmany2one(
             'model_ref', 'model', 'ir.model,name', "Model",
-            required=True, ondelete='CASCADE'),
+            required=True, ondelete='CASCADE')
+
+
+class RuleGroup(
+        _ModelRefMixin,
         ModelSQL, ModelView):
     __name__ = 'ir.rule.group'
     name = fields.Char(

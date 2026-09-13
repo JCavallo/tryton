@@ -20,8 +20,11 @@ from trytond.transaction import Transaction
 from .exceptions import PurchaseUOMWarning
 
 
+_ProductSuppliersMixin = copy_template_filtered('product_suppliers')
+
+
 class Template(
-        copy_template_filtered('product_suppliers'), metaclass=PoolMeta):
+        _ProductSuppliersMixin, metaclass=PoolMeta):
     __name__ = "product.template"
     purchasable = fields.Boolean("Purchasable")
     product_suppliers = fields.One2Many(
@@ -87,8 +90,11 @@ class Template(
                             name, gettext('purchase.msg_change_purchase_uom'))
 
 
+_ProductSuppliersMixin2 = copy_product_filtered('product_suppliers')
+
+
 class Product(
-        copy_product_filtered('product_suppliers'), metaclass=PoolMeta):
+        _ProductSuppliersMixin2, metaclass=PoolMeta):
     __name__ = 'product.product'
 
     product_suppliers = fields.One2Many(
@@ -253,8 +259,11 @@ class Product(
         return prices
 
 
+_SequenceOrderedMixin = sequence_ordered()
+
+
 class ProductSupplier(
-        sequence_ordered(), ProductDeactivatableMixin, MatchMixin,
+        _SequenceOrderedMixin, ProductDeactivatableMixin, MatchMixin,
         ModelSQL, ModelView):
     __name__ = 'purchase.product_supplier'
     template = fields.Many2One(
@@ -447,8 +456,11 @@ class ProductSupplier(
         return pattern
 
 
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
 class ProductSupplierPrice(
-        sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+        _SequenceOrderedMixin2, ModelSQL, ModelView, MatchMixin):
     __name__ = 'purchase.product_supplier.price'
     product_supplier = fields.Many2One('purchase.product_supplier',
             'Supplier', required=True, ondelete='CASCADE')

@@ -401,7 +401,10 @@ class IncomingSupplierInvoicePurchase(metaclass=PoolMeta):
         return line
 
 
-class IncomingOCRService(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class IncomingOCRService(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'document.incoming.ocr.service'
 
     type = fields.Selection([

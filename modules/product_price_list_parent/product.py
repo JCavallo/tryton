@@ -6,7 +6,10 @@ from trytond.modules.product_price_list.price_list import Null
 from trytond.pool import PoolMeta
 
 
-class PriceList(tree(), metaclass=PoolMeta):
+_TreeMixin = tree()
+
+
+class PriceList(_TreeMixin, metaclass=PoolMeta):
     __name__ = 'product.price_list'
 
     parent = fields.Many2One('product.price_list', "Parent")

@@ -117,6 +117,9 @@ class NoteRead(ModelSQL):
         ondelete='CASCADE')
 
 
+_IrNoteMixin = resource_copy('ir.note', 'notes', lazy_gettext('ir.msg_notes'))
+
+
 class NoteCopyMixin(
-        resource_copy('ir.note', 'notes', lazy_gettext('ir.msg_notes'))):
+        _IrNoteMixin):
     pass

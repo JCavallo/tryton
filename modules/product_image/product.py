@@ -98,16 +98,22 @@ class ImageURLMixin:
                 yield image
 
 
+_ImagesMixin = copy_template_filtered('images')
+
+
 class Template(
-        copy_template_filtered('images'),
+        _ImagesMixin,
         ImageURLMixin, metaclass=PoolMeta):
     __name__ = 'product.template'
     __image_url__ = '/product/image'
     images = fields.One2Many('product.image', 'template', "Images")
 
 
+_ImagesMixin2 = copy_product_filtered('images')
+
+
 class Product(
-        copy_product_filtered('images'),
+        _ImagesMixin2,
         ImageURLMixin, metaclass=PoolMeta):
     __name__ = 'product.product'
     __image_url__ = '/product/variant/image'
@@ -223,7 +229,10 @@ class ImageMixin(_ImageMixin):
         Cache.delete(caches)
 
 
-class Image(ImageMixin, sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Image(ImageMixin, _SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'product.image'
     template = fields.Many2One(
         'product.template', "Product",
@@ -308,8 +317,11 @@ class Category(ImageURLMixin, metaclass=PoolMeta):
     images = fields.One2Many('product.category.image', 'category', "Images")
 
 
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
 class CategoryImage(
-        ImageMixin, sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+        ImageMixin, _SequenceOrderedMixin2, ModelSQL, ModelView, MatchMixin):
     __name__ = 'product.category.image'
     category = fields.Many2One(
         'product.category', "Category",

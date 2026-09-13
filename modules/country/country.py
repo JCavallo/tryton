@@ -103,7 +103,10 @@ class OrganizationMember(ModelSQL, ModelView):
         return expression
 
 
-class Region(tree(), ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class Region(_TreeMixin, ModelSQL, ModelView):
     __name__ = 'country.region'
 
     name = fields.Char("Name", required=True, translate=True)

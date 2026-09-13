@@ -31,7 +31,10 @@ class WarehouseWasteLocation(ModelSQL):
         domain=[('type', '=', 'lost_found')])
 
 
-class Location(DeactivableMixin, tree(), ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class Location(DeactivableMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'stock.location'
     _default_warehouse_cache = Cache('stock.location.default_warehouse',
         context=False)
@@ -726,7 +729,10 @@ class ProductsByLocations(DeactivableMixin, ModelSQL, ModelView):
         return [('product.' + name + nested, *clause[1:])]
 
 
-class LocationLeadTime(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class LocationLeadTime(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     __name__ = 'stock.location.lead_time'
 
     warehouse_from = fields.Many2One('stock.location', 'Warehouse From',

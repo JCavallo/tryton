@@ -744,7 +744,11 @@ _states = {
     }
 
 
-class Line(origin_mixin(_states), sequence_ordered(), ModelSQL, ModelView):
+_OriginMixin = origin_mixin(_states)
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Line(_OriginMixin, _SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'account.statement.line'
 
     move = fields.Many2One('account.move', 'Account Move', readonly=True,
@@ -1183,7 +1187,10 @@ _states = {
     }
 
 
-class Origin(origin_mixin(_states), ModelSQL, ModelView):
+_OriginMixin2 = origin_mixin(_states)
+
+
+class Origin(_OriginMixin2, ModelSQL, ModelView):
     __name__ = 'account.statement.origin'
     _rec_name = 'number'
 

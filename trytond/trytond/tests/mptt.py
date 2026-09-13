@@ -8,7 +8,10 @@ from trytond.model import DeactivableMixin, ModelSQL, ModelView, fields, tree
 from trytond.pool import Pool
 
 
-class MPTT(DeactivableMixin, tree(), ModelSQL, ModelView):
+_TreeMixin = tree()
+
+
+class MPTT(DeactivableMixin, _TreeMixin, ModelSQL, ModelView):
     __name__ = 'test.mptt'
     name = fields.Char('Name', required=True)
     parent = fields.Many2One('test.mptt', "Parent", left="left", right="right")

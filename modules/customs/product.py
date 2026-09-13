@@ -160,7 +160,10 @@ class Template(metaclass=PoolMeta):
         return callback
 
 
-class Product_TariffCode(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Product_TariffCode(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'product-customs.tariff.code'
     product = fields.Reference('Product', selection=[
             ('product.template', 'Template'),

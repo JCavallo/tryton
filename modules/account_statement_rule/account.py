@@ -63,7 +63,10 @@ class StatementOrigin(metaclass=PoolMeta):
     keywords = fields.Dict(None, "Keywords")
 
 
-class StatementRule(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class StatementRule(_SequenceOrderedMixin, ModelSQL, ModelView):
     __name__ = 'account.statement.rule'
 
     name = fields.Char("Name")
@@ -148,7 +151,10 @@ class StatementRule(sequence_ordered(), ModelSQL, ModelView):
             yield line
 
 
-class StatementRuleInformation(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin2 = sequence_ordered()
+
+
+class StatementRuleInformation(_SequenceOrderedMixin2, ModelSQL, ModelView):
     __name__ = 'account.statement.rule.information'
 
     rule = fields.Many2One(
@@ -275,7 +281,10 @@ _add_range(StatementRuleInformation, 'float', fields.Float, "Float")
 _add_range(StatementRuleInformation, 'number', fields.Numeric, "Numeric")
 
 
-class StatementRuleLine(sequence_ordered(), ModelSQL, ModelView):
+_SequenceOrderedMixin3 = sequence_ordered()
+
+
+class StatementRuleLine(_SequenceOrderedMixin3, ModelSQL, ModelView):
     __name__ = 'account.statement.rule.line'
 
     rule = fields.Many2One(

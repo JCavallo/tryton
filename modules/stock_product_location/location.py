@@ -6,7 +6,10 @@ from trytond.pool import Pool, PoolMeta
 from trytond.pyson import Bool, Eval, If
 
 
-class ProductLocation(sequence_ordered(), ModelSQL, ModelView, MatchMixin):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class ProductLocation(_SequenceOrderedMixin, ModelSQL, ModelView, MatchMixin):
     "It defines the default storage location by warehouse for a product"
     __name__ = 'stock.product.location'
     template = fields.Many2One(

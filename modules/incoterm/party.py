@@ -85,7 +85,10 @@ class Address(metaclass=PoolMeta):
         return [Coalesce(query.is_related, False)]
 
 
-class Incoterm(sequence_ordered(), ModelView, ModelSQL):
+_SequenceOrderedMixin = sequence_ordered()
+
+
+class Incoterm(_SequenceOrderedMixin, ModelView, ModelSQL):
     __name__ = 'party.incoterm'
 
     party = fields.Many2One(
