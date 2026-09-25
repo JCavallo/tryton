@@ -4,6 +4,7 @@ import datetime
 from collections import defaultdict
 from functools import cache, wraps
 from itertools import groupby, islice, product, repeat
+from typing import Any, Callable, ClassVar
 
 from sql import (
     Asc, Column, Desc, Expression, Literal, Null, NullsFirst, NullsLast, Table,
@@ -318,10 +319,13 @@ class ModelSQL(ModelStorage):
     """
     __slots__ = ()
     _table = None  # The name of the table in database
-    _order = None
+    _order: ClassVar[list[tuple[str, str | None]]] = []
     _order_name = None  # Use to force order field when sorting on Many2One
     _history = False
-    table_query = None
+    table_query: ClassVar[Callable[[], Any] | None] = None
+    _sql_constraints: ClassVar[list[tuple[str, Constraint, str]]]
+    _sql_indexes: ClassVar[set['Index']]
+    _history_sql_indexes: ClassVar[set['Index']]
 
     last_modified_at = fields.Function(fields.Timestamp(
             lazy_gettext('ir.msg_last_modified_at')))

@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 from collections import OrderedDict
 from functools import wraps
+from typing import ClassVar
 
 
 class Workflow(object):
@@ -10,6 +11,7 @@ class Workflow(object):
     """
     __slots__ = ()
     _transition_state = 'state'
+    _transitions: ClassVar[set[tuple[str, str]]]
 
     @classmethod
     def __setup__(cls):

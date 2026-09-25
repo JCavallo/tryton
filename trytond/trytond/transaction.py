@@ -3,6 +3,7 @@
 
 import copy
 import ipaddress
+from typing import ClassVar
 import logging
 import time
 from collections import defaultdict, deque
@@ -268,6 +269,12 @@ class Transaction(object):
     cache_keys = {
         'language', 'fuzzy_translation', '_datetime', '_datetime_included',
         }
+
+    # --- hunk A: trytond's own, assigned outside any class body ---
+    # `instance.cache = WeakValueDictionary()` in __new__.
+    cache: WeakValueDictionary
+    # `Transaction._savepoint_properties = [...]` at module scope, below.
+    _savepoint_properties: ClassVar[list[str]]
 
     def __new__(cls, new=False):
         transactions = cls._local.transactions

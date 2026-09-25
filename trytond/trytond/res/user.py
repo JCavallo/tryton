@@ -17,6 +17,7 @@ try:
 except ImportError:
     secrets = None
 import ipaddress
+from typing import ClassVar
 from ast import literal_eval
 from functools import wraps
 from itertools import groupby
@@ -103,6 +104,8 @@ _AvatarMixin = avatar_mixin(100, 'login')
 
 class User(_AvatarMixin, DeactivableMixin, ModelSQL, ModelView):
     __name__ = "res.user"
+    _preferences_fields: ClassVar[list[str]]
+    _context_fields: ClassVar[list[str]]
     name = fields.Char('Name')
     login = fields.Char('Login', required=True)
     password_hash = fields.Char('Password Hash', strip=False)

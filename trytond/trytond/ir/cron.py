@@ -8,6 +8,7 @@ import random
 import time
 from collections import defaultdict
 from itertools import groupby
+from typing import ClassVar
 
 from dateutil.relativedelta import relativedelta
 from sql import Literal
@@ -35,6 +36,7 @@ def str2bigint(s):
 
 class Cron(DeactivableMixin, ModelSQL, ModelView):
     __name__ = "ir.cron"
+    _notifications: ClassVar[set[str]]
     _states = {
         'readonly': Eval('running', False),
         }

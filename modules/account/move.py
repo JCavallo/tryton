@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 from collections import defaultdict
 from decimal import Decimal
+from typing import ClassVar
 from itertools import chain, groupby, islice
 
 from dateutil.relativedelta import relativedelta
@@ -89,6 +90,7 @@ class DescriptionOriginMixin:
 class Move(DescriptionOriginMixin, ModelSQL, ModelView):
     __name__ = 'account.move'
     _rec_name = 'number'
+    _check_modify_exclude: ClassVar[set[str]]
     number = fields.Char(
         "Number", readonly=True,
         help='Also known as Folio Number.')
@@ -899,6 +901,7 @@ class MoveLineMixin:
 
 class Line(DescriptionOriginMixin, MoveLineMixin, ModelSQL, ModelView):
     __name__ = 'account.move.line'
+    _check_modify_exclude: ClassVar[set[str]]
 
     _states = {
         'readonly': Eval('move_state') == 'posted',

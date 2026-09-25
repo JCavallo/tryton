@@ -4,6 +4,7 @@ import copy
 import logging
 from decimal import Decimal
 from importlib import import_module
+from typing import ClassVar
 
 import stdnum
 import stdnum.exceptions
@@ -487,6 +488,7 @@ class Product(
         TemplateDeactivatableMixin, _ReplacedByMixin, ModelSQL, ModelView,
         CompanyMultiValueMixin):
     __name__ = "product.product"
+    _no_template_field: ClassVar[set[str]]
     _order_name = 'rec_name'
     template = fields.Many2One(
         'product.template', "Product Template",

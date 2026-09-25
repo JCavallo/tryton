@@ -4,7 +4,7 @@
 import collections.abc
 import copy
 import sys
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Callable, ClassVar
 from collections import defaultdict
 from functools import total_ordering
 from itertools import chain, groupby
@@ -48,6 +48,17 @@ class Model(URLMixin, PoolBase, metaclass=ModelMeta):
         '__weakref__')
     __string__ = None
     _rec_name = 'name'
+    # __setup__ sets these (below), never declares them in the class body --
+    # invisible to mypy once __getattr__ is hidden (mason-3a1.23).
+    __rpc__: ClassVar[dict[str, RPC]]
+    __access__: ClassVar[set[str]]
+    # __post_setup__ sets this (below); same shape as __rpc__/__access__
+    # above, missed by mason-3a1.23's own scan (mason-3a1.26).
+    _fields: ClassVar[dict[str, fields.Field]]
+    # __post_setup__ sets this too (below), same undeclared-classvar shape --
+    # a map of field name to its default_<name> classmethod, always called
+    # with no arguments (mason-3a1.131).
+    _defaults: ClassVar[dict[str, Callable[[], Any]]]
 
     id = fields.Integer(lazy_gettext('ir.msg_ID'), readonly=True)
 

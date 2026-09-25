@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import collections
 from functools import wraps
+from typing import Any, ClassVar
 
 from lxml import etree
 
@@ -84,6 +85,7 @@ class ModelView(Model):
     _fields_view_get_cache = Cache('modelview.fields_view_get')
     _view_toolbar_get_cache = Cache(
         'modelview.view_toolbar_get', context=False)
+    _buttons: ClassVar[dict[str, dict[str, Any]]]
 
     @classmethod
     def __setup__(cls):
