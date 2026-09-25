@@ -19,7 +19,7 @@ dumps = partial(
     ensure_ascii=False)
 
 
-class Dict(Field):
+class Dict(Field[dict]):
     _type = 'dict'
     _sql_type = 'JSON'
     _py_type = dict

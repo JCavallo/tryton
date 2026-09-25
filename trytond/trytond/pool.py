@@ -1,6 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import builtins
+from typing import Any
 import logging
 from collections import OrderedDict, defaultdict
 from threading import RLock, local
@@ -272,7 +273,7 @@ class Pool(object):
         for hook in self._hooks[self.database_name]['final_migration']:
             hook(self, options)
 
-    def get(self, name, type='model'):
+    def get(self, name: str, type: str = 'model') -> Any:
         '''
         Get an object from the pool
 

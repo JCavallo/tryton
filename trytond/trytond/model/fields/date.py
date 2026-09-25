@@ -26,7 +26,7 @@ class SQLite_Time(Function):
     _function = 'TIME'
 
 
-class Date(Field):
+class Date(Field[datetime.date]):
     _type = 'date'
     _sql_type = 'DATE'
     _py_type = datetime.date

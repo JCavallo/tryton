@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import warnings
 from functools import partial, wraps
+from typing import Any, Generic, TypeVar, overload
 
 import sql
 from sql import (
@@ -294,7 +295,16 @@ else:
     SQL_OPERATORS['not in'] = not_in
 
 
-class Field(object):
+_T = TypeVar('_T')
+# Self-bound, not a literal 'Field[_T]' return: a plain TypeVar there
+# would erase the subclass on class-level access (Model.rel_field.
+# get_target(), a real trytond idiom -- e.g. company.py's
+# `cls.logo_cache.get_target()` -- One2Many/Many2One-only), reporting
+# attr-defined on every subclass method the base Field lacks.
+_F = TypeVar('_F', bound='Field[Any]')
+
+
+class Field(Generic[_T]):
     _type = None
     _sql_type = None
     _py_type = None
@@ -431,6 +441,10 @@ class Field(object):
 
     context = property(_get_context, _set_context)
 
+    @overload
+    def __get__(self: _F, inst: None, cls: type) -> _F: ...
+    @overload
+    def __get__(self, inst: object, cls: type) -> _T: ...
     def __get__(self, inst, cls):
         if inst is None:
             return self
@@ -618,7 +632,7 @@ class Field(object):
                 or self.name not in _TABLE_QUERY_COLUMNS))
 
 
-class FieldTranslate(Field):
+class FieldTranslate(Field[_T]):
 
     def translated(self, name=None):
         "Return a descriptor to get translated value of the field"

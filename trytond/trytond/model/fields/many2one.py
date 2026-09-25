@@ -16,12 +16,16 @@ from trytond.pyson import PYSONEncoder
 from trytond.tools import cached_property
 from trytond.transaction import Transaction, inactive_records
 
+from typing import TypeVar
+
 from .field import (
     SQL_OPERATORS, Field, context_validate, domain_method, instantiate_context,
     order_method, search_order_validate)
 
+_T = TypeVar('_T')
 
-class Many2One(Field):
+
+class Many2One(Field[_T]):
     _type = 'many2one'
     _sql_type = 'INTEGER'
 

@@ -5,6 +5,8 @@ __all__ = ['Wizard',
     'StateView', 'StateTransition', 'StateAction', 'StateReport',
     'Button']
 
+from typing import Generic, TypeVar, overload
+_StateT = TypeVar('_StateT')
 import copy
 import json
 from collections import defaultdict
@@ -54,12 +56,22 @@ class State(object):
     name = None
 
 
-class StateView(State):
+class StateView(State, Generic[_StateT]):
     '''
     A view state of a wizard.
     '''
 
-    def __init__(self, model_name, view, buttons):
+    # Non-data descriptor: the wizard sets the record in the instance
+    # __dict__, which wins on read, so this is a no-op at runtime. It
+    # exists so `self.<state>` can be typed as the state's record.
+    @overload
+    def __get__(self, inst: None, owner: type) -> 'StateView[_StateT]': ...
+    @overload
+    def __get__(self, inst: object, owner: type) -> _StateT: ...
+    def __get__(self, inst, owner):
+        return self
+
+    def __init__(self, model_name: str, view, buttons):
         '''
         model_name is the name of the model
         view is the xml id of the view

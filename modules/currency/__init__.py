@@ -1,7 +1,12 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+from typing import TYPE_CHECKING
+
 
 __all__ = ['ROUNDING_OPPOSITES']
+
+if TYPE_CHECKING:
+    from .currency import ROUNDING_OPPOSITES
 
 
 def __getattr__(name):

@@ -1,10 +1,23 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+from typing import TYPE_CHECKING
+
 
 __all__ = [
     'price_digits', 'round_price', 'uom_conversion_digits',
     'ProductDeactivatableMixin', 'TemplateDeactivatableMixin',
     'copy_template_filtered', 'copy_product_filtered']
+
+if TYPE_CHECKING:
+    from .uom import uom_conversion_digits
+    from .product import (
+        ProductDeactivatableMixin,
+        TemplateDeactivatableMixin,
+        copy_product_filtered,
+        copy_template_filtered,
+        price_digits,
+        round_price,
+        )
 
 
 def __getattr__(name):

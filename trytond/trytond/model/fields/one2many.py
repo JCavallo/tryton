@@ -13,13 +13,17 @@ from trytond.pyson import PYSONEncoder
 from trytond.tools import cached_property
 from trytond.transaction import Transaction
 
+from typing import TypeVar
+
 from .field import (
     Field, context_validate, domain_method, domain_validate, get_eval_fields,
     instanciate_values, instantiate_context, search_order_validate,
     size_validate)
 
+_T = TypeVar('_T')
 
-class One2Many(Field):
+
+class One2Many(Field[tuple[_T, ...]]):
     _type = 'one2many'
     _py_type = tuple
 

@@ -9,7 +9,12 @@ from trytond.i18n import gettext
 from trytond.tools import is_instance_method
 from trytond.transaction import Transaction, without_check_access
 
+from typing import Any, TypeVar, overload
+
 from .field import Field, domain_method, order_method
+
+_T = TypeVar('_T')
+_F = TypeVar('_F', bound='Function[Any]')
 
 
 def getter_context(func):
@@ -28,10 +33,10 @@ def getter_context(func):
     return wrapper
 
 
-class Function(Field):
+class Function(Field[_T]):
 
-    def __init__(self, field, getter=None, setter=None, searcher=None,
-            getter_with_context=True, loading='lazy'):
+    def __init__(self, field: Field[_T], getter=None, setter=None,
+            searcher=None, getter_with_context=True, loading='lazy'):
         '''
         :param field: The field of the function.
         :param getter: The name of the function for getting values.
@@ -215,6 +220,10 @@ class Function(Field):
                     'ir.msg_setter_function_missing',
                     **Model.__names__(self.name)))
 
+    @overload
+    def __get__(self: _F, inst: None, cls: type) -> _F: ...
+    @overload
+    def __get__(self, inst: object, cls: type) -> _T: ...
     def __get__(self, inst, cls):
         try:
             return super().__get__(inst, cls)
@@ -269,9 +278,9 @@ for name in [
     setattr(Function, name, property(getter(name), setter(name)))
 
 
-class MultiValue(Function):
+class MultiValue(Function[_T]):
 
-    def __init__(self, field, loading='lazy'):
+    def __init__(self, field: Field[_T], loading='lazy'):
         super().__init__(
             field, '_multivalue_getter', setter='_multivalue_setter',
             loading=loading)
