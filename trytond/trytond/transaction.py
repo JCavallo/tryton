@@ -3,7 +3,7 @@
 
 import copy
 import ipaddress
-from typing import ClassVar
+from typing import Any, ClassVar
 import logging
 import time
 from collections import defaultdict, deque
@@ -275,6 +275,21 @@ class Transaction(object):
     cache: WeakValueDictionary
     # `Transaction._savepoint_properties = [...]` at module scope, below.
     _savepoint_properties: ClassVar[list[str]]
+
+    # --- hunk B: coog's, attached by coog_core/monkey_patches.py (FORK-ONLY) ---
+    # SavepointAwareProperty descriptors; each type is its factory's product.
+    _cached_today: dict
+    _cached_language: Any
+    _once_in_transaction_cache: dict
+    _file_operations: dict
+    _trigger_file_operations: bool
+    _last_cache_counter: int | None
+    _cached_once: defaultdict
+    _mass_loader_cache: dict
+    _hierarchy_instances: dict
+    # Set directly rather than through the descriptor table.
+    _company_timezone: Any
+    _rules: Any
 
     def __new__(cls, new=False):
         transactions = cls._local.transactions
