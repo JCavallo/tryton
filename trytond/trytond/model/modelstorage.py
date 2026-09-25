@@ -11,6 +11,7 @@ import logging
 import random
 import time
 import warnings
+from typing import TYPE_CHECKING
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
@@ -1895,254 +1896,263 @@ class ModelStorage(Model):
     def _cache(self):
         return self._transaction_cache[self.__name__]
 
-    def __getattr__(self, name):
-        try:
-            return super().__getattr__(name)
-        except AttributeError:
-            if name.startswith('_') or self.id is None or self.id < 0:
-                raise
-
-        self._local_cache.refresh()
-
-        try:
-            return self._local_cache[self.id][name]
-        except KeyError:
-            pass
-
-        # fetch the definition of the field
-        try:
-            field = self._fields[name]
-        except KeyError:
-            raise AttributeError('"%s" has no attribute "%s"' % (self, name))
-
-        try:
-            if field._type not in (
-                    'many2one', 'reference',
-                    'one2many', 'many2many', 'one2one',
-                    ):
-                # fill local cache for quicker access later
-                value \
-                        = self._local_cache[self.id][name] \
-                        = self._cache[self.id][name]
-                return value
-            else:
-                skip_eager = (
-                    name in self._cache[self.id]
-                    and not field.context
-                    and (not getattr(field, 'datetime_field', None)
-                        or field.datetime_field in self._cache[self.id]))
-        except KeyError:
-            skip_eager = False
-
-        pool = Pool()
-
-        # build the list of fields we will fetch
-        ffields = {
-            name: field,
-            }
-        load_eager = field.loading == 'eager' and not skip_eager
-        multiple_getter, multiple_getter_key = None, None
-        if (field.loading == 'lazy'
-                and isinstance(field, fields.Function)
-                and field.getter
-                and field.getter_multiple(
-                    getattr(self.__class__, field.getter))):
-            multiple_getter = field.getter
-            multiple_getter_key = self.key_get_field(name)
-
-        if load_eager or multiple_getter:
-            FieldAccess = pool.get('ir.model.field.access')
-            fread_accesses = {}
-            fread_accesses.update(FieldAccess.check(self.__name__,
-                list(self._fields.keys()), 'read', access=True))
-            to_remove = set(x for x, y in fread_accesses.items()
-                    if not y and x != name)
-
-            def not_cached(item):
-                fname, field = item
-                return ((self.id not in self._cache
-                        or fname not in self._cache[self.id])
-                    and (self.id not in self._local_cache
-                        or fname not in self._local_cache[self.id]))
-
-            def to_load(item):
-                fname, field = item
-                if fname in to_remove:
-                    return False
-                if multiple_getter:
-                    return (getattr(field, 'getter', None) == multiple_getter
-                        and self.key_get_field(fname) == multiple_getter_key)
-                return field.loading == 'eager'
-
-            ifields = filter(to_load,
-                filter(not_cached,
-                    iter(self._fields.items())))
-            ifields = islice(ifields, 0, config.getint('cache', 'field'))
-            ffields.update(ifields)
-
-        # add datetime_field
-        for field in list(ffields.values()):
-            if hasattr(field, 'datetime_field') and field.datetime_field:
-                if field.datetime_field not in ffields:
-                    datetime_field = self._fields[field.datetime_field]
-                    ffields[field.datetime_field] = datetime_field
-
-        # add depends of field with context
-        for field in list(ffields.values()):
-            if field.context:
-                eval_fields = fields.get_eval_fields(field.context)
-                for context_field_name in eval_fields:
-                    if context_field_name not in field.validation_depends:
-                        continue
-                    if context_field_name not in ffields:
-                        context_field = self._fields.get(context_field_name)
-                        ffields[context_field_name] = context_field
-
-        delete_records = self._transaction.delete_records.get(
-            self.__name__, set())
-
-        def cached(id_):
-            names = set()
-            if id_ in self._cache:
-                names.update(self._cache[id_]._keys())
-            if id_ in self._local_cache:
-                names.update(self._local_cache[id_]._keys())
-            return names
-
-        def filter_(id_):
-            return (id_ == self.id  # Ensure the value is read
-                or (id_ not in delete_records
-                    and not ffields.keys() <= cached(id_)))
-
-        def unique(ids):
-            s = set()
-            for id_ in ids:
-                if id_ not in s:
-                    s.add(id_)
-                    yield id_
-        read_size = max(1, min(
-                self._cache.size_limit, self._local_cache.size_limit))
-        index = self._ids.index(self.id)
-        ids = islice(self._ids, index, index + read_size)
-        ids = unique(filter(filter_, ids))
-
-        kwargs_cache = {}
-        pysoned_ctx = {}
-        transaction = self._transaction
-
-        def create_instances(Model, value, cache_key=None):
-            cache_key = (Model, cache_key)
-            if not (kwargs := kwargs_cache.get(cache_key)):
-                if cache_key not in model2cache:
-                    model2cache[cache_key] = local_cache(Model, transaction)
-                kwargs_cache[cache_key] = kwargs = {
-                    '_local_cache': model2cache[cache_key],
-                    '_ids': model2ids.setdefault(cache_key, []),
-                    '_transaction_cache': transaction.get_cache(),
-                    '_transaction': transaction,
-                    }
-            ids = kwargs['_ids']
-            if field._type in {'many2one', 'one2one', 'reference'}:
-                ids.append(value)
-                return Model(value, **kwargs)
-            elif field._type in {'one2many', 'many2many'}:
-                ids.extend(value)
-                return tuple(Model(id, **kwargs) for id in value)
-
-        def instantiate(field, value, data):
-            if field._type in ('many2one', 'one2one', 'reference'):
-                # ABDC: Fix when data is an empty string, we should return
-                # None
-                if value is None or value is False or value == '':
-                    return None
-            elif field._type in ('one2many', 'many2many'):
-                if not value:
-                    return ()
+    if not TYPE_CHECKING:
+        # Hidden from the type checker, same shape and reason as
+        # Model.__getattr__ (model.py, mason-3a1.21): a class defining
+        # __getattr__ tells mypy every attribute access on it can resolve
+        # dynamically, which suppressed attr-defined on every ModelStorage
+        # INSTANCE (self.x), even with Model.__getattr__ already hidden
+        # (mason-3a1.151). No runtime effect: TYPE_CHECKING is False when
+        # this actually executes, so the method is defined exactly as
+        # before, merely indented one level under the guard.
+        def __getattr__(self, name):
             try:
-                if field._type == 'reference':
-                    model_name, record_id = value.split(',')
-                    Model = pool.get(model_name)
-                    try:
-                        record_id = int(record_id)
-                    except ValueError:
-                        return value
-                    if record_id < 0:
-                        return value
-                    value = record_id
-                else:
-                    Model = field.get_target()
-            except KeyError:
-                return value
-            if ((datetime_field := getattr(field, 'datetime_field', None))
-                    or field.context):
-                ctx = {}
-                if field.context:
-                    if not (pyson_context := pysoned_ctx.get(field)):
-                        pyson_context = PYSONEncoder().encode(field.context)
-                        pysoned_ctx[field] = pyson_context
-                    ctx.update(PYSONDecoder(data).decode(pyson_context))
-                if datetime_field:
-                    ctx['_datetime'] = data.get(datetime_field)
-                with transaction.set_context(**ctx):
-                    return create_instances(Model, value, freeze(ctx))
-            else:
-                return create_instances(Model, value)
+                return super().__getattr__(name)
+            except AttributeError:
+                if name.startswith('_') or self.id is None or self.id < 0:
+                    raise
 
-        model2ids = {}
-        model2cache = {}
-        # Read the data
-        with Transaction().set_current_transaction(transaction), \
-                self._transaction.set_user(self._user), \
-                self._transaction.reset_context(), \
-                self._transaction.set_context(self._context), \
-                without_check_access():
-            if (self.id in self._cache and name in self._cache[self.id]
-                    and ffields.keys() <= set(self._cache[self.id]._keys())):
-                # Use values from cache
-                read_data = []
-                for id_ in islice(self._ids, index, index + read_size):
-                    if id_ in self._cache:
-                        data = {'id': id_}
-                        for fname in ffields:
-                            if fname not in self._cache[id_]:
-                                break
-                            data[fname] = self._cache[id_][fname]
-                        else:
-                            read_data.append(data)
-            else:
-                # Order data read to update cache in the same order
-                index = {i: n for n, i in enumerate(ids)}
-                read_data = self.read(list(index.keys()), list(ffields.keys()))
-                read_data.sort(key=lambda r: index[r['id']])
-            # create browse records for 'remote' models
-            no_local_cache = {'binary'}
-            if not transaction.readonly:
-                no_local_cache |= {
-                    'one2one', 'one2many', 'many2many', 'reference'}
-            for data in read_data:
-                id_ = data['id']
-                to_delete = set()
-                for fname, field in ffields.items():
-                    fvalue = data[fname]
-                    if field._type in {
-                            'many2one', 'one2one', 'one2many', 'many2many',
-                            'reference'}:
-                        if (fname != name
-                                and field._type not in no_local_cache):
+            self._local_cache.refresh()
+
+            try:
+                return self._local_cache[self.id][name]
+            except KeyError:
+                pass
+
+            # fetch the definition of the field
+            try:
+                field = self._fields[name]
+            except KeyError:
+                raise AttributeError('"%s" has no attribute "%s"' % (self, name))
+
+            try:
+                if field._type not in (
+                        'many2one', 'reference',
+                        'one2many', 'many2many', 'one2one',
+                        ):
+                    # fill local cache for quicker access later
+                    value \
+                            = self._local_cache[self.id][name] \
+                            = self._cache[self.id][name]
+                    return value
+                else:
+                    skip_eager = (
+                        name in self._cache[self.id]
+                        and not field.context
+                        and (not getattr(field, 'datetime_field', None)
+                            or field.datetime_field in self._cache[self.id]))
+            except KeyError:
+                skip_eager = False
+
+            pool = Pool()
+
+            # build the list of fields we will fetch
+            ffields = {
+                name: field,
+                }
+            load_eager = field.loading == 'eager' and not skip_eager
+            multiple_getter, multiple_getter_key = None, None
+            if (field.loading == 'lazy'
+                    and isinstance(field, fields.Function)
+                    and field.getter
+                    and field.getter_multiple(
+                        getattr(self.__class__, field.getter))):
+                multiple_getter = field.getter
+                multiple_getter_key = self.key_get_field(name)
+
+            if load_eager or multiple_getter:
+                FieldAccess = pool.get('ir.model.field.access')
+                fread_accesses = {}
+                fread_accesses.update(FieldAccess.check(self.__name__,
+                    list(self._fields.keys()), 'read', access=True))
+                to_remove = set(x for x, y in fread_accesses.items()
+                        if not y and x != name)
+
+                def not_cached(item):
+                    fname, field = item
+                    return ((self.id not in self._cache
+                            or fname not in self._cache[self.id])
+                        and (self.id not in self._local_cache
+                            or fname not in self._local_cache[self.id]))
+
+                def to_load(item):
+                    fname, field = item
+                    if fname in to_remove:
+                        return False
+                    if multiple_getter:
+                        return (getattr(field, 'getter', None) == multiple_getter
+                            and self.key_get_field(fname) == multiple_getter_key)
+                    return field.loading == 'eager'
+
+                ifields = filter(to_load,
+                    filter(not_cached,
+                        iter(self._fields.items())))
+                ifields = islice(ifields, 0, config.getint('cache', 'field'))
+                ffields.update(ifields)
+
+            # add datetime_field
+            for field in list(ffields.values()):
+                if hasattr(field, 'datetime_field') and field.datetime_field:
+                    if field.datetime_field not in ffields:
+                        datetime_field = self._fields[field.datetime_field]
+                        ffields[field.datetime_field] = datetime_field
+
+            # add depends of field with context
+            for field in list(ffields.values()):
+                if field.context:
+                    eval_fields = fields.get_eval_fields(field.context)
+                    for context_field_name in eval_fields:
+                        if context_field_name not in field.validation_depends:
                             continue
-                        fvalue = instantiate(field, data[fname], data)
-                    if id_ == self.id and fname == name:
-                        value = fvalue
-                    if fname not in self._local_cache[id_]:
-                        self._local_cache[id_][fname] = fvalue
-                    if (field._type in no_local_cache
-                            or (isinstance(field, fields.Function)
-                                and (not transaction.readonly
-                                    or field.getter_with_context))):
-                        to_delete.add(fname)
-                self._cache[id_]._update(
-                    **{k: v for k, v in data.items() if k not in to_delete})
-        return value
+                        if context_field_name not in ffields:
+                            context_field = self._fields.get(context_field_name)
+                            ffields[context_field_name] = context_field
+
+            delete_records = self._transaction.delete_records.get(
+                self.__name__, set())
+
+            def cached(id_):
+                names = set()
+                if id_ in self._cache:
+                    names.update(self._cache[id_]._keys())
+                if id_ in self._local_cache:
+                    names.update(self._local_cache[id_]._keys())
+                return names
+
+            def filter_(id_):
+                return (id_ == self.id  # Ensure the value is read
+                    or (id_ not in delete_records
+                        and not ffields.keys() <= cached(id_)))
+
+            def unique(ids):
+                s = set()
+                for id_ in ids:
+                    if id_ not in s:
+                        s.add(id_)
+                        yield id_
+            read_size = max(1, min(
+                    self._cache.size_limit, self._local_cache.size_limit))
+            index = self._ids.index(self.id)
+            ids = islice(self._ids, index, index + read_size)
+            ids = unique(filter(filter_, ids))
+
+            kwargs_cache = {}
+            pysoned_ctx = {}
+            transaction = self._transaction
+
+            def create_instances(Model, value, cache_key=None):
+                cache_key = (Model, cache_key)
+                if not (kwargs := kwargs_cache.get(cache_key)):
+                    if cache_key not in model2cache:
+                        model2cache[cache_key] = local_cache(Model, transaction)
+                    kwargs_cache[cache_key] = kwargs = {
+                        '_local_cache': model2cache[cache_key],
+                        '_ids': model2ids.setdefault(cache_key, []),
+                        '_transaction_cache': transaction.get_cache(),
+                        '_transaction': transaction,
+                        }
+                ids = kwargs['_ids']
+                if field._type in {'many2one', 'one2one', 'reference'}:
+                    ids.append(value)
+                    return Model(value, **kwargs)
+                elif field._type in {'one2many', 'many2many'}:
+                    ids.extend(value)
+                    return tuple(Model(id, **kwargs) for id in value)
+
+            def instantiate(field, value, data):
+                if field._type in ('many2one', 'one2one', 'reference'):
+                    # ABDC: Fix when data is an empty string, we should return
+                    # None
+                    if value is None or value is False or value == '':
+                        return None
+                elif field._type in ('one2many', 'many2many'):
+                    if not value:
+                        return ()
+                try:
+                    if field._type == 'reference':
+                        model_name, record_id = value.split(',')
+                        Model = pool.get(model_name)
+                        try:
+                            record_id = int(record_id)
+                        except ValueError:
+                            return value
+                        if record_id < 0:
+                            return value
+                        value = record_id
+                    else:
+                        Model = field.get_target()
+                except KeyError:
+                    return value
+                if ((datetime_field := getattr(field, 'datetime_field', None))
+                        or field.context):
+                    ctx = {}
+                    if field.context:
+                        if not (pyson_context := pysoned_ctx.get(field)):
+                            pyson_context = PYSONEncoder().encode(field.context)
+                            pysoned_ctx[field] = pyson_context
+                        ctx.update(PYSONDecoder(data).decode(pyson_context))
+                    if datetime_field:
+                        ctx['_datetime'] = data.get(datetime_field)
+                    with transaction.set_context(**ctx):
+                        return create_instances(Model, value, freeze(ctx))
+                else:
+                    return create_instances(Model, value)
+
+            model2ids = {}
+            model2cache = {}
+            # Read the data
+            with Transaction().set_current_transaction(transaction), \
+                    self._transaction.set_user(self._user), \
+                    self._transaction.reset_context(), \
+                    self._transaction.set_context(self._context), \
+                    without_check_access():
+                if (self.id in self._cache and name in self._cache[self.id]
+                        and ffields.keys() <= set(self._cache[self.id]._keys())):
+                    # Use values from cache
+                    read_data = []
+                    for id_ in islice(self._ids, index, index + read_size):
+                        if id_ in self._cache:
+                            data = {'id': id_}
+                            for fname in ffields:
+                                if fname not in self._cache[id_]:
+                                    break
+                                data[fname] = self._cache[id_][fname]
+                            else:
+                                read_data.append(data)
+                else:
+                    # Order data read to update cache in the same order
+                    index = {i: n for n, i in enumerate(ids)}
+                    read_data = self.read(list(index.keys()), list(ffields.keys()))
+                    read_data.sort(key=lambda r: index[r['id']])
+                # create browse records for 'remote' models
+                no_local_cache = {'binary'}
+                if not transaction.readonly:
+                    no_local_cache |= {
+                        'one2one', 'one2many', 'many2many', 'reference'}
+                for data in read_data:
+                    id_ = data['id']
+                    to_delete = set()
+                    for fname, field in ffields.items():
+                        fvalue = data[fname]
+                        if field._type in {
+                                'many2one', 'one2one', 'one2many', 'many2many',
+                                'reference'}:
+                            if (fname != name
+                                    and field._type not in no_local_cache):
+                                continue
+                            fvalue = instantiate(field, data[fname], data)
+                        if id_ == self.id and fname == name:
+                            value = fvalue
+                        if fname not in self._local_cache[id_]:
+                            self._local_cache[id_][fname] = fvalue
+                        if (field._type in no_local_cache
+                                or (isinstance(field, fields.Function)
+                                    and (not transaction.readonly
+                                        or field.getter_with_context))):
+                            to_delete.add(fname)
+                    self._cache[id_]._update(
+                        **{k: v for k, v in data.items() if k not in to_delete})
+            return value
 
     def _save_values(self):
         values = {}

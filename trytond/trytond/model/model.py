@@ -4,6 +4,7 @@
 import collections.abc
 import copy
 import sys
+from typing import TYPE_CHECKING
 from collections import defaultdict
 from functools import total_ordering
 from itertools import chain, groupby
@@ -347,14 +348,22 @@ class Model(URLMixin, PoolBase, metaclass=ModelMeta):
         copied._init_values = copy.copy(self._init_values)
         return copied
 
-    def __getattr__(self, name):
-        if name.startswith('__') and name.endswith('__'):
-            raise AttributeError
-        try:
-            return self._values[name]
-        except (KeyError, TypeError):
-            raise AttributeError("'%s' Model has no attribute '%s': %s"
-                % (self.__name__, name, self._values))
+    if not TYPE_CHECKING:
+        # Hidden from the type checker: a class that defines __getattr__
+        # tells mypy every attribute access on it -- and on every Tryton
+        # model, since Model is their common base -- can resolve
+        # dynamically, which suppresses attr-defined everywhere and silently
+        # undoes the plugin's PoolMeta widening (mason-3a1.21). No runtime
+        # effect: TYPE_CHECKING is False when this actually executes, so the
+        # method is defined exactly as before.
+        def __getattr__(self, name):
+            if name.startswith('__') and name.endswith('__'):
+                raise AttributeError
+            try:
+                return self._values[name]
+            except (KeyError, TypeError):
+                raise AttributeError("'%s' Model has no attribute '%s': %s"
+                    % (self.__name__, name, self._values))
 
     def __contains__(self, name):
         return name in self._fields
