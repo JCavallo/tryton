@@ -4,7 +4,11 @@ import datetime
 from collections import defaultdict
 from functools import cache, wraps
 from itertools import groupby, islice, product, repeat
-from typing import Any, Callable, ClassVar
+from typing import Any, Callable, ClassVar, Self, TypeVar, cast, overload
+# Aliased: `sql.Literal` (imported below) is the python-sql expression
+# constructor already used throughout this file; `typing.Literal` is only
+# needed for search()'s count/query overloads (mason-3a1.159).
+from typing import Literal as TypingLiteral
 
 from sql import (
     Asc, Column, Desc, Expression, Literal, Null, NullsFirst, NullsLast, Table,
@@ -268,13 +272,24 @@ class Index:
         __slots__ = ()
 
 
-def no_table_query(func):
+# typing: an untyped decorator (mason-3a1.159) makes mypy treat every
+# decorated method as returning Any, regardless of its own declared return
+# type -- `create` below needs its `-> list[Self]` to survive this wrapper,
+# since it is `@no_table_query`-decorated. Spelled as a bound TypeVar rather
+# than ParamSpec: `func`'s first parameter is `cls`, injected by the
+# `@classmethod` applied above this decorator, which ParamSpec's positional
+# capture does not model cleanly. `cast` is the standard way to assert the
+# wrapper has `func`'s exact type; it is a no-op at runtime.
+_F = TypeVar('_F', bound=Callable[..., Any])
+
+
+def no_table_query(func: _F) -> _F:
     @wraps(func)
     def wrapper(cls, *args, **kwargs):
         if cls._is_table_query():
             raise NotImplementedError("On table_query")
         return func(cls, *args, **kwargs)
-    return wrapper
+    return cast(_F, wrapper)
 
 
 @cache
@@ -1009,7 +1024,7 @@ class ModelSQL(ModelStorage):
 
     @classmethod
     @no_table_query
-    def create(cls, vlist):
+    def create(cls, vlist) -> list[Self]:
         transaction = Transaction()
         cursor = transaction.connection.cursor()
         pool = Pool()
@@ -1190,7 +1205,7 @@ class ModelSQL(ModelStorage):
         return cls.browse(cls._after_create(new_ids))
 
     @classmethod
-    def read(cls, ids, fields_names):
+    def read(cls, ids, fields_names) -> list[dict[str, Any]]:
         pool = Pool()
         Rule = pool.get('ir.rule')
         Translation = pool.get('ir.translation')
@@ -1965,6 +1980,38 @@ class ModelSQL(ModelStorage):
             forder = field.convert_order(oexpr, tables, cls)
             order_by.extend(apply_sorting(otype)(o) for o in forder)
         return order_by
+
+    # typing: same shape as ModelStorage.search (mason-3a1.159), restated
+    # here rather than inherited because the real return values differ --
+    # query=True returns a backend query object here (unstubbed -> Any),
+    # where the base's own abstract body ignores query entirely. Keeping
+    # both declarations in the same shape (ordering, overload count) is
+    # what keeps this a compatible [override] of the base: mypy's override
+    # check compares the subclass's overloaded signature against the
+    # base's, and a reshuffled or narrowed overload set here previously
+    # produced a spurious [override] error that mypy's own evidence (git
+    # show, in the baseline diff) does not otherwise support.
+    @overload
+    @classmethod
+    def search(cls, domain, offset=0, limit=None, order=None,
+            count: TypingLiteral[False] = False,
+            query: TypingLiteral[False] = False) -> list[Self]: ...
+
+    @overload
+    @classmethod
+    def search(cls, domain, offset=0, limit=None, order=None,
+            count: TypingLiteral[True] = ...,
+            query: TypingLiteral[False] = False) -> int: ...
+
+    @overload
+    @classmethod
+    def search(cls, domain, offset=0, limit=None, order=None,
+            count: bool = False, query: TypingLiteral[True] = ...) -> Any: ...
+
+    @overload
+    @classmethod
+    def search(cls, domain, offset=0, limit=None, order=None,
+            count: bool = False, query: bool = False) -> Any: ...
 
     @classmethod
     def search(cls, domain, offset=0, limit=None, order=None, count=False,

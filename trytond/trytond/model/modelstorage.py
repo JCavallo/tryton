@@ -11,7 +11,7 @@ import logging
 import random
 import time
 import warnings
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, Literal, Self, overload
 from collections import defaultdict
 from decimal import Decimal
 from functools import lru_cache
@@ -303,7 +303,7 @@ class ModelStorage(Model):
                 cls.preprocess_values('create', values) for values in vlist]
 
     @classmethod
-    def create(cls, vlist):
+    def create(cls, vlist) -> list[Self]:
         "Returns the list of created records."
         raise NotImplementedError
 
@@ -340,7 +340,7 @@ class ModelStorage(Model):
         return ids, fields_names
 
     @classmethod
-    def read(cls, ids, fields_names):
+    def read(cls, ids, fields_names) -> list[dict[str, Any]]:
         """
         Read fields_names of record ids.
         The order is not guaranteed.
@@ -563,7 +563,7 @@ class ModelStorage(Model):
         return []
 
     @classmethod
-    def copy(cls, records, default=None):
+    def copy(cls, records, default=None) -> list[Self]:
         '''
         Duplicate the records and return a list of new records.
         '''
@@ -706,6 +706,43 @@ class ModelStorage(Model):
                             cls.write(*to_write)
         return new_records
 
+    # typing: search's return shape depends on count/query (mason-3a1.159):
+    # count=True -> int, query=True -> a backend query object (unstubbed,
+    # so Any), otherwise -> the matching records. Overloaded instead of a
+    # plain Union so a plain `cls.search(domain)` call keeps its precise
+    # list[Self] (Self resolves through the pool-composed view, not a bare
+    # class -- see ModelSQL.search for the same shape and the measurement).
+    # The final catch-all overload covers a caller forwarding a non-literal
+    # bool for count/query (e.g. an override replaying its own parameters
+    # into super().search(..., count=count, query=query)): neither literal
+    # overload above it applies there, so it falls through to this one
+    # rather than failing overload resolution outright.
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: Literal[False] = ..., query: Literal[False] = ...,
+            ) -> list[Self]: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: Literal[True] = ..., query: Literal[False] = ...,
+            ) -> int: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: bool = ..., query: Literal[True] = ...) -> Any: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: bool = ..., query: bool = ...) -> Any: ...
+
     @classmethod
     def search(
             cls, domain, offset=0, limit=None, order=None, count=False,
@@ -783,7 +820,7 @@ class ModelStorage(Model):
 
     @classmethod
     def search_read(cls, domain, offset=0, limit=None, order=None,
-            fields_names=None):
+            fields_names=None) -> list[dict[str, Any]]:
         '''
         Call search and read functions at once.
         Useful for the client to reduce the number of calls.
@@ -903,7 +940,7 @@ class ModelStorage(Model):
             yield record, record.rec_name, None
 
     @classmethod
-    def browse(cls, ids):
+    def browse(cls, ids) -> list[Self]:
         '''
         Return a list of instance for the ids
         '''

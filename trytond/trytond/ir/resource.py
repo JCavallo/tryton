@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 
 from collections import defaultdict
+from typing import Any, Literal, Self, overload
 
 from sql.conditionals import Coalesce
 
@@ -121,6 +122,36 @@ class ResourceAccessMixin(ModelStorage):
             raise AccessError(gettext(
                     'ir.msg_access_resource_search_error',
                     resource=cls.__name__))
+
+    # Same overload set as ModelStorage.search: the **kwargs implementation
+    # alone hides the query parameter, which mypy then reports as an
+    # incompatible "search" for every ResourceAccessMixin + ModelSQL class
+    # (mason-3a1.148).
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: Literal[False] = ..., query: Literal[False] = ...,
+            ) -> list[Self]: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: Literal[True] = ..., query: Literal[False] = ...,
+            ) -> int: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: bool = ..., query: Literal[True] = ...) -> Any: ...
+
+    @overload
+    @classmethod
+    def search(
+            cls, domain, offset=0, limit=None, order=None,
+            count: bool = ..., query: bool = ...) -> Any: ...
 
     @classmethod
     def search(
