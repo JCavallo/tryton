@@ -15,7 +15,8 @@ from .selection import SelectionMixin
 dumps = partial(json.dumps, separators=(',', ':'), sort_keys=True)
 
 
-class MultiSelection(SelectionMixin, Field):
+class MultiSelection(
+        SelectionMixin[tuple[str, ...]], Field[tuple[str, ...]]):
     _type = 'multiselection'
     _sql_type = 'JSON'
     _py_type = tuple

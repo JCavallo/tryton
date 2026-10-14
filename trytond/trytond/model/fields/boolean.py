@@ -6,7 +6,7 @@ from sql import Null
 from .field import Field
 
 
-class Boolean(Field):
+class Boolean(Field[bool]):
     _type = 'boolean'
     _sql_type = 'BOOL'
     _py_type = bool

@@ -3,7 +3,7 @@
 from .field import Field
 
 
-class Integer(Field):
+class Integer(Field[int]):
     _type = 'integer'
     _sql_type = 'INTEGER'
     _py_type = int

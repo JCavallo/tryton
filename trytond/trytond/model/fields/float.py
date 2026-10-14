@@ -1,9 +1,20 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
+from typing import TYPE_CHECKING, TypeVar
+
 from trytond.pyson import PYSON, PYSONEncoder
 from trytond.tools import cached_property
 
 from .field import Field, get_eval_fields
+
+if TYPE_CHECKING:
+    # A bare `Float` reads as float; Numeric binds Decimal. TypeVar
+    # defaults (PEP 696) only reach typing in Python 3.13, so the default is
+    # for static checkers only.
+    from typing_extensions import TypeVar as _TypeVarWithDefault
+    _FloatT = _TypeVarWithDefault('_FloatT', default=float)
+else:
+    _FloatT = TypeVar('_FloatT')
 
 
 def digits_validate(value):
@@ -26,7 +37,7 @@ def _get_digits_depends(field):
         return get_eval_fields(field.digits)
 
 
-class Float(Field):
+class Float(Field[_FloatT]):
     _type = 'float'
     _sql_type = 'FLOAT'
     _py_type = float

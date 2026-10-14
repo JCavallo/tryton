@@ -2,6 +2,7 @@
 # this repository contains the full copyright notices and license terms.
 import warnings
 from itertools import chain
+from typing import TypeVar
 
 from sql.conditionals import Case
 
@@ -13,8 +14,10 @@ from trytond.transaction import Transaction
 
 from .field import Field, order_method
 
+_T = TypeVar('_T')
 
-class SelectionMixin(Field):
+
+class SelectionMixin(Field[_T]):
     translate_selection = True
     sort = True
 
@@ -97,7 +100,7 @@ class SelectionMixin(Field):
         return selection.get(value, value)
 
 
-class Selection(SelectionMixin, Field):
+class Selection(SelectionMixin[str], Field[str]):
     _type = 'selection'
     _sql_type = 'VARCHAR'
     _py_type = str

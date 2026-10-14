@@ -60,7 +60,7 @@ def check_content(field_name, *binaries):
                     'ir.msg_malicious_binary', field=field_name))
 
 
-class Binary(Field):
+class Binary(Field[bytes]):
     _type = 'binary'
     _sql_type = 'BLOB'
     _py_type = bytes

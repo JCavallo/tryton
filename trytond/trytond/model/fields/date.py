@@ -1,6 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import datetime
+from typing import TypeVar
 
 from sql.functions import AtTimeZone, Function
 
@@ -9,6 +10,8 @@ from trytond.pyson import PYSON, PYSONEncoder
 from trytond.tools import cached_property
 
 from .field import Field, get_eval_fields
+
+_T = TypeVar('_T')
 
 
 class SQLite_Date(Function):
@@ -52,7 +55,7 @@ class Date(Field[datetime.date]):
         super().__set__(inst, value)
 
 
-class FormatMixin(Field):
+class FormatMixin(Field[_T]):
 
     def definition(self, model, language):
         encoder = PYSONEncoder()
@@ -75,7 +78,7 @@ class FormatMixin(Field):
         return depends
 
 
-class Timestamp(FormatMixin, Field):
+class Timestamp(FormatMixin[datetime.datetime], Field[datetime.datetime]):
     _type = 'timestamp'
     _sql_type = 'TIMESTAMP'
     _py_type = datetime.datetime
@@ -127,7 +130,7 @@ class DateTime(Timestamp):
         return value
 
 
-class Time(FormatMixin, Field):
+class Time(FormatMixin[datetime.time], Field[datetime.time]):
     _type = 'time'
     _sql_type = 'TIME'
     _py_type = datetime.time
@@ -164,7 +167,7 @@ class Time(FormatMixin, Field):
         super().__set__(inst, value)
 
 
-class TimeDelta(Field):
+class TimeDelta(Field[datetime.timedelta]):
     _type = 'timedelta'
     _sql_type = 'INTERVAL'
     _py_type = datetime.timedelta

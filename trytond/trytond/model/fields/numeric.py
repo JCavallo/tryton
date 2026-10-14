@@ -10,7 +10,7 @@ from .field import order_method
 from .float import Float
 
 
-class Numeric(Float):
+class Numeric(Float[Decimal]):
     _type = 'numeric'
     _sql_type = 'NUMERIC'
     _py_type = Decimal
