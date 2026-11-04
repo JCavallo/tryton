@@ -14,6 +14,7 @@ from trytond.pool import Pool
 
 from . import debug
 from . import ir
+from .bench import models as bench_models
 
 logger = logging.getLogger('trytond:debug_module')
 
@@ -32,6 +33,11 @@ def register():
         debug.DebugOnChangeRelation,
         debug.DebugOnChangeWithRelation,
         ir.User,
+        bench_models.BenchCategory,
+        bench_models.BenchTag,
+        bench_models.BenchRecord,
+        bench_models.BenchRecordTag,
+        bench_models.BenchLine,
         module='debug', type_='model')
 
     Pool.register(
