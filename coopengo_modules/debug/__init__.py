@@ -12,51 +12,7 @@ import logging
 
 from trytond.pool import Pool
 
-from . import debug
-from . import ir
-from .bench import models as bench_models
-
 logger = logging.getLogger('trytond:debug_module')
-
-
-def register():
-    Pool.register(
-        debug.FieldInfo,
-        debug.ModelInfo,
-        debug.VisualizeDebug,
-        debug.DebugModelInstance,
-        debug.DebugMROInstance,
-        debug.DebugMethodInstance,
-        debug.DebugMethodMROInstance,
-        debug.DebugFieldInstance,
-        debug.DebugViewInstance,
-        debug.DebugOnChangeRelation,
-        debug.DebugOnChangeWithRelation,
-        ir.User,
-        bench_models.BenchCategory,
-        bench_models.BenchTag,
-        bench_models.BenchRecord,
-        bench_models.BenchRecordTag,
-        bench_models.BenchLine,
-        module='debug', type_='model')
-
-    Pool.register(
-        debug.DebugModel,
-        debug.Debug,
-        debug.RefreshDebugData,
-        debug.DevelopperView,
-        debug.OpenInitialFrame,
-        module='debug', type_='wizard')
-
-    try:
-        Pool.register_post_init_hooks(tryton_syntax_analysis, module='debug')
-        Pool.register_post_init_hooks(set_method_names_for_profiling,
-            module='debug')
-        Pool.register_post_init_hooks(name_one2many_gets, module='debug')
-        Pool.register_post_init_hooks(activate_auto_profile, module='debug')
-        Pool.register_post_init_hooks(enable_debug_views, module='debug')
-    except AttributeError:
-        logger.warning('Post init hooks disabled')
 
 
 def set_method_names_for_profiling(pool, update):
