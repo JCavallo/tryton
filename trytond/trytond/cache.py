@@ -274,14 +274,14 @@ class MemoryCache(BaseCache):
 
     @classmethod
     def sync(cls, transaction):
-        if not Pool().ready:
+        database = transaction.database
+        dbname = database.name
+        if dbname not in Pool._pools:
             return
         if cls._clean_last is None:
             cls._clean_last = dt.datetime.now()
             return
 
-        database = transaction.database
-        dbname = database.name
         clean_timeout = config.getint('cache', 'clean_timeout')
         if not clean_timeout and database.has_channel():
             with cls._local.listener_lock:
