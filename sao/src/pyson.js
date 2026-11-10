@@ -22,6 +22,64 @@
             return JSON.stringify(value);
         }
     };
+    // Human-readable notation for developer tools: unlike toString, the
+    // result can not be parsed back as PYSON.
+    Sao.PYSON.format = function(value) {
+        const format = Sao.PYSON.format;
+        if (value instanceof Sao.PYSON.Eval) {
+            if (value._default === '') {
+                return `rec.${value._value}`;
+            }
+            return `Eval(${format(value._value)}, ${format(value._default)})`;
+        } else if (value instanceof Sao.PYSON.Not) {
+            const operand = value._value;
+            if (operand instanceof Sao.PYSON.Not) {
+                return format(operand._value);
+            } else if (operand instanceof Sao.PYSON.Equal) {
+                return `(${format(operand._statement1)} ≠ ` +
+                    `${format(operand._statement2)})`;
+            } else if (operand instanceof Sao.PYSON.In) {
+                return `(${format(operand._key)} not in ` +
+                    `${format(operand._obj)})`;
+            }
+            return `!(${format(operand)})`;
+        } else if (value instanceof Sao.PYSON.Bool) {
+            return format(value._value);
+        } else if (value instanceof Sao.PYSON.And) {
+            const operator = (value instanceof Sao.PYSON.Or) ? ' | ' : ' & ';
+            return '(' + value._statements.map(format).join(operator) + ')';
+        } else if (value instanceof Sao.PYSON.Equal) {
+            return `(${format(value._statement1)} = ` +
+                `${format(value._statement2)})`;
+        } else if (value instanceof Sao.PYSON.Greater) {
+            let operator;
+            if (value instanceof Sao.PYSON.Less) {
+                operator = value._equal ? '≤' : '<';
+            } else {
+                operator = value._equal ? '≥' : '>';
+            }
+            return `(${format(value._statement1)} ${operator} ` +
+                `${format(value._statement2)})`;
+        } else if (value instanceof Sao.PYSON.In) {
+            return `(${format(value._key)} in ${format(value._obj)})`;
+        } else if (value instanceof Sao.PYSON.PYSON) {
+            const params = value.__string_params__();
+            if (value._operator && (params[0] instanceof Sao.PYSON.PYSON)) {
+                return `${format(params[0])}.${value._operator}(` +
+                    params.slice(1).map(format).join(', ') + ')';
+            }
+            return value.pyson().__class__ + '(' +
+                params.map(format).join(', ') + ')';
+        } else if (value instanceof Array) {
+            return '[' + value.map(format).join(', ') + ']';
+        } else if (value instanceof Object) {
+            return '{' + Object.keys(value).map(key => {
+                return format(key) + ': ' + format(value[key]);
+            }).join(', ') + '}';
+        } else {
+            return JSON.stringify(value);
+        }
+    };
     Sao.PYSON.checkTypes = function(value, allowed_types) {
         const types = value.types();
         return types.filter(
@@ -178,15 +236,6 @@
                 return [typeof this._default];
             }
         }
-        toString() {
-            if ((this._value.constructor == String) && (!this._default)) {
-                return `rec.${this._value}`;
-            } else if (this._default) {
-                return `Eval(${this._value}, ${this._default})`;
-            } else {
-                return `Eval(${this._value})`;
-            }
-        }
         __string_params__() {
             const params = [this._value];
             if (this._default !== '') {
@@ -250,19 +299,6 @@
                 'v': this._value
                 };
         }
-        toString() {
-            if (this._value.constructor == Sao.PYSON.Not) {
-                return this._value._value.toString();
-            } else if (this._value.constructor == Sao.PYSON.Equal) {
-                const val = this._value;
-                return `(${val._statement1} ≠ ${val._statement2})`;
-            } else if (this._value.constructor == Sao.PYSON.In) {
-                const val = this._value;
-                return `(${val._key} not in ${val._obj})`;
-            } else {
-                return `!(${this._value})`;
-            }
-        }
         types() {
             return ['boolean'];
         }
@@ -291,9 +327,6 @@
                 '__class__': 'Bool',
                 'v': this._value
             };
-        }
-        toString() {
-            return `${this._value}`;
         }
         types() {
             return ['boolean'];
@@ -351,11 +384,6 @@
                 's': this._statements
             };
         }
-        toString() {
-            const statements = this._statements.map(v => {
-                return `${v}`; }).join(' & ');
-            return `(${statements})`;
-        }
         types() {
             return ['boolean'];
         }
@@ -384,11 +412,6 @@
             var result = super.pyson();
             result.__class__ = 'Or';
             return result;
-        }
-        toString() {
-            const statements = this._statements.map(v => {
-                return `${v}`; }).join(' | ');
-            return `(${statements})`;
         }
     };
 
@@ -436,9 +459,6 @@
         }
         types() {
             return ['boolean'];
-        }
-        toString() {
-            return `(${this._statement1} = ${this._statement2})`;
         }
         __string_params__() {
             return [this._statement1, this._statement2];
@@ -509,10 +529,6 @@
         types() {
             return ['boolean'];
         }
-        toString() {
-            const operator = this._equal ? ' ≥ ' : ' > ';
-            return `(${this._statement1} ${operator} ${this._statement2})`;
-        }
         __string_params__() {
             return [this._statement1, this._statement2, this._equal];
         }
@@ -558,10 +574,6 @@
             var result = super.pyson();
             result.__class__ = 'Less';
             return result;
-        }
-        toString() {
-            const operator = this._equal ? ' ≤ ' : ' < ';
-            return `(${this._statement1} ${operator} ${this._statement2})`;
         }
     };
 

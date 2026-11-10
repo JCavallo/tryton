@@ -1271,6 +1271,42 @@
             '{"test": ["foo", "bar"], "pyson": Eval("test")}');
     });
 
+    QUnit.test('PYSON format', function() {
+        var PYSON = Sao.PYSON;
+        [
+            [new PYSON.Eval('test'), 'rec.test'],
+            [new PYSON.Eval('test', 'foo'), 'Eval("test", "foo")'],
+            [new PYSON.Eval('test', 0), 'Eval("test", 0)'],
+            [new PYSON.Eval('test', false), 'Eval("test", false)'],
+            [new PYSON.Eval('test', {}).get('bar'), 'Eval("test", {}).get("bar")'],
+            [new PYSON.Not(true), '!(true)'],
+            [new PYSON.Not(new PYSON.Not(new PYSON.Eval('a'))), 'rec.a'],
+            [new PYSON.Not(new PYSON.Equal(new PYSON.Eval('a'), 'b')),
+                '(rec.a ≠ "b")'],
+            [new PYSON.Not(new PYSON.In(new PYSON.Eval('a'), ['b'])),
+                '(rec.a not in ["b"])'],
+            [new PYSON.Bool(new PYSON.Eval('a')), 'rec.a'],
+            [new PYSON.And(true, new PYSON.Bool(new PYSON.Eval('a'))),
+                '(true & rec.a)'],
+            [new PYSON.Or(false, new PYSON.Bool(new PYSON.Eval('a'))),
+                '(false | rec.a)'],
+            [new PYSON.Greater(new PYSON.Eval('a', 0), 1), '(Eval("a", 0) > 1)'],
+            [new PYSON.Greater(new PYSON.Eval('a', 0), 1, true),
+                '(Eval("a", 0) ≥ 1)'],
+            [new PYSON.Less(new PYSON.Eval('a', 0), 1), '(Eval("a", 0) < 1)'],
+            [new PYSON.Less(new PYSON.Eval('a', 0), 1, true),
+                '(Eval("a", 0) ≤ 1)'],
+            [new PYSON.If(new PYSON.Eval('a'), 'x', 'y'),
+                'If(rec.a, "x", "y")'],
+            [{'readonly': new PYSON.Eval('a'), 'list': ['b']},
+                '{"readonly": rec.a, "list": ["b"]}'],
+        ].forEach(function(test) {
+            var value = test[0], result = test[1];
+            QUnit.assert.strictEqual(PYSON.format(value), result,
+                'format(' + result + ')');
+        });
+    });
+
     QUnit.test('PYSON.Eval dot notation', function() {
         var eval_;
         eval_ = new Sao.PYSON.Encoder().encode(
