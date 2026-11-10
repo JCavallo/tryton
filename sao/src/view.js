@@ -158,13 +158,13 @@
                         if (key === 'states') {
                             for (var [state, s_value] of Object.entries(
                                     decoder.decode(value))) {
-                                var v = Sao.PYSON.toString(s_value);
-                                h = h + `states[${state}]: ${s_value}\n`
+                                const v = Sao.PYSON.format(s_value);
+                                h = h + `states[${state}]: ${v}\n`
                             }
                         } else if (['context', 'search_context', 'domain',
                                 'search_order', 'datetime_field'
                                 ].includes(key)) {
-                            var v = Sao.PYSON.toString(decoder.decode(value));
+                            const v = Sao.PYSON.format(decoder.decode(value));
                             if ((v !== '[]') && (v !== '{}') && (v !== 'null')) {
                                 h = h + `${key}: ${v}\n`;
                             }
@@ -182,7 +182,7 @@
                                 h = h + `    ... ${c} elements omitted\n`;
                             }
                         } else {
-                            var v = JSON.stringify(value, null, 4);
+                            const v = JSON.stringify(value, null, 4);
                             h = h + `${key}: ${v}\n`;
                         }
                     }
