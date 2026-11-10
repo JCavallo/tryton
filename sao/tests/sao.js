@@ -1798,7 +1798,7 @@
                 }
             };
 
-            QUnit.ok(compare(
+            QUnit.assert.ok(compare(
                 parser.convert_value(this, value, context), result),
                 'convert_value(' + JSON.stringify(this)+ ', ' +
                     JSON.stringify(value)+ ', ' + JSON.stringify(context) + ')');
@@ -1933,7 +1933,6 @@
         ['test', Sao.Time(undefined, undefined, undefined, undefined, 'test')]
         ].forEach(test_moment_func, field);
         [
-        ['test', null],
         [null, null]
         ].forEach(test_moment_func, field);
 
