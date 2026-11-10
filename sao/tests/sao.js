@@ -3524,6 +3524,20 @@
             Sao.Time(10, 30, 42, 123).toString(), '10:30:42.123000');
     });
 
+    QUnit.test('Time default', function() {
+        QUnit.assert.strictEqual(Sao.Time().toString(), '00:00:00',
+            'Sao.Time()');
+        QUnit.assert.strictEqual(
+            Sao.DateTime.combine(Sao.Date(2020, 8, 11), Sao.Time()).toString(),
+            '2020-09-11 00:00:00', 'combine(date, Sao.Time())');
+
+        var invalid = Sao.Time(
+            undefined, undefined, undefined, undefined, 'test');
+        QUnit.assert.notOk(invalid.isValid(), 'Sao.Time(..., "test")');
+        QUnit.assert.strictEqual(invalid.invalid_value, 'test',
+            'Sao.Time(..., "test").invalid_value');
+    });
+
     QUnit.test('HTML Sanitization', function() {
         var examples = [
             ["Test", "Test"],

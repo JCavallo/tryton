@@ -319,7 +319,9 @@ var Sao = {
 
     Sao.Time = function(hour, minute, second, millisecond, value=null) {
         var time;
-        if ((hour === undefined) && (minute === undefined) &&
+        // Without value, no part means midnight like moment does
+        if ((value !== null) &&
+            (hour === undefined) && (minute === undefined) &&
             (second === undefined) && (millisecond === undefined)) {
             time = moment.invalid();
         } else {
