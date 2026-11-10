@@ -2563,13 +2563,13 @@
         let compare = Sao.common.compare;
 
         let domain = [['x', '=', 3], ['y', 'in', ['a', 'b']]];
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x')`);
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x', {'y': 'a'})`);
-        QUnit.strictEqual(
+        QUnit.assert.strictEqual(
             domain_inversion(domain, 'x', {'y': 'c'}), false,
             `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
@@ -2581,13 +2581,13 @@
         let compare = Sao.common.compare;
 
         let domain = [['x', '=', 3], ['y', '=', 'a']];
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x')`);
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x', {'y': 'a'})`);
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x', {'y': 'c'}), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
@@ -2599,13 +2599,13 @@
         let compare = Sao.common.compare;
 
         let domain = [['x', '=', 3], ['y', 'in', ['a']]];
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x'), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x')`);
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x', {'y': 'a'}), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x', {'y': 'a'})`);
-        QUnit.ok(
+        QUnit.assert.ok(
             compare(domain_inversion(domain, 'x', {'y': 'c'}), [['x', '=', 3]]),
             `domain_inversion(${domain}, 'x', {'y': 'c'})`);
     });
