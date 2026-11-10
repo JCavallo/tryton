@@ -80,11 +80,10 @@
             return JSON.stringify(value);
         }
     };
+    // Return true when value may evaluate to a type outside allowed_types,
+    // like the issubset assertions of trytond
     Sao.PYSON.checkTypes = function(value, allowed_types) {
-        const types = value.types();
-        return types.filter(
-            item => allowed_types.includes(item)
-            ).length === 0;
+        return value.types().some(type => !allowed_types.includes(type));
     };
 
     Sao.PYSON.PYSON = class PYSON {

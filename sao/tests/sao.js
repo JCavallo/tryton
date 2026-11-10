@@ -1200,7 +1200,20 @@
         }, 'Len(1)');
 
         QUnit.assert.ok(Sao.common.compare(new Sao.PYSON.Len([1, 2, 3]).types(),
-                ['integer']), 'Len([1, 2, 3]).types()');
+                ['number']), 'Len([1, 2, 3]).types()');
+
+        var condition = new Sao.PYSON.Bool(new Sao.PYSON.Eval('test'));
+        QUnit.assert.ok(new Sao.PYSON.Len(new Sao.PYSON.Eval('test', [])),
+            'Len(Eval("test", []))');
+        QUnit.assert.throws(function() {
+            new Sao.PYSON.Len(new Sao.PYSON.If(condition, [], 1));
+        }, 'Len(If(Bool(Eval("test")), [], 1))');
+        QUnit.assert.ok(new Sao.PYSON.Greater(
+                new Sao.PYSON.Len(new Sao.PYSON.Eval('test', [])), 0),
+            'Greater(Len(Eval("test", [])), 0)');
+        QUnit.assert.throws(function() {
+            new Sao.PYSON.Greater(new Sao.PYSON.If(condition, 1, 'foo'), 0);
+        }, 'Greater(If(Bool(Eval("test")), 1, "foo"), 0)');
 
         var eval_;
         eval_ = new Sao.PYSON.Encoder().encode(new Sao.PYSON.Len([1, 2, 3]));
