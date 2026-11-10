@@ -32,10 +32,54 @@ SOFTWARE.
     };
 
     var attribute_whitelist = {
-        align: "align",
-        color: "color",
-        face: "font-family",
-        size: "font-size",
+        align: true,
+        color: true,
+        face: true,
+        size: true,
+    };
+
+    // The attributes stay the stored format (read back by the clients and
+    // the reports) but they are also applied as inline style so that they
+    // are not overridden by the stylesheets. Return null for values that
+    // are not safe to use inside a style attribute.
+    var font_sizes = {
+        '1': 'x-small',
+        '2': 'small',
+        '3': 'medium',
+        '4': 'large',
+        '5': 'x-large',
+        '6': 'xx-large',
+        '7': 'xxx-large',
+    };
+    var attribute_styles = {
+        align: function(value) {
+            value = value.trim().toLowerCase();
+            if (['left', 'right', 'center', 'justify'].includes(value)) {
+                return 'text-align: ' + value;
+            }
+            return null;
+        },
+        color: function(value) {
+            value = value.trim();
+            if (/^(#[0-9a-f]{3,8}|[a-z]+)$/i.test(value)) {
+                return 'color: ' + value;
+            }
+            return null;
+        },
+        face: function(value) {
+            value = value.trim();
+            if (/^[\w\s,'"-]+$/.test(value)) {
+                return 'font-family: ' + value;
+            }
+            return null;
+        },
+        size: function(value) {
+            value = font_sizes[value.trim()];
+            if (value) {
+                return 'font-size: ' + value;
+            }
+            return null;
+        },
     };
 
     Sao.HtmlSanitizer = {};
@@ -79,16 +123,19 @@ SOFTWARE.
 
                 new_node = iframedoc.createElement(node.tagName);
 
-                var styles = "";
+                var styles = [];
                 for (var i = 0; i < node.attributes.length; i++) {
                     var attr = node.attributes[i];
                     if (attribute_whitelist[attr.name]) {
-                        styles +=
-                            `${attribute_whitelist[attr.name]}: ${attr.value};`;
+                        new_node.setAttribute(attr.name, attr.value);
+                        var style = attribute_styles[attr.name](attr.value);
+                        if (style) {
+                            styles.push(style);
+                        }
                     }
                 }
-                if (styles !== "") {
-                    new_node.setAttribute("style", styles);
+                if (styles.length) {
+                    new_node.setAttribute("style", styles.join('; ') + ';');
                 }
                 for (i = 0; i < node.childNodes.length; i++) {
                     var sub_copy = make_sanitized_copy(node.childNodes[i]);

@@ -3532,9 +3532,17 @@
             ["<script>window.alert('insecure')</script>", ""],
             ["<b><script>window.alert('insecure')</script>Test</b>",
                 "<b>Test</b>"],
-            ['<div align="left">Test</div>', '<div align="left">Test</div>'],
+            ['<div align="left">Test</div>',
+                '<div align="left" style="text-align: left;">Test</div>'],
             ['<font href="test" size="1">Test</font>',
-                '<font size="1">Test</font>'],
+                '<font size="1" style="font-size: x-small;">Test</font>'],
+            ['<font color="#ff0000" face="serif">Test</font>',
+                '<font color="#ff0000" face="serif" ' +
+                'style="color: #ff0000; font-family: serif;">Test</font>'],
+            ['<font color="red; background: url(test)" size="+1">Test</font>',
+                '<font color="red; background: url(test)" size="+1">' +
+                'Test</font>'],
+            ['<div style="color: red;">Test</div>', '<div>Test</div>'],
             ["<p>Test</p>", "Test"],
         ];
         for (var i = 0; i < examples.length; i++) {
@@ -3542,5 +3550,17 @@
             QUnit.assert.strictEqual(Sao.HtmlSanitizer.sanitize(input), output,
                 'Sao.HtmlSanitizer.sanitize(' + input + ')');
         }
+
+        // The richtext widget saves its sanitized content
+        [
+            '<font color="#ff0000" face="serif" size="5">Test</font>',
+            '<div align="center">Test</div>',
+        ].forEach(function(input) {
+            var displayed = Sao.HtmlSanitizer.sanitize(input);
+            QUnit.assert.strictEqual(
+                Sao.common.richtext_normalize(
+                    Sao.HtmlSanitizer.sanitize(displayed)),
+                input, 'round trip of ' + input);
+        });
     });
 }());
