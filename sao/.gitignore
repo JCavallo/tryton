@@ -4,4 +4,5 @@
 /yarn.lock
 /locale/*.json
 /dist
+/_build
 !/dist/folder-keeper
