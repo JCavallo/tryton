@@ -2,6 +2,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import unittest
+from unittest.mock import patch
 
 from sql import Literal
 
@@ -713,6 +714,13 @@ class FieldCharUnaccentedTestCase(ExtensionTestCase):
 
     @classmethod
     def setUpClass(cls):
+        # The test only creates the unaccent extension, not the function that
+        # [database] unaccent_function may name (e.g. Coog's
+        # immutable_unaccent)
+        from trytond.backend.postgresql.database import Unaccent
+        patcher = patch.object(Unaccent, '_function', 'unaccent')
+        patcher.start()
+        cls.addClassCleanup(patcher.stop)
         super().setUpClass()
         activate_module('tests')
 
