@@ -222,16 +222,18 @@ class ResourceTestCase(TestCase):
 
         user = User(login='foo')
         user.save()
+        record1, record2 = Resource.create([{}, {}])
+        note, = Note.create([{
+                    'resource': record1,
+                    'message': "Foo",
+                    }])
+        # Restrict access only once the records exist: the transaction checks
+        # access and the access record grants no creation
         ModelAccess.create([{
                     'model': Resource.__name__,
                     'group': None,
                     'perm_write': True,
                     'perm_read': True,
-                    }])
-        record1, record2 = Resource.create([{}, {}])
-        note, = Note.create([{
-                    'resource': record1,
-                    'message': "Foo",
                     }])
 
         with Transaction().set_user(user.id):
@@ -267,16 +269,18 @@ class ResourceTestCase(TestCase):
 
         user = User(login='foo')
         user.save()
+        record1, record2 = Resource.create([{}, {}])
+        note, = Note.create([{
+                    'resource': record1,
+                    'message': "Foo",
+                    }])
+        # Restrict access only once the records exist: the transaction checks
+        # access and the access record grants no creation
         ModelAccess.create([{
                     'model': Resource.__name__,
                     'group': None,
                     'perm_write': False,
                     'perm_read': False,
-                    }])
-        record1, record2 = Resource.create([{}, {}])
-        note, = Note.create([{
-                    'resource': record1,
-                    'message': "Foo",
                     }])
 
         with Transaction().set_user(user.id):
