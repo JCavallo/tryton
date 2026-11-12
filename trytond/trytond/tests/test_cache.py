@@ -8,7 +8,7 @@ from unittest.mock import patch
 
 from trytond import backend, config
 from trytond.cache import (
-    REFRESH_POOL_MSG, LRUDict, LRUDictTransaction, MemoryCache, freeze,
+    REFRESH_POOL_MSG, Cache, LRUDict, LRUDictTransaction, MemoryCache, freeze,
     unfreeze)
 from trytond.tests.test_tryton import (
     DB_NAME, USER, TestCase, activate_module, with_transaction)
@@ -230,10 +230,12 @@ class MemoryCacheTestCase(TestCase):
         with Transaction().start(DB_NAME, USER):
             cache.clear()
         time.sleep(config.getint('cache', 'clean_timeout'))
-        last = cache._clean_last
+        # sync sets _clean_last on the configured class, which may be a
+        # subclass of MemoryCache ([cache] class)
+        last = Cache._clean_last
 
         with Transaction().start(DB_NAME, USER):
-            self.assertGreater(cache._clean_last, last)
+            self.assertGreater(Cache._clean_last, last)
 
     def test_memory_cache_old_transaction(self):
         "Test old transaction does not fill cache"
@@ -293,7 +295,7 @@ class MemoryCacheChannelTestCase(MemoryCacheTestCase):
     def wait_cache_sync(self, after=None):
         if after is None:
             after = dt.datetime.now()
-        while MemoryCache._clean_last < after:
+        while Cache._clean_last < after:
             time.sleep(.01)
 
     def wait_cache_listening(self):
