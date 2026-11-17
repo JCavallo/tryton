@@ -133,8 +133,81 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-less');
   grunt.loadNpmTasks('grunt-po2json');
-  grunt.loadNpmTasks('grunt-qunit-junit');
   grunt.loadNpmTasks('grunt-shell');
+
+  grunt.registerTask('qunit_junit', 'Write JUnit reports of qunit tests',
+    function() {
+      var dest = '_build/test-reports';
+      var suite = null;
+      var escape = function(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;');
+      };
+      var seconds = function(runtime) {
+        return ((runtime || 0) / 1000).toFixed(3);
+      };
+      grunt.event.on('qunit.spawn', function(url) {
+        suite = {
+          name: url.replace(/^.*\//, '').replace(/\.html?$/, ''),
+          testcases: [],
+          failures: 0,
+          skipped: 0,
+        };
+      });
+      grunt.event.on('qunit.on.testEnd', function(test) {
+        if (!suite) {
+          return;
+        }
+        var classname = (test.fullName || []).slice(0, -1).join(' > ') ||
+          test.moduleName || suite.name;
+        var xml = '    <testcase classname="' + escape(classname) +
+          '" name="' + escape(test.name) +
+          '" time="' + seconds(test.runtime) + '"';
+        if (test.status == 'failed') {
+          suite.failures += 1;
+          var errors = (test.errors || []).map(function(error) {
+            var lines = [error.message];
+            if ('expected' in error) {
+              lines.push('Actual: ' + JSON.stringify(error.actual));
+              lines.push('Expected: ' + JSON.stringify(error.expected));
+            }
+            lines.push(error.stack);
+            return lines.filter(Boolean).join('\n');
+          });
+          xml += '>\n      <failure message="' +
+            escape((test.errors || [{}])[0].message || 'failed') + '">' +
+            escape(errors.join('\n\n')) + '</failure>\n    </testcase>';
+        } else if (test.status == 'skipped' || test.status == 'todo') {
+          suite.skipped += 1;
+          xml += '>\n      <skipped/>\n    </testcase>';
+        } else {
+          xml += '/>';
+        }
+        suite.testcases.push(xml);
+      });
+      // Written on runEnd as the qunit task aborts on failure
+      grunt.event.on('qunit.on.runEnd', function(run) {
+        if (!suite) {
+          return;
+        }
+        var xml = '<?xml version="1.0" encoding="UTF-8"?>\n' +
+          '<testsuites>\n' +
+          '  <testsuite name="' + escape(suite.name) +
+          '" tests="' + suite.testcases.length +
+          '" failures="' + suite.failures +
+          '" errors="0" skipped="' + suite.skipped +
+          '" time="' + seconds(run.runtime) + '">\n' +
+          suite.testcases.join('\n') + '\n' +
+          '  </testsuite>\n' +
+          '</testsuites>\n';
+        grunt.file.write(dest + '/TEST-' + suite.name + '.xml', xml);
+        suite = null;
+      });
+      grunt.log.ok('XML reports will be written to ' + dest);
+    });
 
   grunt.registerTask('default', 'Build for production.', function() {
     grunt.task.run(['concat', 'less', 'po2json', 'shell:tiptap']);

@@ -41,7 +41,6 @@
     "grunt-contrib-nodeunit": "^5.0",
     "grunt-contrib-qunit": "^10.1",
     "grunt-contrib-watch": "^1.1",
-    "grunt-qunit-junit": "^0.3.1",
     "qunit": "^2.24.1"
   },
   "keywords": [
