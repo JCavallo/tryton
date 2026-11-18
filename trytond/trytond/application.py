@@ -99,7 +99,7 @@ def preload():
     for db_name in db_list:
         if db_name not in Cache._local.listeners:
             if not Cache._clean_last:
-                Cache._clean_last = datetime.date.min
+                Cache._clean_last = datetime.datetime.min
             with Transaction().start(db_name, 0, readonly=True):
                 # Starting a transaction will trigger `Cache.sync`, which
                 # should spawn a thread to listen for cache invalidation and
