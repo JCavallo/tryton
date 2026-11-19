@@ -1,7 +1,7 @@
 # This file is part of Tryton.  The COPYRIGHT file at the top level of
 # this repository contains the full copyright notices and license terms.
 import os
-import signal
+import sys
 import logging
 import resource
 import csv
@@ -9,8 +9,19 @@ import time
 import datetime
 from io import StringIO
 
-MAX_RSS_MB = os.environ.get('TRYTOND_MAX_RSS_MB', 1024)
-CHECK_INTERVAL = os.environ.get('TRYTOND_RSS_CHECK_INTERVAL', 30)  # seconds
+
+def _int_env(name, default):
+    value = os.environ.get(name) or default
+    try:
+        return int(value)
+    except ValueError:
+        raise ValueError(f'{name}: integer expected, got {value!r}')
+
+
+# Workers whose resident memory exceeds MAX_RSS_MB are replaced once their
+# current requests are done (0: no limit)
+MAX_RSS_MB = _int_env('TRYTOND_MAX_RSS_MB', 1024)
+CHECK_INTERVAL = _int_env('TRYTOND_RSS_CHECK_INTERVAL', 30)  # seconds
 _last_checked = {}
 LF = '%(process)s %(thread)s [%(asctime)s] %(levelname)s %(name)s %(message)s'
 
@@ -46,28 +57,40 @@ def post_fork(server, worker):
             raise AssertionError
 
 
+def _rss_mb():
+    "Current resident memory of the process, in MB"
+    try:
+        with open('/proc/self/statm') as statm:
+            resident = int(statm.read().split()[1])
+        return resident * os.sysconf('SC_PAGE_SIZE') / 1024 ** 2
+    except (OSError, ValueError, IndexError):
+        # No procfs: fall back on the peak resident memory, in KiB on
+        # Linux and bytes on macOS
+        maxrss = resource.getrusage(resource.RUSAGE_SELF).ru_maxrss
+        return maxrss / 1024 ** (2 if sys.platform == 'darwin' else 1)
+
+
 def post_request(worker, req, environ, resp):
     '''
     post_request() gunicorn hook called after a worker completed a request
     Since gunicorn doesn't feature uwsgi's --reload-on-rss to kill bloated
     workers
     '''
+    if MAX_RSS_MB <= 0:
+        return
     now = time.time()
 
     pid = worker.pid
     # Only check every CHECK_INTERVAL seconds per worker
     if _last_checked.get(pid, 0) + CHECK_INTERVAL > now:
         return
-
-    logger.info(f'Worker {pid} is being checked after '
-        f'{now - _last_checked.get(pid, 0)} seconds')
     _last_checked[pid] = now
-    usage = resource.getrusage(resource.RUSAGE_SELF)
-    rss_mb = usage.ru_maxrss / (1024 ** 2)
+
     # To mimic uwsgi --reload-on-rss kill with inflated memory usage to
     # mitigate leaks
-    logger.debug(f'Worker {pid} is currently using {rss_mb} MB')
+    rss_mb = _rss_mb()
+    worker.log.debug(f'Worker {pid} is currently using {rss_mb:.0f} MB')
     if rss_mb > MAX_RSS_MB:
-        logger.info(f'Worker {pid} exceeded RSS limit: '
-            f'{rss_mb} MB > {MAX_RSS_MB} MB. Exiting.')
+        worker.log.info(f'Worker {pid} exceeded RSS limit: '
+            f'{rss_mb:.0f} MB > {MAX_RSS_MB} MB. Exiting.')
         worker.alive = False
